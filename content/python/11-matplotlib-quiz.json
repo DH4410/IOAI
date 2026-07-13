@@ -1,0 +1,105 @@
+{
+  "questions": [
+    {
+      "question": "What does <code>fig, ax = plt.subplots()</code> return?",
+      "options": [
+        "A single axes object",
+        "A tuple of (Figure, Axes) objects",
+        "A list of axes objects",
+        "A matplotlib Plot instance"
+      ],
+      "correct": 1,
+      "explanation": "plt.subplots() returns a tuple: the first element is the Figure (the outer container/canvas), the second is the Axes (the actual plot area with its own x/y axes, title, etc.). When you write fig, ax = plt.subplots(), Python unpacks this tuple into two separate variables. If you specify multiple rows/columns like plt.subplots(2, 3), the second element becomes a 2D numpy array of Axes objects instead of a single Axes."
+    },
+    {
+      "question": "You want to save a Matplotlib figure to a PNG file. Which code is correct?",
+      "options": [
+        "plt.show(); plt.savefig('plot.png')",
+        "plt.savefig('plot.png'); plt.show()",
+        "plt.export('plot.png'); plt.show()",
+        "fig.save('plot.png'); plt.show()"
+      ],
+      "correct": 1,
+      "explanation": "You MUST call savefig() BEFORE show(). plt.show() renders the figure and then clears it from memory — calling savefig() afterward saves a blank white image. The correct order is always: create the plot → savefig() → show(). plt.export() and fig.save() are not valid Matplotlib methods."
+    },
+    {
+      "question": "Which plot type is most appropriate for comparing the distribution of a continuous variable across multiple groups?",
+      "options": [
+        "Line plot",
+        "Scatter plot",
+        "Bar chart",
+        "Box plot"
+      ],
+      "correct": 3,
+      "explanation": "A box plot shows five key statistics (min, Q1, median, Q3, max) and outliers for each group, making it ideal for comparing distributions across categories. A line plot is for trends over time. A scatter plot shows the relationship between two continuous variables. A bar chart compares single summary values (like totals or means) per category — it does not show the full distribution shape."
+    },
+    {
+      "question": "In a Matplotlib confusion matrix heatmap created with <code>ax.imshow(cm, cmap='Blues')</code>, what do cells along the main diagonal represent?",
+      "options": [
+        "False positives — cases where the model was wrong",
+        "Correct predictions — cases where predicted label equals true label",
+        "Total number of samples per class",
+        "The precision of each class"
+      ],
+      "correct": 1,
+      "explanation": "The main diagonal (top-left to bottom-right) of a confusion matrix contains correct predictions — where the true label and predicted label match. Off-diagonal cells represent misclassifications. For example, cm[0,1] means 'true class 0 but predicted class 1'. A good model has large numbers on the diagonal and small numbers elsewhere, which shows up as a bright diagonal in a Blues heatmap."
+    },
+    {
+      "question": "What does the <code>alpha</code> parameter control in Matplotlib plot functions like <code>scatter()</code> and <code>hist()</code>?",
+      "options": [
+        "The size of the markers",
+        "The color of the plot elements",
+        "The transparency of the plot elements (0=invisible, 1=opaque)",
+        "The width of the figure in inches"
+      ],
+      "correct": 2,
+      "explanation": "alpha controls transparency. alpha=0 makes elements completely invisible, alpha=1 makes them fully opaque, and values in between give partial transparency. This is especially useful when plotting overlapping data — for example, two histograms with alpha=0.6 each will both be visible where they overlap. Marker size is controlled by s=, colors by color= or c=, and figure size by figsize= in plt.subplots()."
+    }
+  ],
+  "exercises": [
+    {
+      "prompt": "Create a figure with a single axes. Plot <code>y = x**2</code> for x from -5 to 5 (use 100 points with <code>np.linspace</code>). Set the title to <code>'Parabola'</code>, x-label to <code>'x'</code>, and y-label to <code>'x squared'</code>. Store the figure as <code>fig</code> and the axes as <code>ax</code>.",
+      "starter": "import matplotlib.pyplot as plt\nimport numpy as np\n\nx = np.linspace(-5, 5, 100)\ny = x ** 2\n\nfig, ax = plt.subplots(figsize=(6, 4))\n\n# Plot the parabola\n???\n\n# Set title and labels\n???\n\nplt.tight_layout()\nplt.show()\n",
+      "solution": "import matplotlib.pyplot as plt\nimport numpy as np\n\nx = np.linspace(-5, 5, 100)\ny = x ** 2\n\nfig, ax = plt.subplots(figsize=(6, 4))\n\nax.plot(x, y, color='steelblue', linewidth=2)\n\nax.set_title('Parabola')\nax.set_xlabel('x')\nax.set_ylabel('x squared')\n\nplt.tight_layout()\nplt.show()\n",
+      "hints": [
+        "Use ax.plot(x, y) to draw the line",
+        "Use ax.set_title(), ax.set_xlabel(), ax.set_ylabel() to add labels"
+      ],
+      "tests": [
+        "ax.get_title() == 'Parabola'",
+        "ax.get_xlabel() == 'x'",
+        "ax.get_ylabel() == 'x squared'",
+        "len(ax.lines) == 1"
+      ]
+    },
+    {
+      "prompt": "Create a figure with <strong>two subplots side by side</strong> (1 row, 2 columns). In the left subplot, plot a histogram of 500 random normal values (use <code>np.random.seed(0)</code>). In the right subplot, plot a histogram of 500 random uniform values (0 to 1). Set the left title to <code>'Normal'</code> and the right to <code>'Uniform'</code>.",
+      "starter": "import matplotlib.pyplot as plt\nimport numpy as np\n\nnp.random.seed(0)\nnormal_data  = np.random.randn(500)\nuniform_data = np.random.rand(500)\n\n# Create 1x2 subplot grid\nfig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 4))\n\n# Left: histogram of normal_data\n???\n\n# Right: histogram of uniform_data\n???\n\nplt.tight_layout()\nplt.show()\n",
+      "solution": "import matplotlib.pyplot as plt\nimport numpy as np\n\nnp.random.seed(0)\nnormal_data  = np.random.randn(500)\nuniform_data = np.random.rand(500)\n\nfig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 4))\n\nax1.hist(normal_data, bins=25, color='steelblue', edgecolor='white')\nax1.set_title('Normal')\nax1.set_xlabel('Value')\nax1.set_ylabel('Count')\n\nax2.hist(uniform_data, bins=25, color='tomato', edgecolor='white')\nax2.set_title('Uniform')\nax2.set_xlabel('Value')\nax2.set_ylabel('Count')\n\nplt.tight_layout()\nplt.show()\n",
+      "hints": [
+        "Use plt.subplots(1, 2) to create one row and two columns of subplots",
+        "ax1.hist(data, bins=25) draws a histogram; ax1.set_title('Normal') sets the title"
+      ],
+      "tests": [
+        "ax1.get_title() == 'Normal'",
+        "ax2.get_title() == 'Uniform'",
+        "len(ax1.patches) > 0",
+        "len(ax2.patches) > 0"
+      ]
+    },
+    {
+      "prompt": "Given the data below, create a scatter plot where <code>Class 0</code> points are colored blue and <code>Class 1</code> points are colored red. Add a legend with labels <code>'Class 0'</code> and <code>'Class 1'</code>, and set the title to <code>'Two Classes'</code>. Store the axes as <code>ax</code>.\n\n<code>np.random.seed(1); X = np.random.randn(80, 2); y = np.array([0]*40 + [1]*40); X[y==1] += 2</code>",
+      "starter": "import matplotlib.pyplot as plt\nimport numpy as np\n\nnp.random.seed(1)\nX = np.random.randn(80, 2)\ny = np.array([0]*40 + [1]*40)\nX[y == 1] += 2\n\nfig, ax = plt.subplots(figsize=(6, 5))\n\n# Scatter Class 0 (y==0) in blue\n???\n\n# Scatter Class 1 (y==1) in red\n???\n\n# Title and legend\n???\n\nplt.tight_layout()\nplt.show()\n",
+      "solution": "import matplotlib.pyplot as plt\nimport numpy as np\n\nnp.random.seed(1)\nX = np.random.randn(80, 2)\ny = np.array([0]*40 + [1]*40)\nX[y == 1] += 2\n\nfig, ax = plt.subplots(figsize=(6, 5))\n\nax.scatter(X[y==0, 0], X[y==0, 1], color='blue', label='Class 0', alpha=0.7, s=40)\nax.scatter(X[y==1, 0], X[y==1, 1], color='red',  label='Class 1', alpha=0.7, s=40)\n\nax.set_title('Two Classes')\nax.legend()\n\nplt.tight_layout()\nplt.show()\n",
+      "hints": [
+        "Use boolean indexing: X[y==0] gives all rows where y is 0; X[y==0, 0] is the first feature column",
+        "Call ax.scatter twice — once for each class with different colors and labels, then ax.legend() to show the legend"
+      ],
+      "tests": [
+        "ax.get_title() == 'Two Classes'",
+        "len(ax.collections) == 2",
+        "ax.get_legend() is not None"
+      ]
+    }
+  ]
+}

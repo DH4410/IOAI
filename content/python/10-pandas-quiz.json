@@ -1,0 +1,101 @@
+{
+  "questions": [
+    {
+      "question": "Given <code>df = pd.DataFrame({'a': [1,2,3], 'b': [4,5,6]})</code>, what does <code>df.iloc[1, 0]</code> return?",
+      "options": ["4", "2", "5", "1"],
+      "correct": 1,
+      "explanation": "iloc uses integer positions. Row 1 (second row, 0-indexed) and column 0 (first column, 'a') gives the value 2. Row 0 would give 1 (option D). Column 1 at row 0 would give 4 (option A). iloc[1,1] would give 5 (option C). Remember: iloc is always [row_position, column_position]."
+    },
+    {
+      "question": "What is the correct way to filter a DataFrame for rows where column 'age' is over 30 AND column 'dept' equals 'Eng'?",
+      "options": [
+        "df[df['age'] > 30 and df['dept'] == 'Eng']",
+        "df[df['age'] > 30 & df['dept'] == 'Eng']",
+        "df[(df['age'] > 30) & (df['dept'] == 'Eng')]",
+        "df.filter(age > 30, dept == 'Eng')"
+      ],
+      "correct": 2,
+      "explanation": "The correct syntax uses the bitwise AND operator & between two boolean Series, with each condition in its own parentheses. Option A uses Python's 'and' keyword which doesn't work on arrays. Option B is missing the outer parentheses, causing operator precedence errors (& binds tighter than >). Option D is not a valid Pandas method."
+    },
+    {
+      "question": "What does <code>df.groupby('dept')['salary'].mean()</code> return?",
+      "options": [
+        "The overall mean salary across the entire DataFrame",
+        "A Series with the mean salary for each unique department",
+        "A DataFrame with departments as columns",
+        "The department with the highest mean salary"
+      ],
+      "correct": 1,
+      "explanation": "groupby('dept') splits the DataFrame into groups by department value, then ['salary'].mean() computes the average salary within each group. The result is a Series indexed by the unique department names. To get the overall mean you would just use df['salary'].mean(). To get which department has the highest mean you would add .idxmax() at the end."
+    },
+    {
+      "question": "Which method fills missing values (NaN) in a Pandas column with the column's mean?",
+      "options": [
+        "df['col'].replace(NaN, df['col'].mean())",
+        "df['col'].fillna(df['col'].mean())",
+        "df['col'].dropna(df['col'].mean())",
+        "df['col'].impute(strategy='mean')"
+      ],
+      "correct": 1,
+      "explanation": "fillna() replaces NaN values with the provided value. df['col'].fillna(df['col'].mean()) computes the column mean and fills all NaN positions with it. replace() works for specific values but doesn't target NaN by default and requires different syntax. dropna() removes missing rows, it doesn't fill them. impute() is a scikit-learn concept, not a Pandas method."
+    },
+    {
+      "question": "What does <code>df.loc['a':'c', 'name']</code> return when the DataFrame has string row labels 'a', 'b', 'c', 'd'?",
+      "options": [
+        "The 'name' column values for rows at positions 0 and 1 (exclusive end)",
+        "The 'name' column values for rows labeled 'a', 'b', and 'c' (inclusive end)",
+        "A KeyError because you cannot slice with string labels",
+        "The 'name' column values only for rows 'a' and 'c'"
+      ],
+      "correct": 1,
+      "explanation": "loc uses label-based indexing and, importantly, slicing with loc is INCLUSIVE on both ends. So 'a':'c' includes rows labeled 'a', 'b', AND 'c'. This is different from iloc where slicing is exclusive at the end (like Python lists). This behavior applies whenever loc slices with labels — both row and column slices are inclusive."
+    }
+  ],
+  "exercises": [
+    {
+      "prompt": "Create a DataFrame from the following data and compute the mean <code>score</code> grouped by <code>subject</code>. Store the result (a Series) in <code>subject_means</code>.\n\n<code>data = {'student': ['A','B','C','A','B','C'], 'subject': ['Math','Math','Math','Science','Science','Science'], 'score': [85, 90, 78, 92, 88, 76]}</code>",
+      "starter": "import pandas as pd\n\ndata = {\n    'student': ['A', 'B', 'C', 'A', 'B', 'C'],\n    'subject': ['Math', 'Math', 'Math', 'Science', 'Science', 'Science'],\n    'score':   [85, 90, 78, 92, 88, 76]\n}\ndf = pd.DataFrame(data)\n\nsubject_means = ???\nprint(subject_means)\n",
+      "solution": "import pandas as pd\n\ndata = {\n    'student': ['A', 'B', 'C', 'A', 'B', 'C'],\n    'subject': ['Math', 'Math', 'Math', 'Science', 'Science', 'Science'],\n    'score':   [85, 90, 78, 92, 88, 76]\n}\ndf = pd.DataFrame(data)\n\nsubject_means = df.groupby('subject')['score'].mean()\nprint(subject_means)\n# subject\n# Math       84.333333\n# Science    85.333333\n",
+      "hints": [
+        "Use df.groupby('subject') to split by subject, then ['score'] to select the column, then .mean() to aggregate",
+        "The result is a Series indexed by subject name"
+      ],
+      "tests": [
+        "abs(float(subject_means['Math']) - 251/3) < 0.01",
+        "abs(float(subject_means['Science']) - 256/3) < 0.01",
+        "len(subject_means) == 2"
+      ]
+    },
+    {
+      "prompt": "Given the DataFrame below, fill missing values in the <code>salary</code> column with the column median, then add a new column <code>senior</code> that is <code>True</code> if <code>years >= 5</code> and <code>False</code> otherwise.\n\n<code>df = pd.DataFrame({'name':['A','B','C','D'], 'salary':[60000, None, 80000, 75000], 'years':[3, 8, 2, 6]})</code>",
+      "starter": "import pandas as pd\nimport numpy as np\n\ndf = pd.DataFrame({\n    'name':   ['A', 'B', 'C', 'D'],\n    'salary': [60000, None, 80000, 75000],\n    'years':  [3, 8, 2, 6]\n})\n\n# Fill missing salary with median\ndf['salary'] = ???\n\n# Add 'senior' column\ndf['senior'] = ???\n\nprint(df)\n",
+      "solution": "import pandas as pd\nimport numpy as np\n\ndf = pd.DataFrame({\n    'name':   ['A', 'B', 'C', 'D'],\n    'salary': [60000, None, 80000, 75000],\n    'years':  [3, 8, 2, 6]\n})\n\n# Fill missing salary with median of non-null values\ndf['salary'] = df['salary'].fillna(df['salary'].median())\n\n# Add 'senior' column\ndf['senior'] = df['years'] >= 5\n\nprint(df)\n",
+      "hints": [
+        "Use df['salary'].fillna(df['salary'].median()) — compute the median first, then fill",
+        "df['years'] >= 5 creates a boolean Series of True/False directly"
+      ],
+      "tests": [
+        "df['salary'].isnull().sum() == 0",
+        "abs(float(df.loc[1, 'salary']) - 72500.0) < 0.01",
+        "bool(df.loc[1, 'senior']) == True",
+        "bool(df.loc[0, 'senior']) == False",
+        "bool(df.loc[3, 'senior']) == True"
+      ]
+    },
+    {
+      "prompt": "Load the inline data below into a DataFrame. Filter for rows where <code>dept</code> is <code>'Eng'</code> and <code>score</code> is above 80. Then convert the filtered <code>score</code> column to a NumPy array and store it in <code>eng_scores</code>.\n\n<code>data = {'name':['A','B','C','D','E'], 'dept':['Eng','Mkt','Eng','Eng','Mkt'], 'score':[85, 90, 75, 92, 88]}</code>",
+      "starter": "import pandas as pd\nimport numpy as np\n\ndata = {\n    'name':  ['A', 'B', 'C', 'D', 'E'],\n    'dept':  ['Eng', 'Mkt', 'Eng', 'Eng', 'Mkt'],\n    'score': [85, 90, 75, 92, 88]\n}\ndf = pd.DataFrame(data)\n\n# Filter for Eng dept AND score > 80\nfiltered = ???\n\n# Convert score column to numpy array\neng_scores = ???\n\nprint(eng_scores)\n",
+      "solution": "import pandas as pd\nimport numpy as np\n\ndata = {\n    'name':  ['A', 'B', 'C', 'D', 'E'],\n    'dept':  ['Eng', 'Mkt', 'Eng', 'Eng', 'Mkt'],\n    'score': [85, 90, 75, 92, 88]\n}\ndf = pd.DataFrame(data)\n\n# Filter for Eng dept AND score > 80\nfiltered = df[(df['dept'] == 'Eng') & (df['score'] > 80)]\n\n# Convert score column to numpy array\neng_scores = filtered['score'].to_numpy()\n\nprint(eng_scores)  # [85 92]\n",
+      "hints": [
+        "Use (df['dept'] == 'Eng') & (df['score'] > 80) — remember the parentheses around each condition",
+        "Use .to_numpy() or .values to convert a Pandas Series to a NumPy array"
+      ],
+      "tests": [
+        "len(eng_scores) == 2",
+        "int(eng_scores[0]) == 85",
+        "int(eng_scores[1]) == 92",
+        "import numpy as np; isinstance(eng_scores, np.ndarray)"
+      ]
+    }
+  ]
+}

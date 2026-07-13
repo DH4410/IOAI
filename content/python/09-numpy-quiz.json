@@ -1,0 +1,89 @@
+{
+  "questions": [
+    {
+      "question": "What does <code>np.array([1, 2, 3]).shape</code> return?",
+      "options": ["(1, 3)", "(3,)", "(3, 1)", "3"],
+      "correct": 1,
+      "explanation": "A 1D NumPy array created from a list of 3 elements has shape (3,) — a single-element tuple containing the length. It is NOT (1, 3) (that would be a 2D row vector with shape 1×3) and NOT (3, 1) (that would be a column vector). The plain integer 3 is not a valid shape — shape is always a tuple."
+    },
+    {
+      "question": "Given <code>a = np.array([[1,2,3],[4,5,6]])</code>, what does <code>a.sum(axis=0)</code> return?",
+      "options": ["array([5, 7, 9])", "array([6, 15])", "21", "array([1, 2, 3, 4, 5, 6])"],
+      "correct": 0,
+      "explanation": "axis=0 collapses the row dimension, summing column by column: column 0 gives 1+4=5, column 1 gives 2+5=7, column 2 gives 3+6=9. The result has shape (3,). axis=1 would give [6, 15] (sum of each row). No axis would give 21 (grand total)."
+    },
+    {
+      "question": "What is broadcasting in NumPy?",
+      "options": [
+        "Sending array data over a network",
+        "Copying an array many times to fill memory",
+        "Automatically stretching smaller arrays to match the shape of larger arrays during operations",
+        "Printing array values to the console"
+      ],
+      "correct": 2,
+      "explanation": "Broadcasting allows NumPy to perform arithmetic on arrays of different (but compatible) shapes by logically stretching the smaller array to match the larger one. For example, adding a shape-(3,) vector to a shape-(4,3) matrix works because the vector is broadcast across all 4 rows. No actual data copying happens in memory — NumPy handles this efficiently under the hood."
+    },
+    {
+      "question": "Given <code>a = np.array([10, 20, 30, 40, 50])</code>, what does <code>a[a > 25]</code> return?",
+      "options": ["array([False, False,  True,  True,  True])", "array([30, 40, 50])", "array([10, 20])", "array([2, 3, 4])"],
+      "correct": 1,
+      "explanation": "Boolean indexing first creates a mask [False, False, True, True, True] by comparing each element to 25. This mask is then used to select only the elements where the mask is True, giving array([30, 40, 50]). The mask itself is option A. Option C would be elements NOT greater than 25. Option D gives indices, not values — use np.where() or np.argwhere() for that."
+    },
+    {
+      "question": "Which NumPy function finds the INDEX of the maximum value in an array?",
+      "options": ["np.max()", "np.maximum()", "np.argmax()", "np.findmax()"],
+      "correct": 2,
+      "explanation": "np.argmax() returns the index of the maximum value. For example, np.argmax([3, 7, 2, 9, 1]) returns 3 (because 9 is at index 3). np.max() returns the maximum value itself (9), not its index. np.maximum() compares two arrays element-wise and returns the element-wise maximum. np.findmax() does not exist."
+    }
+  ],
+  "exercises": [
+    {
+      "prompt": "Create a 4×4 NumPy array of zeros, then set the diagonal to 1 (making an identity matrix). Assign the result to <code>eye</code>.",
+      "starter": "import numpy as np\n\n# Create a 4x4 identity matrix\neye = ???\nprint(eye)\n",
+      "solution": "import numpy as np\n\n# Method 1: use np.eye directly\neye = np.eye(4)\nprint(eye)\n\n# Method 2: build it manually\n# eye = np.zeros((4, 4))\n# np.fill_diagonal(eye, 1)\n",
+      "hints": [
+        "NumPy has a built-in function specifically for identity matrices: np.eye(n)",
+        "Alternatively: start with np.zeros((4,4)) and use np.fill_diagonal(arr, 1) or indexing arr[range(4), range(4)] = 1"
+      ],
+      "tests": [
+        "eye.shape == (4, 4)",
+        "float(eye[0,0]) == 1.0",
+        "float(eye[0,1]) == 0.0",
+        "float(eye[3,3]) == 1.0",
+        "float(eye.sum()) == 4.0"
+      ]
+    },
+    {
+      "prompt": "Given the array <code>scores = np.array([55, 72, 88, 91, 43, 67, 80, 95, 61, 78])</code>, compute: (1) the mean, (2) the number of scores above 75, (3) the normalized scores where each value is <code>(score - mean) / std</code>. Store results in <code>mean_score</code>, <code>above_75</code>, and <code>normalized</code>.",
+      "starter": "import numpy as np\n\nscores = np.array([55, 72, 88, 91, 43, 67, 80, 95, 61, 78])\n\nmean_score = ???\nabove_75   = ???\nnormalized = ???\n\nprint(f\"Mean: {mean_score:.2f}\")\nprint(f\"Above 75: {above_75}\")\nprint(f\"Normalized: {normalized.round(2)}\")\n",
+      "solution": "import numpy as np\n\nscores = np.array([55, 72, 88, 91, 43, 67, 80, 95, 61, 78])\n\nmean_score = scores.mean()\nabove_75   = int((scores > 75).sum())\nnormalized = (scores - mean_score) / scores.std()\n\nprint(f\"Mean: {mean_score:.2f}\")\nprint(f\"Above 75: {above_75}\")\nprint(f\"Normalized: {normalized.round(2)}\")\n",
+      "hints": [
+        "Use .mean() and .std() to compute mean and standard deviation",
+        "Boolean indexing: (scores > 75) creates a True/False array; .sum() counts True values",
+        "Normalization formula: (scores - mean) / std"
+      ],
+      "tests": [
+        "abs(mean_score - 73.0) < 0.01",
+        "above_75 == 4",
+        "abs(normalized.mean()) < 1e-10",
+        "abs(normalized.std() - 1.0) < 1e-10"
+      ]
+    },
+    {
+      "prompt": "Create a feature matrix <code>X</code> using <code>np.random.seed(0)</code> and <code>np.random.randn(50, 3)</code>. Then apply min-max normalization so every feature (column) is scaled to the range [0, 1]. Store the result in <code>X_norm</code>. Verify that <code>X_norm.min(axis=0)</code> is all zeros and <code>X_norm.max(axis=0)</code> is all ones.",
+      "starter": "import numpy as np\n\nnp.random.seed(0)\nX = np.random.randn(50, 3)\n\n# Min-max normalize each column\nX_norm = ???\n\nprint(\"Min per column:\", X_norm.min(axis=0).round(4))\nprint(\"Max per column:\", X_norm.max(axis=0).round(4))\n",
+      "solution": "import numpy as np\n\nnp.random.seed(0)\nX = np.random.randn(50, 3)\n\nX_min = X.min(axis=0)   # shape (3,)\nX_max = X.max(axis=0)   # shape (3,)\nX_norm = (X - X_min) / (X_max - X_min)\n\nprint(\"Min per column:\", X_norm.min(axis=0).round(4))\nprint(\"Max per column:\", X_norm.max(axis=0).round(4))\n",
+      "hints": [
+        "Compute X.min(axis=0) and X.max(axis=0) to get per-column min and max — these have shape (3,) and will broadcast against X which has shape (50, 3)",
+        "Formula: X_norm = (X - X_min) / (X_max - X_min)"
+      ],
+      "tests": [
+        "X_norm.shape == (50, 3)",
+        "abs(X_norm.min(axis=0).sum()) < 1e-10",
+        "abs(X_norm.max(axis=0).sum() - 3.0) < 1e-10",
+        "float(X_norm.min()) >= 0.0",
+        "float(X_norm.max()) <= 1.0 + 1e-10"
+      ]
+    }
+  ]
+}
