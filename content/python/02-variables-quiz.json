@@ -1,0 +1,66 @@
+{
+  "questions": [
+    {
+      "question": "What is the type of the value produced by <code>10 / 2</code> in Python?",
+      "options": ["int", "float", "str", "bool"],
+      "correct": 1,
+      "explanation": "The / operator always produces a float, even when the numbers divide evenly. 10 / 2 gives 5.0, which is a float. If you want an integer, use // instead."
+    },
+    {
+      "question": "What does <code>int(3.9)</code> return?",
+      "options": ["4", "3", "3.9", "An error"],
+      "correct": 1,
+      "explanation": "Converting a float to an int with int() always chops off the decimal part — it never rounds. So int(3.9) is 3, not 4. Use round(3.9) if you actually want 4."
+    },
+    {
+      "question": "Which of these is a valid Python variable name?",
+      "options": ["2players", "player score", "class", "player_score"],
+      "correct": 3,
+      "explanation": "player_score follows the rules: it uses letters and an underscore, doesn't start with a digit, has no spaces, and isn't a keyword. '2players' starts with a digit, 'player score' has a space, and 'class' is a reserved keyword."
+    },
+    {
+      "question": "What is the result of <code>\"5\" + \"3\"</code>?",
+      "options": ["8", "53", "\"8\"", "A TypeError"],
+      "correct": 1,
+      "explanation": "Both values are strings (text), so + glues them together instead of adding. \"5\" + \"3\" gives \"53\". To get 8 you would need numbers: 5 + 3."
+    },
+    {
+      "question": "After running <code>a = 10</code> then <code>a += 5</code>, what is the value of <code>a</code>?",
+      "options": ["10", "5", "15", "105"],
+      "correct": 2,
+      "explanation": "a += 5 is shorthand for a = a + 5. It reads the current value (10), adds 5, and stores 15 back into a. This 'update in place' pattern is everywhere in training loops."
+    }
+  ],
+  "exercises": [
+    {
+      "prompt": "Create a variable <code>celsius</code> set to 25. Convert it to Fahrenheit using the formula F = C * 9/5 + 32 and store the result in a variable called <code>fahrenheit</code>. Print fahrenheit.",
+      "starter": "celsius = 25\n# Convert to Fahrenheit and store in 'fahrenheit'\n\nprint(fahrenheit)\n",
+      "solution": "celsius = 25\nfahrenheit = celsius * 9/5 + 32\nprint(fahrenheit)",
+      "tests": ["fahrenheit == 77.0", "celsius == 25"],
+      "hints": [
+        "The formula is F = C * 9/5 + 32. Plug in celsius where C goes.",
+        "Because you use / in the formula, the answer will be a float: 77.0"
+      ]
+    },
+    {
+      "prompt": "You are given the number of correct answers as a STRING (as if it came from a file). Convert <code>correct_text</code> to an integer, then compute the percentage out of 20 total questions. Store the percentage in <code>percent</code>.",
+      "starter": "correct_text = \"17\"\ntotal = 20\n# Convert correct_text to an int, then compute the percent\n\nprint(percent)\n",
+      "solution": "correct_text = \"17\"\ntotal = 20\ncorrect = int(correct_text)\npercent = correct / total * 100\nprint(percent)",
+      "tests": ["percent == 85.0"],
+      "hints": [
+        "Use int(correct_text) to turn the string \"17\" into the number 17.",
+        "Percentage is correct / total * 100. With 17 out of 20 that is 85.0"
+      ]
+    },
+    {
+      "prompt": "Create two variables <code>x</code> and <code>y</code> holding \"first\" and \"second\". Then swap their values in a single line using multiple assignment, so that x becomes \"second\" and y becomes \"first\".",
+      "starter": "x = \"first\"\ny = \"second\"\n# Swap x and y in one line\n\n",
+      "solution": "x = \"first\"\ny = \"second\"\nx, y = y, x",
+      "tests": ["x == \"second\"", "y == \"first\""],
+      "hints": [
+        "Python lets you swap without a temporary variable.",
+        "The line is: x, y = y, x"
+      ]
+    }
+  ]
+}

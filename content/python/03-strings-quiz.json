@@ -1,0 +1,66 @@
+{
+  "questions": [
+    {
+      "question": "For <code>word = \"Python\"</code>, what does <code>word[1]</code> return?",
+      "options": ["P", "y", "Py", "n"],
+      "correct": 1,
+      "explanation": "Indexing starts at 0, so word[0] is 'P' and word[1] is 'y'. Remember: the first character is at index 0, not 1."
+    },
+    {
+      "question": "What does the slice <code>\"Python\"[0:3]</code> return?",
+      "options": ["Pyth", "Pyt", "ytho", "Python"],
+      "correct": 1,
+      "explanation": "Slicing includes the start index but stops before the stop index. [0:3] gives indexes 0, 1, 2 which are 'P', 'y', 't' = 'Pyt'. The character at index 3 is not included."
+    },
+    {
+      "question": "After <code>text = \"hello\"</code> and <code>text.upper()</code>, what does <code>print(text)</code> show?",
+      "options": ["HELLO", "hello", "Hello", "An error"],
+      "correct": 1,
+      "explanation": "Strings are immutable, so .upper() returns a NEW string and leaves the original unchanged. Since the result wasn't stored, text is still 'hello'. To keep it you must write text = text.upper()."
+    },
+    {
+      "question": "What does <code>\"ab\" * 3</code> produce?",
+      "options": ["ababab", "abababab", "6", "aaabbb"],
+      "correct": 0,
+      "explanation": "The * operator repeats a string. \"ab\" * 3 means \"ab\" glued to itself 3 times: \"ababab\"."
+    },
+    {
+      "question": "Given <code>name = \"Ada\"</code> and <code>score = 92</code>, what does <code>f\"{name}: {score}\"</code> produce?",
+      "options": ["{name}: {score}", "Ada: 92", "name: score", "Ada 92"],
+      "correct": 1,
+      "explanation": "An f-string replaces each {...} with the value of the expression inside. So {name} becomes Ada and {score} becomes 92, giving 'Ada: 92'."
+    }
+  ],
+  "exercises": [
+    {
+      "prompt": "You have <code>full_name = \"Ada Lovelace\"</code>. Split it into words and store the first word in <code>first</code> and the second word in <code>last</code>.",
+      "starter": "full_name = \"Ada Lovelace\"\n# Split into words and grab each one\n\n",
+      "solution": "full_name = \"Ada Lovelace\"\nparts = full_name.split()\nfirst = parts[0]\nlast = parts[1]",
+      "tests": ["first == \"Ada\"", "last == \"Lovelace\""],
+      "hints": [
+        "full_name.split() gives you a list of the two words.",
+        "The first word is at index 0 and the second at index 1 of that list."
+      ]
+    },
+    {
+      "prompt": "Given the messy string <code>raw = \"  Machine Learning  \"</code>, clean it by removing the surrounding spaces AND making it all lowercase. Store the result in <code>clean</code>.",
+      "starter": "raw = \"  Machine Learning  \"\n# Strip the spaces and lowercase it\n\nprint(clean)\n",
+      "solution": "raw = \"  Machine Learning  \"\nclean = raw.strip().lower()\nprint(clean)",
+      "tests": ["clean == \"machine learning\""],
+      "hints": [
+        "You can chain methods: first .strip() to remove spaces, then .lower().",
+        "raw.strip().lower() does both in one line."
+      ]
+    },
+    {
+      "prompt": "Given <code>value = 0.86421</code>, build a string called <code>message</code> that reads exactly <code>Accuracy: 0.86</code> using an f-string that shows the value with 2 decimal places.",
+      "starter": "value = 0.86421\n# Build message = \"Accuracy: 0.86\" using an f-string\n\nprint(message)\n",
+      "solution": "value = 0.86421\nmessage = f\"Accuracy: {value:.2f}\"\nprint(message)",
+      "tests": ["message == \"Accuracy: 0.86\""],
+      "hints": [
+        "Inside the braces, add :.2f to show 2 decimal places.",
+        "The f-string is f\"Accuracy: {value:.2f}\""
+      ]
+    }
+  ]
+}

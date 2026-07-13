@@ -1,0 +1,103 @@
+{
+  "questions": [
+    {
+      "question": "What does the pre-activation <code>z = w · x + b</code> compute?",
+      "options": [
+        "Each input multiplied by its weight, all summed together, plus the bias",
+        "The largest input value times the bias",
+        "The number of inputs that are equal to 1",
+        "The average of all the weights"
+      ],
+      "correct": 0,
+      "explanation": "The dot product w · x is w1·x1 + w2·x2 + ... + wn·xn — multiply each input by its weight and add them up. Then the bias b is added on top. This single number is fed into the activation function."
+    },
+    {
+      "question": "In the perceptron learning rule <code>w_i ← w_i + η(y − ŷ)x_i</code>, what happens when the prediction is correct?",
+      "options": [
+        "The weights double",
+        "Nothing changes, because the error (y − ŷ) is zero",
+        "The learning rate is reduced",
+        "The bias is reset to zero"
+      ],
+      "correct": 1,
+      "explanation": "When ŷ equals y, the error term (y − ŷ) is 0, so η(y − ŷ)x_i = 0 for every weight. Correct predictions leave the weights untouched — only mistakes cause updates."
+    },
+    {
+      "question": "Why can a single perceptron NOT learn the XOR function?",
+      "options": [
+        "XOR has too many inputs to fit in memory",
+        "XOR outputs are not linearly separable — no single straight line can split the 1s from the 0s",
+        "The step function only works for AND and OR",
+        "XOR requires a negative learning rate"
+      ],
+      "correct": 1,
+      "explanation": "The XOR 1s sit at opposite corners of the square and the 0s at the other opposite corners. No single straight line can separate them. A perceptron can only draw one line (a linear boundary), so it fails on XOR."
+    },
+    {
+      "question": "Geometrically, what does the equation <code>w · x + b = 0</code> represent for a 2-input perceptron?",
+      "options": [
+        "A single point",
+        "A parabola",
+        "A straight line (the decision boundary)",
+        "A circle centered at the origin"
+      ],
+      "correct": 2,
+      "explanation": "With two inputs, w1·x1 + w2·x2 + b = 0 is the equation of a straight line. It separates the plane into the region the perceptron labels 1 (where the expression is ≥ 0) and the region it labels 0."
+    },
+    {
+      "question": "What is the role of the learning rate η in the perceptron update?",
+      "options": [
+        "It decides how many inputs the perceptron has",
+        "It controls the size of each weight adjustment step",
+        "It sets the threshold of the step function",
+        "It counts the number of epochs"
+      ],
+      "correct": 1,
+      "explanation": "η scales how big each nudge to the weights is. A small η makes cautious, small adjustments; a large η makes big jumps that may overshoot. It does not change the network's structure, only the step size of learning."
+    }
+  ],
+  "exercises": [
+    {
+      "prompt": "Implement the step activation function. It should return <code>1.0</code> when z is greater than or equal to 0, and <code>0.0</code> otherwise. Make it work on a single number.",
+      "starter": "import numpy as np\n\ndef step(z):\n    # Return 1.0 if z >= 0 else 0.0\n    pass\n",
+      "solution": "import numpy as np\n\ndef step(z):\n    return 1.0 if z >= 0 else 0.0",
+      "tests": [
+        "assert step(0.5) == 1.0",
+        "assert step(0.0) == 1.0",
+        "assert step(-3.0) == 0.0"
+      ],
+      "hints": [
+        "You can use a simple if/else, or the expression 1.0 if z >= 0 else 0.0",
+        "Remember that z = 0 should return 1.0 (the boundary counts as firing)"
+      ]
+    },
+    {
+      "prompt": "Given weights <code>w = [2.0, 1.0]</code>, bias <code>b = -2.0</code>, and input <code>x = [1.0, 1.0]</code>, compute the pre-activation z (the dot product plus bias) and store it in a variable called <code>z</code>. Then print it.",
+      "starter": "import numpy as np\n\nw = np.array([2.0, 1.0])\nb = -2.0\nx = np.array([1.0, 1.0])\n\n# Compute z = w · x + b\nz = \nprint(z)\n",
+      "solution": "import numpy as np\n\nw = np.array([2.0, 1.0])\nb = -2.0\nx = np.array([1.0, 1.0])\n\nz = np.dot(w, x) + b\nprint(z)",
+      "tests": [
+        "assert abs(z - 1.0) < 1e-9"
+      ],
+      "hints": [
+        "The dot product of w and x is np.dot(w, x) or w @ x",
+        "Don't forget to add the bias b after the dot product"
+      ]
+    },
+    {
+      "prompt": "Train a perceptron to learn the OR function using the perceptron learning rule. The OR function outputs 1 if either input is 1. Fill in the update rule and return the final weights and bias. After training, <code>predict([0,0])</code> should be 0 and the other three inputs should give 1.",
+      "starter": "import numpy as np\n\nX = np.array([[0,0],[0,1],[1,0],[1,1]], dtype=float)\ny = np.array([0, 1, 1, 1], dtype=float)  # OR\n\nw = np.zeros(2)\nb = 0.0\nlr = 0.1\n\ndef step(z):\n    return 1.0 if z >= 0 else 0.0\n\nfor epoch in range(20):\n    for xi, target in zip(X, y):\n        pred = step(np.dot(w, xi) + b)\n        error = target - pred\n        # TODO: update w and b using the perceptron rule\n        pass\n\ndef predict(x):\n    return step(np.dot(w, np.array(x, dtype=float)) + b)\n",
+      "solution": "import numpy as np\n\nX = np.array([[0,0],[0,1],[1,0],[1,1]], dtype=float)\ny = np.array([0, 1, 1, 1], dtype=float)  # OR\n\nw = np.zeros(2)\nb = 0.0\nlr = 0.1\n\ndef step(z):\n    return 1.0 if z >= 0 else 0.0\n\nfor epoch in range(20):\n    for xi, target in zip(X, y):\n        pred = step(np.dot(w, xi) + b)\n        error = target - pred\n        w += lr * error * xi\n        b += lr * error\n\ndef predict(x):\n    return step(np.dot(w, np.array(x, dtype=float)) + b)",
+      "tests": [
+        "assert predict([0,0]) == 0.0",
+        "assert predict([0,1]) == 1.0",
+        "assert predict([1,0]) == 1.0",
+        "assert predict([1,1]) == 1.0"
+      ],
+      "hints": [
+        "The update rule is w += lr * error * xi for the weights",
+        "The bias updates similarly but without multiplying by an input: b += lr * error",
+        "OR is linearly separable, so the perceptron will converge within a few epochs"
+      ]
+    }
+  ]
+}

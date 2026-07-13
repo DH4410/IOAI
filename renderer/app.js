@@ -403,7 +403,19 @@ async function openLesson(trackId, lessonId) {
 
   // Load markdown
   const mdRaw = await window.api.readFile(`content/${trackId}/${lesson.file}`);
-  if (!mdRaw) { container.innerHTML = '<p style="color:var(--red)">Lesson content not found.</p>'; return; }
+  if (!mdRaw) {
+    container.innerHTML = `
+      <div class="lesson-header">
+        <div class="lesson-breadcrumb">${track.name} <span>/ ${lesson.title}</span></div>
+        <div class="lesson-title">${lesson.title}</div>
+      </div>
+      <div style="padding:40px 0;color:var(--text3);text-align:center">
+        <div style="font-size:32px;margin-bottom:16px">🚧</div>
+        <div style="font-size:15px;color:var(--text2);margin-bottom:8px">This lesson is being prepared</div>
+        <div style="font-size:13px">Check back soon — content is being added regularly.</div>
+      </div>`;
+    return;
+  }
 
   const { meta, body } = parseMarkdownMeta(mdRaw);
 
