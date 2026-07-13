@@ -1,0 +1,129 @@
+{
+  "tracks": [
+    {
+      "id": "python",
+      "name": "Python Basics",
+      "icon": "🐍",
+      "description": "Learn Python from scratch. Variables, loops, functions, classes, and libraries like numpy and pandas.",
+      "totalTime": 420,
+      "requiresPrev": false,
+      "lessons": [
+        { "id": "py-01-intro",       "title": "What is Python?",              "file": "01-intro.md",       "estimatedTime": 20, "difficulty": "beginner" },
+        { "id": "py-02-variables",   "title": "Variables and Data Types",     "file": "02-variables.md",   "estimatedTime": 35, "difficulty": "beginner" },
+        { "id": "py-03-strings",     "title": "Strings and Text",             "file": "03-strings.md",     "estimatedTime": 30, "difficulty": "beginner" },
+        { "id": "py-04-control",     "title": "Control Flow: if / for / while","file": "04-control.md",   "estimatedTime": 40, "difficulty": "beginner" },
+        { "id": "py-05-functions",   "title": "Functions",                    "file": "05-functions.md",   "estimatedTime": 40, "difficulty": "beginner" },
+        { "id": "py-06-lists",       "title": "Lists, Tuples, and Sets",      "file": "06-lists.md",       "estimatedTime": 35, "difficulty": "beginner" },
+        { "id": "py-07-dicts",       "title": "Dictionaries",                 "file": "07-dicts.md",       "estimatedTime": 30, "difficulty": "beginner" },
+        { "id": "py-08-oop",         "title": "Classes and OOP",              "file": "08-oop.md",         "estimatedTime": 45, "difficulty": "intermediate" },
+        { "id": "py-09-numpy",       "title": "NumPy: Arrays and Math",       "file": "09-numpy.md",       "estimatedTime": 50, "difficulty": "intermediate" },
+        { "id": "py-10-pandas",      "title": "Pandas: Working with Data",    "file": "10-pandas.md",      "estimatedTime": 50, "difficulty": "intermediate" },
+        { "id": "py-11-matplotlib",  "title": "Matplotlib: Visualizing Data", "file": "11-matplotlib.md",  "estimatedTime": 45, "difficulty": "intermediate" }
+      ]
+    },
+    {
+      "id": "math",
+      "name": "Math for AI",
+      "icon": "∑",
+      "description": "The essential math behind AI: linear algebra, calculus, probability, and information theory.",
+      "totalTime": 300,
+      "requiresPrev": true,
+      "lessons": [
+        { "id": "math-01-linalg",    "title": "Vectors and Matrices",         "file": "01-linalg.md",      "estimatedTime": 50, "difficulty": "intermediate" },
+        { "id": "math-02-dot",       "title": "Dot Product and Norms",        "file": "02-dot.md",         "estimatedTime": 40, "difficulty": "intermediate" },
+        { "id": "math-03-calc",      "title": "Derivatives and Gradients",    "file": "03-calc.md",        "estimatedTime": 55, "difficulty": "intermediate" },
+        { "id": "math-04-prob",      "title": "Probability Basics",           "file": "04-prob.md",        "estimatedTime": 50, "difficulty": "intermediate" },
+        { "id": "math-05-info",      "title": "Entropy and Cross-Entropy",    "file": "05-info.md",        "estimatedTime": 45, "difficulty": "intermediate" },
+        { "id": "math-06-stats",     "title": "Statistics for ML",            "file": "06-stats.md",       "estimatedTime": 40, "difficulty": "intermediate" }
+      ]
+    },
+    {
+      "id": "ml",
+      "name": "Classical ML",
+      "icon": "📊",
+      "description": "Supervised learning, decision trees, SVMs, ensembles, and evaluation. The foundation of competition ML.",
+      "totalTime": 380,
+      "requiresPrev": true,
+      "lessons": [
+        { "id": "ml-01-intro",       "title": "What is Machine Learning?",    "file": "01-intro.md",       "estimatedTime": 30, "difficulty": "beginner" },
+        { "id": "ml-02-linreg",      "title": "Linear Regression",            "file": "02-linreg.md",      "estimatedTime": 50, "difficulty": "intermediate" },
+        { "id": "ml-03-gradient",    "title": "Gradient Descent",             "file": "03-gradient.md",    "estimatedTime": 50, "difficulty": "intermediate" },
+        { "id": "ml-04-logreg",      "title": "Logistic Regression",          "file": "04-logreg.md",      "estimatedTime": 45, "difficulty": "intermediate" },
+        { "id": "ml-05-trees",       "title": "Decision Trees",               "file": "05-trees.md",       "estimatedTime": 40, "difficulty": "intermediate" },
+        { "id": "ml-06-ensemble",    "title": "Random Forests and Boosting",  "file": "06-ensemble.md",    "estimatedTime": 50, "difficulty": "intermediate" },
+        { "id": "ml-07-metrics",     "title": "Evaluation Metrics",           "file": "07-metrics.md",     "estimatedTime": 40, "difficulty": "intermediate" },
+        { "id": "ml-08-features",    "title": "Feature Engineering",          "file": "08-features.md",    "estimatedTime": 45, "difficulty": "intermediate" },
+        { "id": "ml-09-overfitting", "title": "Overfitting and Regularization","file": "09-overfitting.md","estimatedTime": 40, "difficulty": "intermediate" }
+      ]
+    },
+    {
+      "id": "nn",
+      "name": "Neural Networks",
+      "icon": "🧠",
+      "description": "Perceptrons, backpropagation, activations, optimizers, and how to train your first neural network with PyTorch.",
+      "totalTime": 400,
+      "requiresPrev": true,
+      "lessons": [
+        { "id": "nn-01-perceptron",  "title": "The Perceptron",               "file": "01-perceptron.md",  "estimatedTime": 40, "difficulty": "intermediate" },
+        { "id": "nn-02-mlp",         "title": "Multi-Layer Perceptrons",      "file": "02-mlp.md",         "estimatedTime": 50, "difficulty": "intermediate" },
+        { "id": "nn-03-backprop",    "title": "Backpropagation",              "file": "03-backprop.md",    "estimatedTime": 55, "difficulty": "advanced" },
+        { "id": "nn-04-activations", "title": "Activation Functions",         "file": "04-activations.md", "estimatedTime": 35, "difficulty": "intermediate" },
+        { "id": "nn-05-optimizers",  "title": "Optimizers: SGD, Adam, AdamW", "file": "05-optimizers.md",  "estimatedTime": 45, "difficulty": "intermediate" },
+        { "id": "nn-06-batchnorm",   "title": "Batch Normalization and Dropout","file": "06-batchnorm.md", "estimatedTime": 40, "difficulty": "intermediate" },
+        { "id": "nn-07-pytorch",     "title": "Training in PyTorch",          "file": "07-pytorch.md",     "estimatedTime": 60, "difficulty": "intermediate" },
+        { "id": "nn-08-cnn",         "title": "Convolutional Networks (CNN)", "file": "08-cnn.md",         "estimatedTime": 55, "difficulty": "advanced" }
+      ]
+    },
+    {
+      "id": "cv",
+      "name": "Computer Vision",
+      "icon": "👁",
+      "description": "Images as tensors, CNNs, transfer learning, YOLO object detection, Vision Transformers, and CLIP.",
+      "totalTime": 450,
+      "requiresPrev": true,
+      "lessons": [
+        { "id": "cv-01-images",      "title": "Images as Tensors",            "file": "01-images.md",      "estimatedTime": 35, "difficulty": "intermediate" },
+        { "id": "cv-02-augment",     "title": "Data Augmentation",            "file": "02-augment.md",     "estimatedTime": 40, "difficulty": "intermediate" },
+        { "id": "cv-03-transfer",    "title": "Transfer Learning",            "file": "03-transfer.md",    "estimatedTime": 50, "difficulty": "intermediate" },
+        { "id": "cv-04-yolo",        "title": "Object Detection with YOLO",   "file": "04-yolo.md",        "estimatedTime": 55, "difficulty": "advanced" },
+        { "id": "cv-05-vit",         "title": "Vision Transformers (ViT)",    "file": "05-vit.md",         "estimatedTime": 60, "difficulty": "advanced" },
+        { "id": "cv-06-clip",        "title": "CLIP: Image + Text Together",  "file": "06-clip.md",        "estimatedTime": 65, "difficulty": "advanced" },
+        { "id": "cv-07-vlm",         "title": "Vision-Language Models (VLMs)","file": "07-vlm.md",         "estimatedTime": 60, "difficulty": "advanced" }
+      ]
+    },
+    {
+      "id": "nlp",
+      "name": "NLP",
+      "icon": "💬",
+      "description": "Text processing, tokenization, word embeddings, attention, and transformers. From TF-IDF to fine-tuning BERT.",
+      "totalTime": 420,
+      "requiresPrev": true,
+      "lessons": [
+        { "id": "nlp-01-text",       "title": "Text as Data",                 "file": "01-text.md",        "estimatedTime": 40, "difficulty": "intermediate" },
+        { "id": "nlp-02-tokens",     "title": "Tokenization: BPE and WordPiece","file": "02-tokens.md",   "estimatedTime": 50, "difficulty": "intermediate" },
+        { "id": "nlp-03-embeddings", "title": "Word Embeddings",              "file": "03-embeddings.md",  "estimatedTime": 50, "difficulty": "intermediate" },
+        { "id": "nlp-04-attention",  "title": "The Attention Mechanism",      "file": "04-attention.md",   "estimatedTime": 55, "difficulty": "advanced" },
+        { "id": "nlp-05-transformers","title": "Transformers and BERT",       "file": "05-transformers.md","estimatedTime": 60, "difficulty": "advanced" },
+        { "id": "nlp-06-finetune",   "title": "Fine-Tuning Language Models",  "file": "06-finetune.md",    "estimatedTime": 60, "difficulty": "advanced" },
+        { "id": "nlp-07-generation", "title": "Text Generation and GPT",      "file": "07-generation.md",  "estimatedTime": 55, "difficulty": "advanced" }
+      ]
+    },
+    {
+      "id": "ioai",
+      "name": "IOAI Competition",
+      "icon": "🏆",
+      "description": "Compete at the international level. Strategy, baselines, past problems, and the full IOAI playbook.",
+      "totalTime": 360,
+      "requiresPrev": true,
+      "lessons": [
+        { "id": "ioai-01-structure", "title": "IOAI: Structure and Rules",    "file": "01-structure.md",   "estimatedTime": 30, "difficulty": "intermediate" },
+        { "id": "ioai-02-strategy",  "title": "Competition Strategy",         "file": "02-strategy.md",    "estimatedTime": 45, "difficulty": "intermediate" },
+        { "id": "ioai-03-baseline",  "title": "Building a Strong Baseline",   "file": "03-baseline.md",    "estimatedTime": 55, "difficulty": "advanced" },
+        { "id": "ioai-04-metrics",   "title": "Competition Metrics Explained","file": "04-metrics.md",     "estimatedTime": 45, "difficulty": "advanced" },
+        { "id": "ioai-05-2024",      "title": "IOAI 2024: Past Problems",     "file": "05-2024.md",        "estimatedTime": 60, "difficulty": "advanced" },
+        { "id": "ioai-06-2025",      "title": "IOAI 2025: Past Problems",     "file": "06-2025.md",        "estimatedTime": 60, "difficulty": "advanced" },
+        { "id": "ioai-07-checklist", "title": "Final Checklist and Tips",     "file": "07-checklist.md",   "estimatedTime": 30, "difficulty": "advanced" }
+      ]
+    }
+  ]
+}

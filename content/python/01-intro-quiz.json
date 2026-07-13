@@ -1,0 +1,50 @@
+{
+  "questions": [
+    {
+      "question": "What does <code>print(\"hello\")</code> do?",
+      "options": ["Displays the word hello on the screen", "Creates a variable called hello", "Asks the user to type hello", "Saves the word hello to a file"],
+      "correct": 0,
+      "explanation": "print() is a function that shows output on the screen. print(\"hello\") displays the text: hello"
+    },
+    {
+      "question": "What is the result of <code>15 // 4</code> in Python?",
+      "options": ["3.75", "3", "4", "1"],
+      "correct": 1,
+      "explanation": "// is integer (floor) division — it divides and drops the decimal. 15 // 4 = 3 because 4 goes into 15 three times with 3 left over."
+    },
+    {
+      "question": "What does the <code>#</code> symbol do in Python?",
+      "options": ["Multiplies two numbers", "Starts a comment that Python ignores", "Marks the end of a line", "Prints a hashtag"],
+      "correct": 1,
+      "explanation": "# starts a comment. Everything after # on that line is ignored by Python. Comments are notes for the programmer."
+    },
+    {
+      "question": "What is <code>2 ** 8</code>?",
+      "options": ["16", "256", "64", "10"],
+      "correct": 1,
+      "explanation": "** is the power operator. 2 ** 8 means 2 × 2 × 2 × 2 × 2 × 2 × 2 × 2 = 256. This is important in AI because computers work in base 2!"
+    }
+  ],
+  "exercises": [
+    {
+      "prompt": "Print your name using <code>print()</code>. Then print the result of 2 to the power of 16.",
+      "starter": "# Print your name\n\n# Print 2 to the power of 16\n",
+      "solution": "print(\"Your Name\")\nprint(2 ** 16)",
+      "tests": [],
+      "hints": [
+        "Use print(\"...\") and put your name between the quotes",
+        "For powers, Python uses **. So 2 to the power of 16 is 2 ** 16"
+      ]
+    },
+    {
+      "prompt": "Calculate and print: how many seconds are in a day? (60 seconds × 60 minutes × 24 hours)",
+      "starter": "# Seconds in a day\nresult = \nprint(result)\n",
+      "solution": "result = 60 * 60 * 24\nprint(result)",
+      "tests": ["result == 86400"],
+      "hints": [
+        "Multiply 60 * 60 * 24",
+        "Store the result in a variable: result = 60 * 60 * 24"
+      ]
+    }
+  ]
+}
