@@ -3,53 +3,169 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>IOAI Learning Platform</title>
+  <title>Road to IOAI</title>
   <link rel="stylesheet" href="styles.css" />
-  <!-- KaTeX for math -->
   <link rel="stylesheet" href="../lib/katex.min.css" />
-  <!-- Highlight.js for code -->
-  <link rel="stylesheet" href="../lib/highlight-atom-one-dark.min.css" />
+  <link rel="stylesheet" href="../lib/highlight-github.min.css" />
 </head>
 <body>
-  <div id="app">
-    <!-- Sidebar -->
-    <aside id="sidebar">
-      <div id="sidebar-header">
-        <div id="logo">
-          <span class="logo-icon">◆</span>
-          <span class="logo-text">IOAI Platform</span>
-        </div>
-        <div id="streak-badge" title="Daily streak"></div>
-      </div>
-      <nav id="track-nav"></nav>
-      <div id="sidebar-footer">
-        <div id="overall-progress">
-          <span class="progress-label">Overall progress</span>
-          <div class="progress-bar-wrap"><div class="progress-bar-fill" id="overall-bar"></div></div>
-          <span class="progress-pct" id="overall-pct">0%</span>
-        </div>
-      </div>
-    </aside>
+<div id="app">
 
-    <!-- Main area -->
-    <main id="main">
-      <div id="topbar">
-        <button id="btn-roadmap" class="tab-btn active" data-view="roadmap">Roadmap</button>
-        <button id="btn-lesson" class="tab-btn" data-view="lesson" style="display:none">Lesson</button>
-        <div id="topbar-right">
-          <span id="xp-display">0 XP</span>
+  <!-- ───────── Sidebar ───────── -->
+  <aside id="sidebar">
+    <div id="sidebar-logo">
+      <span class="logo-mark">◆</span>
+      <span class="logo-name">Road to IOAI</span>
+    </div>
+
+    <nav id="sidebar-nav">
+      <a class="nav-item active" data-view="home">
+        <svg class="nav-icon" viewBox="0 0 20 20"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h4a1 1 0 001-1v-3h2v3a1 1 0 001 1h4a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/></svg>
+        <span>Home</span>
+      </a>
+      <a class="nav-item" data-view="roadmap">
+        <svg class="nav-icon" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M12 1.586l-4 4v12.828l4-4V1.586zM3.707 3.293A1 1 0 002 4v10a1 1 0 00.293.707L6 18.414V5.586L3.707 3.293zM17.707 5.293L14 1.586v12.828l2.293 2.293A1 1 0 0018 16V6a1 1 0 00-.293-.707z" clip-rule="evenodd"/></svg>
+        <span>Roadmap</span>
+      </a>
+      <a class="nav-item" data-view="lessons">
+        <svg class="nav-icon" viewBox="0 0 20 20"><path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"/></svg>
+        <span>Lessons</span>
+      </a>
+      <a class="nav-item" data-view="practice">
+        <svg class="nav-icon" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+        <span>Practice</span>
+      </a>
+      <div class="nav-divider"></div>
+      <a class="nav-item" data-view="aitrack">
+        <svg class="nav-icon" viewBox="0 0 20 20"><path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"/></svg>
+        <span>AI Track</span>
+      </a>
+      <a class="nav-item" data-view="math">
+        <svg class="nav-icon" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm2 10a1 1 0 10-2 0v3a1 1 0 102 0v-3zm2-3a1 1 0 011 1v5a1 1 0 11-2 0v-5a1 1 0 011-1zm4-1a1 1 0 10-2 0v6a1 1 0 102 0V8z" clip-rule="evenodd"/></svg>
+        <span>Math</span>
+      </a>
+      <div class="nav-divider"></div>
+      <a class="nav-item" data-view="progress">
+        <svg class="nav-icon" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 0l-2 2a1 1 0 101.414 1.414L8 10.414l1.293 1.293a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+        <span>Progress</span>
+      </a>
+      <a class="nav-item" data-view="settings">
+        <svg class="nav-icon" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"/></svg>
+        <span>Settings</span>
+      </a>
+    </nav>
+
+    <div id="sidebar-user">
+      <div id="user-avatar"></div>
+      <div id="user-info">
+        <div id="user-name-display">Student</div>
+        <div id="user-role-display">IOAI Aspirant</div>
+      </div>
+      <svg id="user-chevron" viewBox="0 0 20 20" style="width:14px;height:14px;color:#9ca3af"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+    </div>
+  </aside>
+
+  <!-- ───────── Main ───────── -->
+  <main id="main">
+
+    <!-- HOME VIEW -->
+    <div id="view-home" class="view active"></div>
+
+    <!-- ROADMAP VIEW -->
+    <div id="view-roadmap" class="view"></div>
+
+    <!-- LESSONS BROWSER VIEW -->
+    <div id="view-lessons" class="view"></div>
+
+    <!-- LESSON VIEW (3-column) -->
+    <div id="view-lesson" class="view">
+      <div id="lesson-topbar">
+        <div id="lesson-breadcrumb"></div>
+        <div id="lesson-topbar-actions">
+          <button id="btn-prev-lesson" class="btn-lesson-nav">← Previous</button>
+          <button id="btn-next-lesson" class="btn-lesson-nav primary">Next →</button>
+          <button id="btn-mark-complete" class="btn-mark-complete">✓ Mark Complete</button>
         </div>
       </div>
+      <div id="lesson-layout">
+        <aside id="lesson-toc-panel">
+          <div class="panel-label">Lesson Content</div>
+          <div id="lesson-toc-list"></div>
+        </aside>
+        <div id="lesson-center-panel">
+          <div id="lesson-title-row">
+            <h1 id="lesson-title-heading"></h1>
+          </div>
+          <div id="lesson-tabs">
+            <button class="lesson-tab active" data-tab="explanation">Explanation</button>
+            <button class="lesson-tab" data-tab="practice">Practice</button>
+            <button class="lesson-tab" data-tab="notes">Notes</button>
+          </div>
+          <div id="tab-explanation" class="tab-pane active">
+            <div id="lesson-content"></div>
+          </div>
+          <div id="tab-practice" class="tab-pane">
+            <div id="lesson-exercises"></div>
+          </div>
+          <div id="tab-notes" class="tab-pane">
+            <div class="notes-header">Your personal notes for this lesson</div>
+            <textarea id="lesson-notes-area" placeholder="Type your notes here..."></textarea>
+            <button id="btn-save-notes" class="btn-save-notes">Save Notes</button>
+          </div>
+        </div>
+        <aside id="lesson-right-panel">
+          <div class="panel-label">In this lesson</div>
+          <div id="lesson-outline"></div>
+          <div id="quick-practice-card" style="display:none">
+            <div class="qp-label">Quick Practice</div>
+            <div id="qp-prompt"></div>
+            <button id="btn-start-practice" class="btn-start-practice">Start Practice</button>
+          </div>
+        </aside>
+      </div>
+    </div>
 
-      <div id="view-roadmap" class="view active"></div>
-      <div id="view-lesson" class="view"></div>
-    </main>
+    <!-- PRACTICE VIEW -->
+    <div id="view-practice" class="view"></div>
+
+    <!-- AI TRACK VIEW -->
+    <div id="view-aitrack" class="view"></div>
+
+    <!-- MATH VIEW -->
+    <div id="view-math" class="view"></div>
+
+    <!-- PROGRESS VIEW -->
+    <div id="view-progress" class="view"></div>
+
+    <!-- SETTINGS VIEW -->
+    <div id="view-settings" class="view"></div>
+
+  </main>
+</div>
+
+<!-- Name setup modal -->
+<div id="name-modal" class="modal-overlay" style="display:none">
+  <div class="modal-box">
+    <div class="modal-title">Welcome to Road to IOAI! 👋</div>
+    <div class="modal-desc">What should we call you?</div>
+    <input id="name-input" class="modal-input" type="text" placeholder="Enter your name" maxlength="30" />
+    <button id="name-submit" class="modal-btn">Let's go →</button>
   </div>
+</div>
 
-  <script src="../lib/marked.min.js"></script>
-  <script src="../lib/highlight.min.js"></script>
-  <script src="../lib/katex.min.js"></script>
-  <script src="../lib/auto-render.min.js"></script>
-  <script src="app.js" type="module"></script>
+<!-- Toast -->
+<div id="toast"></div>
+
+<!-- Pyodide status -->
+<div id="pyodide-status">
+  <span class="py-dot"></span>
+  <span id="py-label">Python</span>
+</div>
+
+<script src="../lib/marked.min.js"></script>
+<script src="../lib/highlight.min.js"></script>
+<script src="../lib/katex.min.js"></script>
+<script src="../lib/auto-render.min.js"></script>
+<script src="app.js" type="module"></script>
 </body>
 </html>

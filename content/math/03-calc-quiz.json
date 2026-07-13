@@ -1,0 +1,66 @@
+{
+  "questions": [
+    {
+      "question": "What is the derivative of f(x) = x^3?",
+      "options": ["3x", "x^2", "3x^2", "3x^3"],
+      "correct": 2,
+      "explanation": "Power rule: bring the exponent down and subtract one. d/dx of x^3 is 3*x^(3-1) = 3x^2."
+    },
+    {
+      "question": "In the gradient descent update w = w - alpha * gradient, why is there a MINUS sign?",
+      "options": ["To make the numbers smaller", "Because the gradient points uphill (toward larger loss), and we want to go downhill to reduce the loss", "It is a typo; it should be plus", "To cancel out the learning rate"],
+      "correct": 1,
+      "explanation": "The gradient points in the direction of steepest INCREASE. We want to DECREASE the loss, so we step in the opposite direction — hence the minus sign."
+    },
+    {
+      "question": "What happens if the learning rate is set way too high?",
+      "options": ["Training is just very slow but still works", "The steps overshoot the minimum and the loss can bounce around or blow up (diverge)", "Nothing changes", "The gradient becomes zero"],
+      "correct": 1,
+      "explanation": "Too large a learning rate makes each step overshoot the valley. The updates can bounce to the other side and grow, causing the loss to diverge to infinity. Too small, and training just crawls."
+    },
+    {
+      "question": "You have f(x, y) = x^2 + 5y. What is the partial derivative with respect to x?",
+      "options": ["2x + 5", "2x", "5", "x^2"],
+      "correct": 1,
+      "explanation": "Treat y as a constant. The derivative of x^2 is 2x, and the derivative of 5y (a constant with respect to x) is 0. So the partial with respect to x is 2x."
+    },
+    {
+      "question": "Backpropagation is essentially a systematic application of which calculus rule?",
+      "options": ["The power rule", "The chain rule, applied backward through the layers to multiply sensitivities", "The product rule only", "There is no calculus involved"],
+      "correct": 1,
+      "explanation": "A neural network is functions nested inside functions (layer on layer). The chain rule multiplies the sensitivities backward through every layer to find how the loss depends on each weight. That backward pass is backpropagation."
+    }
+  ],
+  "exercises": [
+    {
+      "prompt": "Write <code>numerical_derivative(f, x)</code> that estimates the derivative of a function f at point x using a tiny step h. Test it on f(x) = x^2 at x = 4 (the true answer is 8).",
+      "starter": "def numerical_derivative(f, x, h=1e-6):\n    # rise over run\n    pass\n\ndef square(x):\n    return x**2\n\nresult = numerical_derivative(square, 4.0)\n",
+      "solution": "def numerical_derivative(f, x, h=1e-6):\n    return (f(x + h) - f(x)) / h\n\ndef square(x):\n    return x**2\n\nresult = numerical_derivative(square, 4.0)",
+      "tests": ["abs(result - 8.0) < 1e-3"],
+      "hints": [
+        "Nudge x by a tiny h, see how much f changed, divide by h.",
+        "Return (f(x + h) - f(x)) / h. For x^2 at x=4, the true derivative 2x = 8."
+      ]
+    },
+    {
+      "prompt": "Run gradient descent to minimize f(w) = (w - 5)^2. Its gradient is 2*(w - 5). Start at w = 0, use learning rate 0.1, run 100 steps, and store the final w.",
+      "starter": "w = 0.0\nlr = 0.1\nfor step in range(100):\n    grad = None  # gradient of (w-5)^2\n    w = None     # step downhill\nfinal_w = w\n",
+      "solution": "w = 0.0\nlr = 0.1\nfor step in range(100):\n    grad = 2*(w - 5)\n    w = w - lr * grad\nfinal_w = w",
+      "tests": ["abs(final_w - 5.0) < 1e-3"],
+      "hints": [
+        "The gradient of (w-5)^2 is 2*(w-5).",
+        "The update is w = w - lr * grad. After many steps w should converge to 5, the bottom of the valley."
+      ]
+    },
+    {
+      "prompt": "Compute the gradient of f(x, y) = x^2 + 3xy + y^2 at the point (2, 1). The gradient is [2x + 3y, 3x + 2y]. Store it as a numpy array in <code>g</code>.",
+      "starter": "import numpy as np\nx, y = 2.0, 1.0\n# g = gradient of x^2 + 3xy + y^2 at (x, y)\n",
+      "solution": "import numpy as np\nx, y = 2.0, 1.0\ng = np.array([2*x + 3*y, 3*x + 2*y])",
+      "tests": ["list(g) == [7.0, 8.0]"],
+      "hints": [
+        "The partial with respect to x is 2x + 3y; with respect to y it is 3x + 2y.",
+        "At (2, 1): first entry 2*2 + 3*1 = 7, second entry 3*2 + 2*1 = 8."
+      ]
+    }
+  ]
+}

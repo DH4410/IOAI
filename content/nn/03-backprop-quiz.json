@@ -1,0 +1,103 @@
+{
+  "questions": [
+    {
+      "question": "What is backpropagation fundamentally an application of?",
+      "options": [
+        "The Pythagorean theorem",
+        "The chain rule of calculus",
+        "Matrix inversion",
+        "Random search over weights"
+      ],
+      "correct": 1,
+      "explanation": "Backprop computes the gradient of the loss with respect to every weight by applying the chain rule: it multiplies the local derivatives (sensitivities) along the path from each weight to the loss."
+    },
+    {
+      "question": "In gradient descent, why do we subtract the gradient (w ← w − η ∂L/∂w) instead of adding it?",
+      "options": [
+        "To make training faster",
+        "Because the gradient points in the direction of increasing loss, and we want to decrease it",
+        "Because subtraction is cheaper than addition",
+        "To keep the weights positive"
+      ],
+      "correct": 1,
+      "explanation": "The gradient points uphill — the direction that increases the loss. To minimize loss we move in the opposite (downhill) direction, so we subtract the gradient scaled by the learning rate."
+    },
+    {
+      "question": "In PyTorch, why must you call optimizer.zero_grad() before each backward pass?",
+      "options": [
+        "Because gradients accumulate (add up) across backward calls by default, and stale gradients from previous steps would corrupt the update",
+        "Because it frees GPU memory",
+        "Because it initializes the weights",
+        "Because it computes the loss"
+      ],
+      "correct": 0,
+      "explanation": "PyTorch adds each new gradient to the existing .grad by default. Without zero_grad(), you'd sum gradients from all previous batches and take a wrong step. Zeroing gives a fresh gradient each iteration. Forgetting it is a classic bug."
+    },
+    {
+      "question": "A deep network using sigmoid activations trains extremely slowly in its early layers, with near-zero gradients reaching them. What is this called and what commonly fixes it?",
+      "options": [
+        "Exploding gradients; fixed by a larger learning rate",
+        "Vanishing gradients; fixed by using ReLU activations whose gradient doesn't shrink for positive inputs",
+        "Overfitting; fixed by more data",
+        "Underflow; fixed by using integers"
+      ],
+      "correct": 1,
+      "explanation": "Sigmoid's derivative is at most 0.25, so multiplying it through many layers shrinks the gradient toward zero — vanishing gradients. ReLU has gradient 1 for positive inputs, so it doesn't shrink the signal, which is a major reason ReLU replaced sigmoid in deep nets."
+    },
+    {
+      "question": "In the backward pass for a layer, the error signal delta is propagated to the previous layer using which operation?",
+      "options": [
+        "Multiply delta by the layer input",
+        "Add delta to the bias",
+        "Multiply by the transposed weight matrix (W^T · delta), then elementwise by the activation's derivative",
+        "Divide delta by the learning rate"
+      ],
+      "correct": 2,
+      "explanation": "To push error back to the previous layer we compute W^T · delta (propagating through the weights) and multiply elementwise by σ'(z) (the activation's local slope). This gives the previous layer's delta, and the pattern repeats layer by layer."
+    }
+  ],
+  "exercises": [
+    {
+      "prompt": "Implement the derivative of the sigmoid function given its OUTPUT a = sigmoid(z). The formula is <code>a * (1 - a)</code>. This is used in the backward pass.",
+      "starter": "import numpy as np\n\ndef sigmoid_deriv(a):\n    # a is already sigmoid(z). Return the derivative a*(1-a).\n    pass\n",
+      "solution": "import numpy as np\n\ndef sigmoid_deriv(a):\n    return a * (1.0 - a)",
+      "tests": [
+        "assert abs(sigmoid_deriv(0.5) - 0.25) < 1e-9",
+        "assert abs(sigmoid_deriv(1.0) - 0.0) < 1e-9",
+        "assert abs(sigmoid_deriv(0.0) - 0.0) < 1e-9"
+      ],
+      "hints": [
+        "The formula is simply a * (1 - a)",
+        "The maximum value is 0.25, occurring at a = 0.5 — this is why sigmoid gradients vanish in deep nets"
+      ]
+    },
+    {
+      "prompt": "Verify a gradient numerically. For the loss <code>L(w) = 0.5*(w*x - y)^2</code> with x=2, y=1, compute the numerical gradient at w=0.7 using the central difference formula <code>(L(w+eps) - L(w-eps)) / (2*eps)</code> with eps=1e-5. Store it in <code>num_grad</code>. The analytic gradient is (w*x - y)*x = 0.8.",
+      "starter": "def L(w, x=2.0, y=1.0):\n    yhat = w * x\n    return 0.5 * (yhat - y) ** 2\n\nw = 0.7\neps = 1e-5\n# num_grad = central difference of L around w\nnum_grad = \n",
+      "solution": "def L(w, x=2.0, y=1.0):\n    yhat = w * x\n    return 0.5 * (yhat - y) ** 2\n\nw = 0.7\neps = 1e-5\nnum_grad = (L(w + eps) - L(w - eps)) / (2 * eps)",
+      "tests": [
+        "assert abs(num_grad - 0.8) < 1e-3"
+      ],
+      "hints": [
+        "Call L(w + eps) and L(w - eps), subtract, and divide by 2*eps",
+        "The analytic answer is (0.7*2 - 1)*2 = 0.8, so your numerical estimate should be very close to 0.8"
+      ]
+    },
+    {
+      "prompt": "Complete one backward step for a 2-layer net. Given the forward-pass values (X, H, Yhat) and targets Y, and W2, compute delta2 (output error), the gradient dW2, the propagated hidden error delta1, and dW1. Use MSE so dYhat = (2/N)*(Yhat - Y), and the output/hidden both use sigmoid so multiply by a*(1-a). Fill in the four TODO lines.",
+      "starter": "import numpy as np\n\ndef sig_deriv(a):\n    return a * (1 - a)\n\n# Pretend these came from a forward pass:\nX = np.array([[0.,0.],[0.,1.],[1.,0.],[1.,1.]])\nH = np.array([[0.4,0.6,0.5,0.5],[0.6,0.4,0.5,0.5],[0.5,0.5,0.6,0.4],[0.5,0.5,0.4,0.6]])\nYhat = np.array([[0.4],[0.6],[0.6],[0.4]])\nY = np.array([[0.],[1.],[1.],[0.]])\nW2 = np.ones((4,1)) * 0.5\nN = X.shape[0]\n\ndYhat = (2.0/N) * (Yhat - Y)\ndelta2 =            # TODO: dYhat * sig_deriv(Yhat)\ndW2 =               # TODO: H.T @ delta2\ndelta1 =            # TODO: (delta2 @ W2.T) * sig_deriv(H)\ndW1 =               # TODO: X.T @ delta1\n",
+      "solution": "import numpy as np\n\ndef sig_deriv(a):\n    return a * (1 - a)\n\nX = np.array([[0.,0.],[0.,1.],[1.,0.],[1.,1.]])\nH = np.array([[0.4,0.6,0.5,0.5],[0.6,0.4,0.5,0.5],[0.5,0.5,0.6,0.4],[0.5,0.5,0.4,0.6]])\nYhat = np.array([[0.4],[0.6],[0.6],[0.4]])\nY = np.array([[0.],[1.],[1.],[0.]])\nW2 = np.ones((4,1)) * 0.5\nN = X.shape[0]\n\ndYhat = (2.0/N) * (Yhat - Y)\ndelta2 = dYhat * sig_deriv(Yhat)\ndW2 = H.T @ delta2\ndelta1 = (delta2 @ W2.T) * sig_deriv(H)\ndW1 = X.T @ delta1",
+      "tests": [
+        "assert delta2.shape == (4, 1)",
+        "assert dW2.shape == (4, 1)",
+        "assert delta1.shape == (4, 4)",
+        "assert dW1.shape == (2, 4)"
+      ],
+      "hints": [
+        "delta2 = dYhat * sig_deriv(Yhat) — elementwise multiply by the output slope",
+        "dW2 = H.T @ delta2 — the gradient has the same shape as W2, which is (4,1)",
+        "delta1 = (delta2 @ W2.T) * sig_deriv(H) — propagate then multiply by the hidden slope; dW1 = X.T @ delta1"
+      ]
+    }
+  ]
+}

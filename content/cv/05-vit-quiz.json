@@ -1,0 +1,66 @@
+{
+  "questions": [
+    {
+      "question": "What is the core idea of a Vision Transformer?",
+      "options": ["Apply convolutions with very large kernels", "Split the image into patches and treat each patch as a token in a Transformer, like words in a sentence", "Process the image one pixel at a time with a recurrent network", "Convert the image to text with OCR first"],
+      "correct": 1,
+      "explanation": "ViT cuts the image into fixed-size patches (e.g. 16x16) and treats each as a 'visual word' token, then feeds the sequence to a standard Transformer. Hence the paper title 'An Image is Worth 16x16 Words'."
+    },
+    {
+      "question": "For a 224x224 image with patch size 16, how many patch tokens are there, and how many total tokens does ViT-B/16 use?",
+      "options": ["256 patches, 257 total", "196 patches, 197 total (with the CLS token)", "14 patches, 15 total", "49 patches, 50 total"],
+      "correct": 1,
+      "explanation": "N = (224 x 224) / (16 x 16) = 50176 / 256 = 196 patches (a 14x14 grid). Adding the prepended [CLS] token gives 197 total tokens."
+    },
+    {
+      "question": "Why does a ViT need positional embeddings?",
+      "options": ["To normalize the pixel values", "Self-attention is order-blind (permutation-invariant), so without them the model can't tell where each patch came from", "To reduce the number of parameters", "To convert patches to grayscale"],
+      "correct": 1,
+      "explanation": "Attention treats tokens as an unordered set. Positional embeddings are added to each token so the model knows each patch's location in the image, preserving spatial structure."
+    },
+    {
+      "question": "Self-attention over N tokens has what computational complexity, and why does this matter for ViT?",
+      "options": ["O(N), so resolution is free", "O(N^2 D) — every pair of tokens is compared, which is why patches (196) are used instead of pixels (50176)", "O(log N), negligible", "O(D) only, independent of N"],
+      "correct": 1,
+      "explanation": "Attention compares every pair of tokens: O(N^2 D). With pixels as tokens N=50176 and N^2 is ~2.5 billion — impossible. Using 16x16 patches gives N=196, making it cheap. Doubling patches quadruples the cost."
+    },
+    {
+      "question": "Compared to a CNN, when do Vision Transformers tend to win?",
+      "options": ["On tiny datasets trained from scratch", "When trained/pretrained on very large datasets — ViTs have weaker inductive bias so they're data-hungry but have a higher ceiling", "They always win regardless of data", "Only on grayscale images"],
+      "correct": 1,
+      "explanation": "CNNs have built-in inductive biases (locality, translation-equivariance) making them data-efficient and better on small data. ViTs lack these priors so they need lots of data, but with large-scale pretraining they surpass CNNs. That's why you use pretrained ViTs."
+    }
+  ],
+  "exercises": [
+    {
+      "prompt": "Compute the number of ViT patch tokens. Write <code>num_patches(H, W, P)</code> returning (H // P) * (W // P). Assume H and W are divisible by P.",
+      "starter": "def num_patches(H, W, P):\n    # Number of PxP patches in an HxW image\n    pass\n\nprint(num_patches(224, 224, 16))\n",
+      "solution": "def num_patches(H, W, P):\n    return (H // P) * (W // P)\n\nprint(num_patches(224, 224, 16))",
+      "tests": ["assert num_patches(224, 224, 16) == 196", "assert num_patches(224, 224, 14) == 256", "assert num_patches(384, 384, 16) == 576"],
+      "hints": [
+        "Along each side there are H // P patches.",
+        "Multiply the patches-per-row by patches-per-column."
+      ]
+    },
+    {
+      "prompt": "Include the CLS token. Write <code>total_tokens(H, W, P)</code> that returns the number of patches plus 1 for the prepended [CLS] token.",
+      "starter": "def total_tokens(H, W, P):\n    # patches + 1 CLS token\n    pass\n\nprint(total_tokens(224, 224, 16))\n",
+      "solution": "def total_tokens(H, W, P):\n    return (H // P) * (W // P) + 1\n\nprint(total_tokens(224, 224, 16))",
+      "tests": ["assert total_tokens(224, 224, 16) == 197", "assert total_tokens(384, 384, 16) == 577"],
+      "hints": [
+        "Reuse the patch count formula (H // P) * (W // P).",
+        "Add 1 for the single CLS token."
+      ]
+    },
+    {
+      "prompt": "Attention cost grows with N^2. Write <code>attention_pairs(n_tokens)</code> returning the number of token pairs (n_tokens squared) that self-attention must score. Then confirm patches are far cheaper than pixels.",
+      "starter": "def attention_pairs(n_tokens):\n    # Number of pairwise scores in self-attention\n    pass\n\nprint(attention_pairs(196))\nprint(attention_pairs(50176))\n",
+      "solution": "def attention_pairs(n_tokens):\n    return n_tokens * n_tokens\n\nprint(attention_pairs(196))\nprint(attention_pairs(50176))",
+      "tests": ["assert attention_pairs(196) == 38416", "assert attention_pairs(50176) == 2517630976", "assert attention_pairs(50176) > 1000 * attention_pairs(196)"],
+      "hints": [
+        "Self-attention compares every token with every token: N * N.",
+        "Return n_tokens ** 2 (or n_tokens * n_tokens)."
+      ]
+    }
+  ]
+}

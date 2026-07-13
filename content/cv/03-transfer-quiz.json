@@ -1,0 +1,66 @@
+{
+  "questions": [
+    {
+      "question": "Why is training a large vision model from scratch usually a bad idea at IOAI?",
+      "options": ["Pretrained models are against the rules", "You have small data, little time, and limited compute — from-scratch training needs millions of images and overfits badly on small datasets", "From-scratch models are always less accurate in theory", "It uses too much disk space"],
+      "correct": 1,
+      "explanation": "A model with tens of millions of parameters needs a huge dataset (like ImageNet's 1.2M images) and lots of compute. On a few hundred competition images with a short time limit, it overfits catastrophically. Transfer learning solves all three constraints."
+    },
+    {
+      "question": "In transfer learning, which part of the network do we typically keep, and which do we replace?",
+      "options": ["Keep the head, replace the backbone", "Keep the backbone (feature extractor), replace the head (classifier)", "Replace both", "Keep both unchanged"],
+      "correct": 1,
+      "explanation": "The backbone holds general, transferable features (edges, textures, parts) that are expensive to learn and useful everywhere. The ImageNet head outputs 1000 classes we don't need, so we replace it with a fresh head sized for our classes."
+    },
+    {
+      "question": "What is the difference between feature extraction and fine-tuning?",
+      "options": ["They are the same thing", "Feature extraction freezes the backbone and trains only the head; fine-tuning unfreezes some/all backbone layers to adapt them", "Feature extraction uses more data than fine-tuning", "Fine-tuning always freezes the head"],
+      "correct": 1,
+      "explanation": "Feature extraction freezes the backbone (only the head learns) — fast and safe for small data. Fine-tuning unfreezes backbone layers so features adapt to your task — more powerful but riskier, requiring a small learning rate."
+    },
+    {
+      "question": "When fine-tuning a pretrained backbone, why must you use a small learning rate?",
+      "options": ["Large learning rates are slower to compute", "A large learning rate would overwrite the carefully pretrained weights in the first few steps, destroying the knowledge you wanted to keep", "Small learning rates prevent the head from training", "It reduces GPU memory usage"],
+      "correct": 1,
+      "explanation": "The pretrained weights are a good starting point. A big learning rate takes huge steps that wipe them out immediately. A small LR (e.g. 1e-4) gently nudges the features to specialize while preserving the transferred knowledge."
+    },
+    {
+      "question": "What is the recommended layer-unfreezing strategy for competitions?",
+      "options": ["Unfreeze all layers immediately with a big learning rate", "Freeze everything and train the head, validate; then unfreeze the last block, validate; unfreeze deeper only if validation keeps improving", "Only ever train the head, never unfreeze anything", "Unfreeze early layers first, keep late layers frozen"],
+      "correct": 1,
+      "explanation": "You thaw from the top down: late layers are task-specific and benefit most from adapting, early layers are generic. Validate after every unfreeze and stop when it stops helping. This balances speed, safety, and performance."
+    }
+  ],
+  "exercises": [
+    {
+      "prompt": "Simulate freezing. Given a dict <code>params</code> mapping layer names to a boolean 'requires_grad', write code that freezes every layer whose name starts with 'backbone' (set it to False) and leaves 'head' layers as True. Store the count of trainable layers in <code>n_trainable</code>.",
+      "starter": "params = {\n    'backbone.conv1': True,\n    'backbone.layer4': True,\n    'head.fc': True,\n}\n# Freeze all backbone.* layers\n\nn_trainable = \nprint(n_trainable)\n",
+      "solution": "params = {\n    'backbone.conv1': True,\n    'backbone.layer4': True,\n    'head.fc': True,\n}\nfor name in params:\n    if name.startswith('backbone'):\n        params[name] = False\nn_trainable = sum(1 for v in params.values() if v)\nprint(n_trainable)",
+      "tests": ["assert params['backbone.conv1'] == False", "assert params['head.fc'] == True", "assert n_trainable == 1"],
+      "hints": [
+        "Loop over the keys and check name.startswith('backbone').",
+        "Count trainable layers with sum(1 for v in params.values() if v)."
+      ]
+    },
+    {
+      "prompt": "Write a function <code>choose_strategy(n_images)</code> that returns 'feature_extraction' when the dataset has fewer than 1000 images, and 'fine_tuning' otherwise. This mirrors the rule: less data -> freeze more.",
+      "starter": "def choose_strategy(n_images):\n    # Return 'feature_extraction' for small data, else 'fine_tuning'\n    pass\n\nprint(choose_strategy(300))\nprint(choose_strategy(5000))\n",
+      "solution": "def choose_strategy(n_images):\n    if n_images < 1000:\n        return 'feature_extraction'\n    return 'fine_tuning'\n\nprint(choose_strategy(300))\nprint(choose_strategy(5000))",
+      "tests": ["assert choose_strategy(300) == 'feature_extraction'", "assert choose_strategy(999) == 'feature_extraction'", "assert choose_strategy(1000) == 'fine_tuning'", "assert choose_strategy(5000) == 'fine_tuning'"],
+      "hints": [
+        "Use an if statement comparing n_images to 1000.",
+        "Return the two strings for the two branches."
+      ]
+    },
+    {
+      "prompt": "You keep the config with the best validation score. Given a list of (config_name, val_accuracy) tuples <code>results</code>, find the config name with the highest validation accuracy and store it in <code>best</code>.",
+      "starter": "results = [\n    ('frozen', 0.72),\n    ('unfreeze_last', 0.81),\n    ('unfreeze_two', 0.79),\n]\n# Pick the config with the highest val accuracy\nbest = \nprint(best)\n",
+      "solution": "results = [\n    ('frozen', 0.72),\n    ('unfreeze_last', 0.81),\n    ('unfreeze_two', 0.79),\n]\nbest = max(results, key=lambda r: r[1])[0]\nprint(best)",
+      "tests": ["assert best == 'unfreeze_last'"],
+      "hints": [
+        "Use max with a key that reads the accuracy: key=lambda r: r[1].",
+        "max returns the whole tuple; take [0] to get the name."
+      ]
+    }
+  ]
+}

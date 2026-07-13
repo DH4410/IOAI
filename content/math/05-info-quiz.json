@@ -1,0 +1,66 @@
+{
+  "questions": [
+    {
+      "question": "Which event carries MORE information (more surprise)?",
+      "options": ["An event with probability 0.99", "An event with probability 0.01", "They carry the same information", "Information does not depend on probability"],
+      "correct": 1,
+      "explanation": "Information is surprisal: -log(p). Rare events (small p like 0.01) are surprising and carry lots of information. Common events (p near 1) carry almost none."
+    },
+    {
+      "question": "What is the entropy of a fair coin (heads and tails each 0.5)?",
+      "options": ["0 bits", "0.5 bits", "1 bit", "2 bits"],
+      "correct": 2,
+      "explanation": "H = -(0.5*log2(0.5) + 0.5*log2(0.5)) = -(0.5*-1 + 0.5*-1) = 1 bit. A fair coin has maximum uncertainty for two outcomes, exactly 1 bit."
+    },
+    {
+      "question": "With one-hot labels, the cross-entropy loss for one example simplifies to which expression?",
+      "options": ["The sum of all predicted probabilities", "Negative log of the probability the model assigned to the correct class", "The predicted probability of the wrong class", "The entropy of the prediction"],
+      "correct": 1,
+      "explanation": "Because the true distribution is one-hot (all zeros except a 1 on the correct class), every term drops out except the true-class term, leaving loss = -log(q_trueclass). Confident correct predictions give tiny loss; confident wrong ones give huge loss."
+    },
+    {
+      "question": "Why do we clip predicted probabilities away from exactly 0 before taking their log in cross-entropy?",
+      "options": ["To make the model faster", "Because log(0) is negative infinity, which would crash training", "To make the loss larger", "It is not necessary"],
+      "correct": 1,
+      "explanation": "log(0) is -infinity. If the model ever assigns exactly 0 probability, the loss blows up and breaks training. Clipping to a tiny value like 1e-12 keeps the log finite."
+    },
+    {
+      "question": "What is the relationship between minimizing cross-entropy and KL divergence when training a classifier?",
+      "options": ["They are unrelated", "Minimizing cross-entropy is equivalent to minimizing the KL divergence between the model's distribution and the true distribution, because the true labels' entropy is a fixed constant", "KL divergence must be maximized", "Cross-entropy ignores the true labels"],
+      "correct": 1,
+      "explanation": "Cross-entropy = entropy of the true labels + KL divergence. The entropy of the true labels is fixed, so lowering cross-entropy directly lowers KL divergence, pulling the model's predicted distribution toward reality."
+    }
+  ],
+  "exercises": [
+    {
+      "prompt": "Write <code>entropy(probs)</code> that computes the entropy in bits of a probability distribution. Skip any zero probabilities. Test it on a fair coin (answer 1.0).",
+      "starter": "import numpy as np\ndef entropy(probs):\n    probs = np.array(probs)\n    # keep only positive probabilities, then apply -sum(p*log2(p))\n    pass\n\nresult = entropy([0.5, 0.5])\n",
+      "solution": "import numpy as np\ndef entropy(probs):\n    probs = np.array(probs)\n    probs = probs[probs > 0]\n    return -np.sum(probs * np.log2(probs))\n\nresult = entropy([0.5, 0.5])",
+      "tests": ["abs(result - 1.0) < 1e-9", "abs(entropy([0.25, 0.25, 0.25, 0.25]) - 2.0) < 1e-9"],
+      "hints": [
+        "Filter to positive probabilities first: probs = probs[probs > 0].",
+        "Entropy = -sum(p * log2(p)). Use np.log2 for bits."
+      ]
+    },
+    {
+      "prompt": "Write <code>ce(true_onehot, pred)</code> for cross-entropy loss of one example. Clip predictions to avoid log(0). The true class here is index 1.",
+      "starter": "import numpy as np\ndef ce(true_onehot, pred):\n    pred = np.clip(pred, 1e-12, 1.0)\n    pass\n\nloss = ce(np.array([0, 1, 0]), np.array([0.1, 0.8, 0.1]))\n",
+      "solution": "import numpy as np\ndef ce(true_onehot, pred):\n    pred = np.clip(pred, 1e-12, 1.0)\n    return -np.sum(true_onehot * np.log(pred))\n\nloss = ce(np.array([0, 1, 0]), np.array([0.1, 0.8, 0.1]))",
+      "tests": ["abs(loss - (-np.log(0.8))) < 1e-9"],
+      "hints": [
+        "Cross-entropy = -sum(true * log(pred)).",
+        "Because true is one-hot at index 1, only the -log(0.8) term survives."
+      ]
+    },
+    {
+      "prompt": "Write binary cross-entropy (log loss) for a whole batch. Given true labels (0/1) and predicted probabilities, return the MEAN log loss. Clip predictions.",
+      "starter": "import numpy as np\ndef log_loss(y_true, y_pred):\n    y_pred = np.clip(y_pred, 1e-12, 1 - 1e-12)\n    pass\n\ny = np.array([1, 0, 1])\np = np.array([0.9, 0.1, 0.8])\nresult = log_loss(y, p)\n",
+      "solution": "import numpy as np\ndef log_loss(y_true, y_pred):\n    y_pred = np.clip(y_pred, 1e-12, 1 - 1e-12)\n    return -np.mean(y_true * np.log(y_pred) + (1 - y_true) * np.log(1 - y_pred))\n\ny = np.array([1, 0, 1])\np = np.array([0.9, 0.1, 0.8])\nresult = log_loss(y, p)",
+      "tests": ["result < 0.2", "result > 0"],
+      "hints": [
+        "For each example: -(y*log(p) + (1-y)*log(1-p)). Only one term is active per example.",
+        "Take np.mean over all examples to average the loss."
+      ]
+    }
+  ]
+}

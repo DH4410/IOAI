@@ -1,0 +1,66 @@
+{
+  "questions": [
+    {
+      "question": "A color RGB image has height 480 and width 640. What is its shape as a NumPy array (channels-last)?",
+      "options": ["(3, 480, 640)", "(640, 480, 3)", "(480, 640, 3)", "(480, 640)"],
+      "correct": 2,
+      "explanation": "NumPy and PIL use (H, W, C) order: height first, then width, then the 3 color channels. So it is (480, 640, 3). Note (3, 480, 640) would be PyTorch's channels-first CHW order."
+    },
+    {
+      "question": "Why do we normalize pixel values from [0, 255] to roughly [0, 1] before feeding them to a neural network?",
+      "options": ["To make the image file smaller on disk", "Networks train more stably with small floating-point inputs; large integers cause big, unstable gradients", "To convert the image from color to grayscale", "Because 255 is not a valid number in Python"],
+      "correct": 1,
+      "explanation": "Large input values lead to large, unstable gradients and slow, unreliable training. Scaling to small floats near zero makes optimization much smoother. It has nothing to do with file size or color."
+    },
+    {
+      "question": "You have an image array of shape (224, 224, 3) and want it in PyTorch's channels-first format. What shape should it become, and how?",
+      "options": ["(3, 224, 224) via transpose/permute to (2, 0, 1)", "(224, 3, 224) by swapping the first two axes", "(224, 224, 3) — no change needed, PyTorch uses channels-last", "(1, 224, 224, 3) by adding a batch dimension"],
+      "correct": 0,
+      "explanation": "PyTorch expects (C, H, W). You move the channel axis (index 2) to the front with np.transpose(arr, (2, 0, 1)) or tensor.permute(2, 0, 1), giving (3, 224, 224)."
+    },
+    {
+      "question": "What does the batch shape (32, 3, 224, 224) represent?",
+      "options": ["32 channels, 3 images, 224x224 pixels", "A batch of 32 RGB images, each 224x224 pixels (N, C, H, W)", "One image with 32x3 channels", "224 batches of 32 images"],
+      "correct": 1,
+      "explanation": "The convention is N-C-H-W: N=32 images in the batch, C=3 color channels, H=224 rows, W=224 columns. This is the standard 4D tensor shape PyTorch models expect."
+    },
+    {
+      "question": "Your loaded photo looks blue-tinted and wrong. What is the most likely cause?",
+      "options": ["The image is grayscale", "It was loaded with OpenCV (BGR order) but treated as RGB — red and blue are swapped", "The batch dimension is missing", "The image is uint8 instead of float32"],
+      "correct": 1,
+      "explanation": "OpenCV loads images in BGR order, while most code assumes RGB. If you don't convert (e.g. img[:, :, ::-1]), red and blue channels are swapped, giving a blue tint. This is one of the most common CV bugs."
+    }
+  ],
+  "exercises": [
+    {
+      "prompt": "Given a uint8 image array <code>img</code> of shape (H, W, 3) with values 0-255, normalize it to float32 in the range [0, 1] and store it in <code>norm</code>. Use numpy.",
+      "starter": "import numpy as np\nimg = np.array([[[0, 128, 255], [255, 0, 64]]], dtype=np.uint8)  # shape (1, 2, 3)\n# Convert to float32 and scale to [0, 1]\nnorm = \nprint(norm)\n",
+      "solution": "import numpy as np\nimg = np.array([[[0, 128, 255], [255, 0, 64]]], dtype=np.uint8)\nnorm = img.astype(np.float32) / 255.0\nprint(norm)",
+      "tests": ["import numpy as np", "assert norm.dtype == np.float32", "assert abs(float(norm.max()) - 1.0) < 1e-6", "assert abs(float(norm.min()) - 0.0) < 1e-6"],
+      "hints": [
+        "First convert the integer array to float with img.astype(np.float32)",
+        "Then divide by 255.0 to bring values into [0, 1]"
+      ]
+    },
+    {
+      "prompt": "Compute the per-channel mean of an RGB image array and store the 3 values in <code>mean</code>. Average over the height and width axes (0 and 1) but keep the channel dimension separate.",
+      "starter": "import numpy as np\nimg = np.array([\n    [[0, 100, 200], [100, 100, 200]],\n    [[200, 100, 200], [100, 100, 200]],\n], dtype=np.float32)  # shape (2, 2, 3)\n# Mean over rows and columns, one value per channel\nmean = \nprint(mean)\n",
+      "solution": "import numpy as np\nimg = np.array([\n    [[0, 100, 200], [100, 100, 200]],\n    [[200, 100, 200], [100, 100, 200]],\n], dtype=np.float32)\nmean = img.mean(axis=(0, 1))\nprint(mean)",
+      "tests": ["import numpy as np", "assert mean.shape == (3,)", "assert abs(float(mean[0]) - 100.0) < 1e-4", "assert abs(float(mean[1]) - 100.0) < 1e-4", "assert abs(float(mean[2]) - 200.0) < 1e-4"],
+      "hints": [
+        "Use img.mean(...) with the axis argument",
+        "axis=(0, 1) averages over height and width but leaves the 3 channels separate, giving shape (3,)"
+      ]
+    },
+    {
+      "prompt": "Add a batch dimension to a single image tensor. Given <code>chw</code> of shape (3, 8, 8), produce <code>batched</code> of shape (1, 3, 8, 8) using numpy indexing or reshape.",
+      "starter": "import numpy as np\nchw = np.zeros((3, 8, 8), dtype=np.float32)\n# Add a leading batch dimension -> (1, 3, 8, 8)\nbatched = \nprint(batched.shape)\n",
+      "solution": "import numpy as np\nchw = np.zeros((3, 8, 8), dtype=np.float32)\nbatched = chw[None, ...]\nprint(batched.shape)",
+      "tests": ["assert batched.shape == (1, 3, 8, 8)"],
+      "hints": [
+        "You can insert a new axis at the front with chw[None, ...]",
+        "Equivalent options: np.expand_dims(chw, 0) or chw.reshape(1, 3, 8, 8)"
+      ]
+    }
+  ]
+}

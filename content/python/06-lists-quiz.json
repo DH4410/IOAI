@@ -1,0 +1,66 @@
+{
+  "questions": [
+    {
+      "question": "What does <code>my_list.sort()</code> return?",
+      "options": ["The sorted list", "None (it sorts in place)", "A reversed list", "The original unsorted list"],
+      "correct": 1,
+      "explanation": ".sort() sorts the list in place and returns None. So x = my_list.sort() sets x to None. If you want a returned sorted copy, use the sorted() function instead: x = sorted(my_list)."
+    },
+    {
+      "question": "Which statement about tuples is TRUE?",
+      "options": ["Tuples can be changed after creation", "Tuples are immutable — you cannot change their items", "Tuples remove duplicate values", "Tuples are unordered"],
+      "correct": 1,
+      "explanation": "Tuples are immutable: once created you cannot change, add, or remove items. Trying point[0] = 5 raises a TypeError. Use a list if you need to modify items."
+    },
+    {
+      "question": "What is the result of <code>list(set([1, 2, 2, 3, 3, 3]))</code>'s length?",
+      "options": ["6", "3", "1", "2"],
+      "correct": 1,
+      "explanation": "A set removes duplicates, so set([1, 2, 2, 3, 3, 3]) becomes {1, 2, 3}, which has 3 unique items. Converting a list to a set and back is the standard way to remove duplicates."
+    },
+    {
+      "question": "What does <code>[n * 2 for n in range(4)]</code> produce?",
+      "options": ["[0, 2, 4, 6]", "[2, 4, 6, 8]", "[0, 1, 2, 3]", "[1, 2, 3, 4]"],
+      "correct": 0,
+      "explanation": "range(4) gives 0, 1, 2, 3. Doubling each gives 0, 2, 4, 6. Remember range starts at 0 and stops before 4."
+    },
+    {
+      "question": "What does <code>zip(names, scores)</code> let you do in a loop?",
+      "options": ["Compress the lists to save memory", "Loop over both lists in parallel, one matched pair at a time", "Sort both lists together", "Remove duplicates from both lists"],
+      "correct": 1,
+      "explanation": "zip pairs up the items of several lists so you can loop over them together: for name, score in zip(names, scores). It's perfect for related data stored in separate lists, like predictions and true labels."
+    }
+  ],
+  "exercises": [
+    {
+      "prompt": "Start with the list <code>nums = [5, 3, 8, 1]</code>. Append the value 10 to the end, then sort the list in ascending order. The final list should be [1, 3, 5, 8, 10].",
+      "starter": "nums = [5, 3, 8, 1]\n# Append 10, then sort\n\nprint(nums)\n",
+      "solution": "nums = [5, 3, 8, 1]\nnums.append(10)\nnums.sort()\nprint(nums)",
+      "tests": ["nums == [1, 3, 5, 8, 10]"],
+      "hints": [
+        "Use nums.append(10) to add to the end.",
+        "Then nums.sort() to put them in order. Both change nums in place."
+      ]
+    },
+    {
+      "prompt": "Given <code>values = [3, 10, 7, 2, 15, 6]</code>, use a list comprehension to build <code>big</code>, a list of only the values greater than 5.",
+      "starter": "values = [3, 10, 7, 2, 15, 6]\n# Build 'big' with a comprehension\nbig = \nprint(big)\n",
+      "solution": "values = [3, 10, 7, 2, 15, 6]\nbig = [v for v in values if v > 5]\nprint(big)",
+      "tests": ["big == [10, 7, 15, 6]"],
+      "hints": [
+        "The pattern is [v for v in values if condition].",
+        "The condition is v > 5, so: [v for v in values if v > 5]"
+      ]
+    },
+    {
+      "prompt": "You have model predictions and the true answers. Use <code>zip</code> to count how many predictions are correct. Store the count in <code>correct</code>.",
+      "starter": "predictions = [1, 0, 1, 1, 0, 1]\nactual =      [1, 1, 1, 0, 0, 1]\ncorrect = 0\n# Count matches using zip\n\nprint(correct)\n",
+      "solution": "predictions = [1, 0, 1, 1, 0, 1]\nactual =      [1, 1, 1, 0, 0, 1]\ncorrect = 0\nfor p, a in zip(predictions, actual):\n    if p == a:\n        correct += 1\nprint(correct)",
+      "tests": ["correct == 4"],
+      "hints": [
+        "Loop with: for p, a in zip(predictions, actual).",
+        "Inside, if p == a then correct += 1. There are 4 matching positions."
+      ]
+    }
+  ]
+}

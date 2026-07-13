@@ -1,21 +1,21 @@
-// ─── State ──────────────────────────────────────────────────────────────────
+// ─── State ───────────────────────────────────────────────────────────────────
 const state = {
-  courses: null,         // parsed courses.json
-  currentLesson: null,   // { trackId, lessonId, meta }
+  courses: null,
+  currentLesson: null, // { trackId, lessonId }
   pyodide: null,
   pyodideLoading: false,
   pyodideReady: false,
   xp: 0,
   streak: 0,
-  completed: new Set(),  // lessonIds
-  hintIndex: {},         // lessonId -> hintUsed index
+  completed: new Set(),
+  userName: '',
 };
 
 // ─── Storage ─────────────────────────────────────────────────────────────────
 function saveProgress() {
   localStorage.setItem('ioai_completed', JSON.stringify([...state.completed]));
-  localStorage.setItem('ioai_xp', state.xp);
-  localStorage.setItem('ioai_streak', state.streak);
+  localStorage.setItem('ioai_xp', String(state.xp));
+  localStorage.setItem('ioai_streak', String(state.streak));
   localStorage.setItem('ioai_last_date', new Date().toDateString());
 }
 
@@ -23,26 +23,26 @@ function loadProgress() {
   const c = localStorage.getItem('ioai_completed');
   if (c) state.completed = new Set(JSON.parse(c));
   state.xp = parseInt(localStorage.getItem('ioai_xp') || '0');
-
+  state.userName = localStorage.getItem('ioai_name') || '';
   const lastDate = localStorage.getItem('ioai_last_date');
-  const today = new Date().toDateString();
-  const yesterday = new Date(Date.now() - 86400000).toDateString();
   const savedStreak = parseInt(localStorage.getItem('ioai_streak') || '0');
-  if (lastDate === today) state.streak = savedStreak;
-  else if (lastDate === yesterday) state.streak = savedStreak; // continue today
-  else state.streak = 0; // broke streak
+  const yesterday = new Date(Date.now() - 86400000).toDateString();
+  const today = new Date().toDateString();
+  if (lastDate === today || lastDate === yesterday) state.streak = savedStreak;
+  else state.streak = 0;
 }
 
 // ─── Pyodide ─────────────────────────────────────────────────────────────────
 function updatePyodideStatus(status) {
   const el = document.getElementById('pyodide-status');
-  el.className = `status-${status}`;
-  const dot = el.querySelector('.status-dot');
-  const label = el.querySelector('.status-label');
-  if (status === 'loading') { el.classList.add('loading'); label.textContent = 'Loading Python...'; }
-  if (status === 'ready')   { el.classList.add('ready');   label.textContent = 'Python ready'; }
-  if (status === 'idle')    { label.textContent = 'Python'; }
+  const label = document.getElementById('py-label');
+  el.className = status;
+  if (status === 'loading') label.textContent = 'Loading Python…';
+  else if (status === 'ready') label.textContent = 'Python ready';
+  else label.textContent = 'Python';
 }
+
+const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 async function ensurePyodide() {
   if (state.pyodideReady) return state.pyodide;
@@ -54,13 +54,13 @@ async function ensurePyodide() {
   updatePyodideStatus('loading');
   try {
     const py = await loadPyodide({ indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.26.2/full/' });
-    await py.loadPackagesFromImports('import numpy, pandas, matplotlib');
     state.pyodide = py;
     state.pyodideReady = true;
     updatePyodideStatus('ready');
     return py;
   } catch (e) {
-    updatePyodideStatus('idle');
+    state.pyodideLoading = false;
+    updatePyodideStatus('');
     return null;
   }
 }
@@ -69,18 +69,14 @@ async function runPython(code) {
   const py = await ensurePyodide();
   if (!py) return { output: '', error: 'Python engine not available. Check your internet connection.' };
   try {
-    // Capture stdout
     py.runPython(`
 import sys, io
-_stdout_capture = io.StringIO()
-sys.stdout = _stdout_capture
+_cap = io.StringIO()
+sys.stdout = _cap
 `);
     await py.runPythonAsync(code);
-    const output = py.runPython(`
-sys.stdout = sys.__stdout__
-_stdout_capture.getvalue()
-`);
-    return { output: output || '(no output)', error: null };
+    const out = py.runPython(`sys.stdout = sys.__stdout__\n_cap.getvalue()`);
+    return { output: out || '(no output)', error: null };
   } catch (e) {
     try { py.runPython('import sys; sys.stdout = sys.__stdout__'); } catch (_) {}
     return { output: '', error: String(e).replace('PythonError: Traceback', 'Error') };
@@ -88,8 +84,6 @@ _stdout_capture.getvalue()
 }
 
 // ─── Utilities ───────────────────────────────────────────────────────────────
-const sleep = ms => new Promise(r => setTimeout(r, ms));
-
 function toast(msg, duration = 2500) {
   const el = document.getElementById('toast');
   el.textContent = msg;
@@ -97,26 +91,18 @@ function toast(msg, duration = 2500) {
   setTimeout(() => el.classList.remove('show'), duration);
 }
 
-function updateXpDisplay() {
-  document.getElementById('xp-display').textContent = `${state.xp} XP`;
+function diffBadgeClass(diff) {
+  return { beginner: 'badge-bgn', intermediate: 'badge-int', advanced: 'badge-adv' }[diff] || 'badge-bgn';
 }
 
-function updateStreakDisplay() {
-  const el = document.getElementById('streak-badge');
-  if (state.streak > 0) el.textContent = `🔥 ${state.streak}`;
-  else el.textContent = '';
+function diffLabel(diff) {
+  return { beginner: 'Beginner', intermediate: 'Intermediate', advanced: 'Advanced' }[diff] || (diff || 'Beginner');
 }
 
-// ─── Course Data ──────────────────────────────────────────────────────────────
+// ─── Course Data ─────────────────────────────────────────────────────────────
 async function loadCourses() {
   const raw = await window.api.readFile('content/courses.json');
   state.courses = JSON.parse(raw);
-}
-
-function getLessonIndex(trackId, lessonId) {
-  const track = state.courses.tracks.find(t => t.id === trackId);
-  if (!track) return -1;
-  return track.lessons.findIndex(l => l.id === lessonId);
 }
 
 function getNextLesson(trackId, lessonId) {
@@ -137,18 +123,28 @@ function getPrevLesson(trackId, lessonId) {
 
 function getTrackProgress(trackId) {
   const track = state.courses.tracks.find(t => t.id === trackId);
-  if (!track || track.lessons.length === 0) return 0;
+  if (!track || !track.lessons.length) return 0;
   const done = track.lessons.filter(l => state.completed.has(l.id)).length;
   return Math.round((done / track.lessons.length) * 100);
 }
 
 function getOverallProgress() {
   const all = state.courses.tracks.flatMap(t => t.lessons);
-  if (all.length === 0) return 0;
+  if (!all.length) return 0;
   return Math.round((state.completed.size / all.length) * 100);
 }
 
-// ─── Markdown + Rendering ────────────────────────────────────────────────────
+// ─── Navigation ──────────────────────────────────────────────────────────────
+function navigate(viewName) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  const view = document.getElementById(`view-${viewName}`);
+  if (view) view.classList.add('active');
+  document.querySelectorAll('.nav-item[data-view]').forEach(item => {
+    item.classList.toggle('active', item.dataset.view === viewName);
+  });
+}
+
+// ─── Markdown Config ─────────────────────────────────────────────────────────
 function configureMarked() {
   marked.setOptions({
     gfm: true,
@@ -173,7 +169,7 @@ function renderMath(container) {
 }
 
 function parseMarkdownMeta(raw) {
-  const match = raw.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
+  const match = raw.match(/^---\n([\s\S]*?)\n---\n?([\s\S]*)$/);
   if (!match) return { meta: {}, body: raw };
   const meta = {};
   match[1].split('\n').forEach(line => {
@@ -190,34 +186,47 @@ function enhanceCodeBlocks(container) {
     const lang = (codeEl.className.match(/language-(\w+)/) || [])[1] || 'text';
     const isPython = lang === 'python';
 
-    const bar = document.createElement('div');
-    bar.className = 'code-run-bar';
-    bar.innerHTML = `
-      <span class="code-lang">${lang}</span>
-      ${isPython ? `<button class="btn-run" title="Run in Python">
-        <span class="run-icon">▶ Run</span>
-        <span class="run-spinner">⟳</span>
-      </button>` : ''}
+    const toolbar = document.createElement('div');
+    toolbar.className = 'code-toolbar';
+    toolbar.innerHTML = `
+      <span class="code-lang-label">${lang}</span>
+      <div class="code-actions">
+        <button class="btn-copy">Copy</button>
+        ${isPython ? '<button class="btn-run-code">▶ Run</button>' : ''}
+      </div>
     `;
-    pre.appendChild(bar);
+    pre.insertBefore(toolbar, codeEl);
+
+    toolbar.querySelector('.btn-copy').addEventListener('click', () => {
+      navigator.clipboard.writeText(codeEl.textContent).then(() => {
+        const btn = toolbar.querySelector('.btn-copy');
+        btn.textContent = 'Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1500);
+      }).catch(() => toast('Copy failed'));
+    });
 
     if (isPython) {
-      const outputEl = document.createElement('div');
-      outputEl.className = 'code-output';
-      pre.appendChild(outputEl);
+      const outputArea = document.createElement('div');
+      outputArea.className = 'code-output-area';
+      pre.appendChild(outputArea);
 
-      bar.querySelector('.btn-run').addEventListener('click', async (e) => {
+      toolbar.querySelector('.btn-run-code').addEventListener('click', async e => {
         const btn = e.currentTarget;
         btn.disabled = true;
-        btn.classList.add('loading');
-        outputEl.classList.add('visible');
-        outputEl.className = 'code-output visible';
-        outputEl.textContent = 'Running…';
+        btn.textContent = '⟳ Running…';
+        outputArea.className = 'code-output-area visible';
+        outputArea.textContent = 'Running…';
         const { output, error } = await runPython(codeEl.textContent);
         btn.disabled = false;
-        btn.classList.remove('loading');
-        if (error) { outputEl.className = 'code-output visible error'; outputEl.textContent = error; }
-        else { outputEl.className = 'code-output visible'; outputEl.textContent = output; }
+        btn.textContent = '▶ Run';
+        if (error) {
+          outputArea.className = 'code-output-area visible error';
+          outputArea.textContent = error;
+        } else {
+          outputArea.className = 'code-output-area visible';
+          outputArea.textContent = output;
+        }
       });
     }
   });
@@ -225,47 +234,42 @@ function enhanceCodeBlocks(container) {
 
 // ─── Quiz Renderer ────────────────────────────────────────────────────────────
 function renderQuiz(quizData, container) {
-  if (!quizData || !quizData.questions || quizData.questions.length === 0) return;
+  if (!quizData?.questions?.length) return;
 
   const section = document.createElement('div');
   section.className = 'quiz-section';
-  section.innerHTML = `<div class="quiz-section-title">Quick check</div>`;
+  section.innerHTML = '<div class="quiz-section-title">Quick check</div>';
 
-  quizData.questions.forEach((q, qi) => {
+  quizData.questions.forEach(q => {
+    const letters = ['A', 'B', 'C', 'D', 'E'];
     const card = document.createElement('div');
     card.className = 'quiz-card';
-
-    const letters = ['A', 'B', 'C', 'D', 'E'];
     card.innerHTML = `
-      <div class="quiz-question">${q.question}</div>
-      <div class="quiz-options">
+      <div class="quiz-q-text">${q.question}</div>
+      <div class="quiz-opts">
         ${q.options.map((opt, i) => `
-          <div class="quiz-option" data-idx="${i}">
-            <span class="option-letter">${letters[i]}</span>
+          <div class="quiz-opt" data-idx="${i}">
+            <span class="opt-letter">${letters[i]}</span>
             <span>${opt}</span>
           </div>`).join('')}
       </div>
       <div class="quiz-explanation">${q.explanation || ''}</div>
     `;
 
-    const options = card.querySelectorAll('.quiz-option');
+    const opts = card.querySelectorAll('.quiz-opt');
     const explanation = card.querySelector('.quiz-explanation');
 
-    options.forEach(opt => {
+    opts.forEach(opt => {
       opt.addEventListener('click', () => {
         if (opt.classList.contains('disabled')) return;
         const chosen = parseInt(opt.dataset.idx);
-        options.forEach(o => {
+        opts.forEach(o => {
           o.classList.add('disabled');
           if (parseInt(o.dataset.idx) === q.correct) o.classList.add('correct');
         });
         if (chosen !== q.correct) opt.classList.add('wrong');
         explanation.classList.add('visible');
-        if (chosen === q.correct) {
-          state.xp += 5;
-          updateXpDisplay();
-          saveProgress();
-        }
+        if (chosen === q.correct) { state.xp += 5; saveProgress(); }
       });
     });
 
@@ -276,61 +280,57 @@ function renderQuiz(quizData, container) {
 }
 
 // ─── Exercise Renderer ────────────────────────────────────────────────────────
-function renderExercises(quizData, container, lessonId) {
-  if (!quizData || !quizData.exercises || quizData.exercises.length === 0) return;
+function renderExercises(quizData, container) {
+  if (!quizData?.exercises?.length) return;
 
-  const section = document.createElement('div');
-  section.className = 'exercise-section';
-  section.innerHTML = `<div class="exercise-section-title">Practice exercises</div>`;
+  const wrap = document.createElement('div');
+  wrap.innerHTML = '<div class="quiz-section-title" style="margin:24px 32px 16px">Practice exercises</div>';
 
   quizData.exercises.forEach((ex, ei) => {
     const card = document.createElement('div');
     card.className = 'exercise-card';
+    card.style.margin = '0 32px 20px';
 
     card.innerHTML = `
       <div class="exercise-header">
-        <div class="exercise-number">Exercise ${ei + 1}</div>
+        <div class="exercise-num">Exercise ${ei + 1}</div>
         <div class="exercise-prompt">${ex.prompt}</div>
       </div>
       <div class="exercise-editor">
-        <textarea class="editor-textarea" spellcheck="false" rows="${Math.max(4, (ex.starter || '').split('\n').length + 1)}">${ex.starter || '# Write your code here\n'}</textarea>
+        <textarea class="editor-textarea" spellcheck="false" rows="${Math.max(5, (ex.starter || '').split('\n').length + 2)}">${ex.starter || '# Write your code here\n'}</textarea>
         <div class="editor-actions">
-          <button class="btn-check">Run & Check</button>
-          ${ex.hints && ex.hints.length ? '<button class="btn-hint">Hint</button>' : ''}
-          <button class="btn-solution">Show solution</button>
+          <button class="btn-check-ex">Run &amp; Check</button>
+          ${ex.hints?.length ? '<button class="btn-hint-ex">Hint</button>' : ''}
+          <button class="btn-sol-ex">Show solution</button>
         </div>
-        <div class="hint-box"></div>
+        <div class="hint-area"></div>
         <div class="exercise-result"></div>
       </div>
     `;
 
     const textarea = card.querySelector('.editor-textarea');
     const resultEl = card.querySelector('.exercise-result');
-    const hintBox = card.querySelector('.hint-box');
+    const hintArea = card.querySelector('.hint-area');
     let hintIdx = 0;
 
-    // Tab key in textarea
     textarea.addEventListener('keydown', e => {
       if (e.key === 'Tab') {
         e.preventDefault();
-        const s = textarea.selectionStart, end = textarea.selectionEnd;
-        textarea.value = textarea.value.substring(0, s) + '    ' + textarea.value.substring(end);
+        const s = textarea.selectionStart;
+        textarea.value = textarea.value.substring(0, s) + '    ' + textarea.value.substring(textarea.selectionEnd);
         textarea.selectionStart = textarea.selectionEnd = s + 4;
       }
     });
 
-    // Check button
-    card.querySelector('.btn-check').addEventListener('click', async () => {
-      const code = textarea.value;
-      const btn = card.querySelector('.btn-check');
+    card.querySelector('.btn-check-ex').addEventListener('click', async () => {
+      const btn = card.querySelector('.btn-check-ex');
       btn.disabled = true;
       btn.textContent = 'Running…';
       resultEl.className = 'exercise-result visible output';
       resultEl.textContent = 'Running…';
 
-      // Run the code + tests
-      let fullCode = code;
-      if (ex.tests && ex.tests.length) {
+      let fullCode = textarea.value;
+      if (ex.tests?.length) {
         fullCode += '\n' + ex.tests.map(t => `assert ${t}, "Test failed: ${t.replace(/"/g, "'")}"`).join('\n');
       }
 
@@ -339,47 +339,99 @@ function renderExercises(quizData, container, lessonId) {
       btn.textContent = 'Run & Check';
 
       if (error) {
-        if (error.includes('AssertionError') || error.includes('Test failed')) {
-          resultEl.className = 'exercise-result visible fail';
-          resultEl.textContent = '✗ Not quite right. Check your logic and try again.\n\n' + error;
-        } else {
-          resultEl.className = 'exercise-result visible fail';
-          resultEl.textContent = '✗ Error:\n' + error;
-        }
+        const isFail = error.includes('AssertionError') || error.includes('Test failed');
+        resultEl.className = 'exercise-result visible fail';
+        resultEl.textContent = isFail ? '✗ Not quite. Check your logic and try again.\n\n' + error : '✗ Error:\n' + error;
       } else {
         resultEl.className = 'exercise-result visible pass';
-        resultEl.textContent = '✓ Correct! ' + (output !== '(no output)' ? '\n\nOutput:\n' + output : '');
+        resultEl.textContent = '✓ Correct!' + (output && output !== '(no output)' ? '\n\nOutput:\n' + output : '');
         state.xp += 15;
-        updateXpDisplay();
         saveProgress();
         toast('Exercise solved! +15 XP');
       }
     });
 
-    // Hint button
-    const hintBtn = card.querySelector('.btn-hint');
+    const hintBtn = card.querySelector('.btn-hint-ex');
     if (hintBtn) {
       hintBtn.addEventListener('click', () => {
         if (!ex.hints || hintIdx >= ex.hints.length) { toast('No more hints!'); return; }
-        hintBox.textContent = `Hint ${hintIdx + 1}: ${ex.hints[hintIdx]}`;
-        hintBox.classList.add('visible');
+        hintArea.textContent = `Hint ${hintIdx + 1}: ${ex.hints[hintIdx]}`;
+        hintArea.classList.add('visible');
         hintIdx++;
         if (hintIdx >= ex.hints.length) hintBtn.disabled = true;
-        state.xp = Math.max(0, state.xp - 2);
-        updateXpDisplay();
       });
     }
 
-    // Solution button
-    card.querySelector('.btn-solution').addEventListener('click', () => {
+    card.querySelector('.btn-sol-ex').addEventListener('click', () => {
       textarea.value = ex.solution;
-      toast('Solution revealed. Study it, then try on your own!');
+      toast('Solution shown. Study it, then try on your own!');
     });
 
-    section.appendChild(card);
+    wrap.appendChild(card);
   });
 
-  container.appendChild(section);
+  container.appendChild(wrap);
+}
+
+// ─── TOC Builder ─────────────────────────────────────────────────────────────
+function buildTOC(contentEl) {
+  const headings = [...contentEl.querySelectorAll('h2, h3')];
+  const tocList = document.getElementById('lesson-toc-list');
+  const outlineEl = document.getElementById('lesson-outline');
+  tocList.innerHTML = '';
+  outlineEl.innerHTML = '';
+
+  let h2Count = 0;
+  headings.forEach((h, i) => {
+    h.id = `sec-${i}`;
+    const isH3 = h.tagName === 'H3';
+    if (!isH3) h2Count++;
+
+    const tocItem = document.createElement('div');
+    tocItem.className = `toc-item${isH3 ? ' h3' : ''}`;
+    if (!isH3) {
+      tocItem.innerHTML = `<span class="toc-num">${h2Count}</span><span>${h.textContent}</span>`;
+    } else {
+      tocItem.innerHTML = `<span>${h.textContent}</span>`;
+    }
+    tocItem.addEventListener('click', () => h.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+    tocList.appendChild(tocItem);
+
+    const outItem = document.createElement('div');
+    outItem.className = 'outline-item';
+    outItem.textContent = h.textContent;
+    outItem.addEventListener('click', () => h.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+    outlineEl.appendChild(outItem);
+  });
+
+  // Scroll spy
+  const tocItems = [...tocList.querySelectorAll('.toc-item')];
+  const outItems = [...outlineEl.querySelectorAll('.outline-item')];
+  const centerPanel = document.getElementById('lesson-center-panel');
+
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      const idx = headings.indexOf(entry.target);
+      if (idx < 0) return;
+      tocItems.forEach(t => t.classList.remove('active'));
+      outItems.forEach(t => t.classList.remove('active'));
+      tocItems[idx]?.classList.add('active');
+      outItems[idx]?.classList.add('active');
+    });
+  }, { root: centerPanel, threshold: 0.2 });
+
+  headings.forEach(h => obs.observe(h));
+}
+
+// ─── Tab Switcher ─────────────────────────────────────────────────────────────
+function switchTab(tabName) {
+  document.querySelectorAll('.lesson-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.tab === tabName);
+  });
+  document.querySelectorAll('.tab-pane').forEach(p => {
+    p.classList.toggle('active', p.id === `tab-${tabName}`);
+  });
 }
 
 // ─── Lesson Loader ────────────────────────────────────────────────────────────
@@ -389,279 +441,706 @@ async function openLesson(trackId, lessonId) {
   if (!track || !lesson) return;
 
   state.currentLesson = { trackId, lessonId };
-  showView('lesson');
-  updateSidebarActive(trackId, lessonId);
+  navigate('lesson');
 
-  // Update topbar
-  document.getElementById('btn-lesson').style.display = '';
-  document.getElementById('btn-lesson').textContent = lesson.title.length > 30
-    ? lesson.title.slice(0, 28) + '…'
-    : lesson.title;
-
-  const container = document.getElementById('lesson-container');
-  container.innerHTML = '<div style="color:var(--text3);padding:40px 0">Loading…</div>';
-
-  // Load markdown
-  const mdRaw = await window.api.readFile(`content/${trackId}/${lesson.file}`);
-  if (!mdRaw) {
-    container.innerHTML = `
-      <div class="lesson-header">
-        <div class="lesson-breadcrumb">${track.name} <span>/ ${lesson.title}</span></div>
-        <div class="lesson-title">${lesson.title}</div>
-      </div>
-      <div style="padding:40px 0;color:var(--text3);text-align:center">
-        <div style="font-size:32px;margin-bottom:16px">🚧</div>
-        <div style="font-size:15px;color:var(--text2);margin-bottom:8px">This lesson is being prepared</div>
-        <div style="font-size:13px">Check back soon — content is being added regularly.</div>
-      </div>`;
-    return;
-  }
-
-  const { meta, body } = parseMarkdownMeta(mdRaw);
-
-  // Load quiz data
-  const quizFile = lesson.file.replace('.md', '-quiz.json');
-  const quizRaw = await window.api.readFile(`content/${trackId}/${quizFile}`);
-  const quizData = quizRaw ? JSON.parse(quizRaw) : null;
-
-  // Render
-  const diffBadge = {
-    beginner: '<span class="badge badge-beginner">Beginner</span>',
-    intermediate: '<span class="badge badge-intermediate">Intermediate</span>',
-    advanced: '<span class="badge badge-advanced">Advanced</span>',
-  }[lesson.difficulty || 'beginner'] || '';
-
-  container.innerHTML = `
-    <div class="lesson-header">
-      <div class="lesson-breadcrumb">${track.name} <span>/ ${lesson.title}</span></div>
-      <div class="lesson-title">${lesson.title}</div>
-      <div class="lesson-meta">
-        ${diffBadge}
-        <span>⏱ ~${lesson.estimatedTime} min</span>
-        ${state.completed.has(lessonId) ? '<span style="color:var(--green)">✓ Completed</span>' : ''}
-      </div>
-    </div>
-    <div class="lesson-body" id="lesson-body"></div>
+  // Breadcrumb
+  const breadcrumb = document.getElementById('lesson-breadcrumb');
+  breadcrumb.innerHTML = `
+    <span class="bc-link">Roadmap</span>
+    <span class="bc-sep">›</span>
+    <span class="bc-link">${track.name}</span>
+    <span class="bc-sep">›</span>
+    <span class="bc-current">${lesson.title}</span>
   `;
+  breadcrumb.querySelectorAll('.bc-link').forEach(link => {
+    link.addEventListener('click', () => { navigate('roadmap'); renderRoadmap(); });
+  });
 
-  const bodyEl = document.getElementById('lesson-body');
-  bodyEl.innerHTML = marked.parse(body);
-  enhanceCodeBlocks(bodyEl);
-  renderMath(bodyEl);
-
-  // Quiz + exercises
-  renderQuiz(quizData, container);
-  renderExercises(quizData, container, lessonId);
-
-  // Navigation
+  // Prev / Next
   const prev = getPrevLesson(trackId, lessonId);
   const next = getNextLesson(trackId, lessonId);
-  const isCompleted = state.completed.has(lessonId);
+  const btnPrev = document.getElementById('btn-prev-lesson');
+  const btnNext = document.getElementById('btn-next-lesson');
+  const btnMark = document.getElementById('btn-mark-complete');
 
-  const nav = document.createElement('div');
-  nav.className = 'lesson-nav';
-  nav.innerHTML = `
-    <button class="btn-nav" id="btn-prev" ${!prev ? 'disabled' : ''}>← Previous</button>
-    <button class="${isCompleted ? 'btn-nav' : 'btn-complete'}" id="btn-complete">
-      ${isCompleted ? '✓ Completed' : 'Mark complete'}
-    </button>
-    <button class="btn-nav primary" id="btn-next" ${!next ? 'disabled' : ''}>Next →</button>
-  `;
-  container.appendChild(nav);
+  btnPrev.disabled = !prev;
+  btnNext.disabled = !next;
+  btnPrev.onclick = prev ? () => openLesson(trackId, prev.lesson.id) : null;
+  btnNext.onclick = next ? () => openLesson(trackId, next.lesson.id) : null;
 
-  if (prev) nav.querySelector('#btn-prev').addEventListener('click', () => openLesson(trackId, prev.lesson.id));
-  if (next) nav.querySelector('#btn-next').addEventListener('click', () => openLesson(trackId, next.lesson.id));
+  function refreshMarkBtn() {
+    const done = state.completed.has(lessonId);
+    btnMark.textContent = done ? '✓ Completed' : '✓ Mark Complete';
+    btnMark.className = done ? 'btn-mark-complete done' : 'btn-mark-complete';
+  }
+  refreshMarkBtn();
 
-  nav.querySelector('#btn-complete').addEventListener('click', () => {
+  btnMark.onclick = () => {
     if (!state.completed.has(lessonId)) {
       state.completed.add(lessonId);
       state.xp += 50;
       state.streak++;
-      updateXpDisplay();
-      updateStreakDisplay();
       saveProgress();
-      renderSidebar();
-      updateOverallProgress();
+      refreshMarkBtn();
       toast('Lesson complete! +50 XP 🎉');
-      // Re-render nav
-      openLesson(trackId, lessonId);
     }
-  });
+  };
 
-  // Scroll top
-  document.getElementById('view-lesson').scrollTop = 0;
+  // Reset UI
+  document.getElementById('lesson-title-heading').textContent = lesson.title;
+  switchTab('explanation');
 
-  // Pre-warm Pyodide if not ready and lesson has Python
-  if (!state.pyodideReady && body.includes('```python')) {
-    ensurePyodide();
+  const contentEl = document.getElementById('lesson-content');
+  contentEl.innerHTML = '<div style="color:var(--text4);padding:24px 0 40px">Loading…</div>';
+  document.getElementById('lesson-toc-list').innerHTML = '';
+  document.getElementById('lesson-outline').innerHTML = '';
+  document.getElementById('lesson-center-panel').scrollTop = 0;
+
+  // Load markdown
+  const mdRaw = await window.api.readFile(`content/${trackId}/${lesson.file}`);
+
+  if (!mdRaw) {
+    contentEl.innerHTML = `
+      <div style="padding:48px 0;text-align:center">
+        <div style="font-size:48px;margin-bottom:16px">🚧</div>
+        <div style="font-size:16px;font-weight:600;color:var(--text2);margin-bottom:8px">Lesson coming soon</div>
+        <div style="font-size:13px;color:var(--text4)">Content is being prepared. Check back soon.</div>
+      </div>
+    `;
+    document.getElementById('quick-practice-card').style.display = 'none';
+    return;
   }
+
+  const { body } = parseMarkdownMeta(mdRaw);
+  contentEl.innerHTML = marked.parse(body);
+  enhanceCodeBlocks(contentEl);
+  renderMath(contentEl);
+  buildTOC(contentEl);
+
+  // Load quiz
+  const quizFile = lesson.file.replace('.md', '-quiz.json');
+  const quizRaw = await window.api.readFile(`content/${trackId}/${quizFile}`);
+  const quizData = quizRaw ? JSON.parse(quizRaw) : null;
+
+  // Practice tab
+  const exercisesEl = document.getElementById('lesson-exercises');
+  exercisesEl.innerHTML = '';
+  if (quizData) {
+    renderQuiz(quizData, exercisesEl);
+    renderExercises(quizData, exercisesEl);
+  } else {
+    exercisesEl.innerHTML = '<div style="padding:24px 32px;color:var(--text4)">No practice questions for this lesson yet.</div>';
+  }
+
+  // Quick practice card
+  const qpCard = document.getElementById('quick-practice-card');
+  if (quizData?.questions?.length) {
+    qpCard.style.display = 'block';
+    document.getElementById('qp-prompt').textContent = quizData.questions[0].question.replace(/<[^>]+>/g, '');
+    document.getElementById('btn-start-practice').onclick = () => switchTab('practice');
+  } else {
+    qpCard.style.display = 'none';
+  }
+
+  // Notes
+  const notesArea = document.getElementById('lesson-notes-area');
+  notesArea.value = localStorage.getItem(`ioai_notes_${lessonId}`) || '';
+  document.getElementById('btn-save-notes').onclick = () => {
+    localStorage.setItem(`ioai_notes_${lessonId}`, notesArea.value);
+    toast('Notes saved!');
+  };
+
+  // Pre-warm Pyodide if lesson has Python
+  if (!state.pyodideReady && body.includes('```python')) ensurePyodide();
 }
 
-// ─── Roadmap ──────────────────────────────────────────────────────────────────
-function renderRoadmap() {
-  const view = document.getElementById('view-roadmap');
+// ─── Home Dashboard ───────────────────────────────────────────────────────────
+function renderHome() {
+  const view = document.getElementById('view-home');
+  const pct = getOverallProgress();
+  const totalLessons = state.courses.tracks.flatMap(t => t.lessons).length;
+  const doneLessons = state.completed.size;
 
-  const completedAll = state.courses.tracks.flatMap(t => t.lessons).filter(l => state.completed.has(l.id)).length;
-  const totalAll = state.courses.tracks.flatMap(t => t.lessons).length;
+  // Next lesson to continue
+  let nextTrack = null, nextLesson = null;
+  for (const track of state.courses.tracks) {
+    const first = track.lessons.find(l => !state.completed.has(l.id));
+    if (first) { nextTrack = track; nextLesson = first; break; }
+  }
+
+  // Upcoming (first 3 incomplete)
+  const upcoming = [];
+  for (const track of state.courses.tracks) {
+    for (const lesson of track.lessons) {
+      if (!state.completed.has(lesson.id) && upcoming.length < 4) {
+        upcoming.push({ track, lesson });
+      }
+    }
+    if (upcoming.length >= 4) break;
+  }
+
+  // Daily challenge
+  const challenges = [
+    { title: 'Write a function to flatten a nested list', diff: 'Python · Beginner' },
+    { title: 'Implement dot product without NumPy', diff: 'Math · Intermediate' },
+    { title: 'Code gradient descent for linear regression', diff: 'ML · Intermediate' },
+    { title: 'Build a 2-layer network from scratch', diff: 'NN · Advanced' },
+    { title: 'Explain why ReLU beats sigmoid in deep nets', diff: 'NN · Intermediate' },
+    { title: 'What is the vanishing gradient problem?', diff: 'NN · Advanced' },
+    { title: 'Calculate cross-entropy loss manually', diff: 'Math · Intermediate' },
+  ];
+  const challenge = challenges[new Date().getDay()];
+
+  // SVG circle
+  const r = 36, circ = 2 * Math.PI * r;
+  const offset = circ - (pct / 100) * circ;
 
   view.innerHTML = `
-    <div class="roadmap-hero">
-      <h1>Your IOAI journey</h1>
-      <p>Go from zero to international olympiad level. Complete every track to be ready for IOAI competition.</p>
-      <div style="margin-top:16px;font-size:13px;color:var(--text3)">
-        ${completedAll} / ${totalAll} lessons completed &nbsp;·&nbsp; ${state.xp} XP
+    <div class="home-welcome">
+      <h2>Welcome back, ${state.userName || 'Student'}! 👋</h2>
+      <p>You're ${pct}% of the way to IOAI-ready. Keep the momentum going.</p>
+    </div>
+
+    <div class="home-top-row">
+      <div class="goal-card">
+        <div class="goal-label">Your goal</div>
+        <div class="goal-title">International Olympiad in AI</div>
+        <div class="goal-desc">Master every track — from Python basics to neural networks — and compete at the world's top AI olympiad for students.</div>
+        ${nextLesson
+          ? `<button class="btn-continue" id="btn-home-continue">Continue: ${nextLesson.title.slice(0, 30)}… →</button>`
+          : '<div style="color:rgba(255,255,255,0.8);font-weight:600">🎉 All lessons complete!</div>'}
+      </div>
+      <div class="progress-card">
+        <div class="progress-circle-wrap">
+          <svg class="progress-circle-svg" viewBox="0 0 90 90">
+            <circle class="progress-circle-bg" cx="45" cy="45" r="${r}"/>
+            <circle class="progress-circle-fg" cx="45" cy="45" r="${r}"
+              stroke-dasharray="${circ.toFixed(2)}"
+              stroke-dashoffset="${offset.toFixed(2)}"/>
+          </svg>
+          <div class="progress-circle-text">${pct}%</div>
+        </div>
+        <div class="progress-stats">
+          <div class="stat-row">
+            <span class="stat-label">Lessons done</span>
+            <span class="stat-value">${doneLessons} / ${totalLessons}</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Total XP</span>
+            <span class="stat-value">${state.xp} XP</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Day streak</span>
+            <span class="stat-value">${state.streak > 0 ? '🔥 ' + state.streak : '—'}</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Tracks started</span>
+            <span class="stat-value">${state.courses.tracks.filter(t => getTrackProgress(t.id) > 0).length} / ${state.courses.tracks.length}</span>
+          </div>
+        </div>
       </div>
     </div>
-    <div class="roadmap-grid" id="roadmap-grid"></div>
+
+    <div class="home-mid-row">
+      <div class="continue-card">
+        <div class="card-title">Continue Learning</div>
+        ${upcoming.map(({ track, lesson }) => {
+          const tp = getTrackProgress(track.id);
+          return `
+          <div class="continue-lesson-item" data-track="${track.id}" data-lesson="${lesson.id}">
+            <div class="continue-icon">${track.icon}</div>
+            <div class="continue-lesson-meta">
+              <div class="continue-track">${track.name}</div>
+              <div class="continue-title">${lesson.title}</div>
+              <div class="continue-bar-wrap">
+                <div class="continue-bar-fill" style="width:${tp}%"></div>
+              </div>
+            </div>
+            <button class="btn-continue-sm">Go →</button>
+          </div>`;
+        }).join('')}
+      </div>
+
+      <div class="upcoming-card">
+        <div class="card-title">All Tracks</div>
+        ${state.courses.tracks.map(track => {
+          const tp = getTrackProgress(track.id);
+          return `
+          <div class="upcoming-item">
+            <div class="upcoming-dot ${tp === 100 ? 'orange' : 'blue'}"></div>
+            <div>
+              <div class="upcoming-title">${track.name}</div>
+              <div class="upcoming-meta">${track.lessons.filter(l => state.completed.has(l.id)).length}/${track.lessons.length} lessons · ${tp}%</div>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+
+      <div class="challenge-card">
+        <div class="challenge-header">
+          <span class="challenge-label">Daily challenge</span>
+          <span class="challenge-fire">🔥</span>
+        </div>
+        <div class="challenge-pts">+25 XP</div>
+        <div class="challenge-title">${challenge.title}</div>
+        <div class="challenge-diff">${challenge.diff}</div>
+        <button class="btn-solve" id="btn-home-challenge">Try it →</button>
+      </div>
+    </div>
+
+    <div class="home-roadmap">
+      <div class="home-roadmap-title">Your learning path</div>
+      <div class="roadmap-stages" id="home-stages"></div>
+    </div>
   `;
 
-  const grid = document.getElementById('roadmap-grid');
+  // Roadmap stages
+  const stagesEl = view.querySelector('#home-stages');
   state.courses.tracks.forEach((track, i) => {
-    // Check if this track is unlocked
+    const tp = getTrackProgress(track.id);
+    const cls = tp === 100 ? 'done' : (tp > 0 || i === 0 ? 'active' : 'locked');
+    const item = document.createElement('div');
+    item.className = `stage-item ${cls}`;
+    item.innerHTML = `
+      <div class="stage-circle">${track.icon}</div>
+      <div class="stage-label">${track.name.split(' ')[0]}</div>
+      <div class="stage-sub">${tp}%</div>
+    `;
+    item.querySelector('.stage-circle').addEventListener('click', () => {
+      navigate('roadmap'); renderRoadmap();
+    });
+    stagesEl.appendChild(item);
+    if (i < state.courses.tracks.length - 1) {
+      const conn = document.createElement('div');
+      conn.className = 'stage-connector';
+      stagesEl.appendChild(conn);
+    }
+  });
+
+  // Events
+  view.querySelector('#btn-home-continue')?.addEventListener('click', () => {
+    openLesson(nextTrack.id, nextLesson.id);
+  });
+
+  view.querySelectorAll('.continue-lesson-item').forEach(item => {
+    item.addEventListener('click', () => openLesson(item.dataset.track, item.dataset.lesson));
+    item.querySelector('.btn-continue-sm').addEventListener('click', e => {
+      e.stopPropagation();
+      openLesson(item.dataset.track, item.dataset.lesson);
+    });
+  });
+
+  view.querySelector('#btn-home-challenge')?.addEventListener('click', () => {
+    navigate('practice'); renderPractice();
+  });
+}
+
+// ─── Roadmap View ─────────────────────────────────────────────────────────────
+function renderRoadmap() {
+  const view = document.getElementById('view-roadmap');
+  const doneLessons = state.completed.size;
+  const totalLessons = state.courses.tracks.flatMap(t => t.lessons).length;
+
+  view.innerHTML = `
+    <div class="view-header">
+      <h1>Learning Roadmap</h1>
+      <p>${doneLessons} of ${totalLessons} lessons complete · ${state.xp} XP earned</p>
+    </div>
+    <div class="roadmap-track-list" id="roadmap-list"></div>
+  `;
+
+  const list = view.querySelector('#roadmap-list');
+
+  state.courses.tracks.forEach((track, i) => {
     const prev = state.courses.tracks[i - 1];
     const unlocked = !track.requiresPrev || !prev || getTrackProgress(prev.id) >= 50;
-
     const pct = getTrackProgress(track.id);
     const done = track.lessons.filter(l => state.completed.has(l.id)).length;
+    const pctClass = pct === 100 ? 'pct-done' : (unlocked ? 'pct-progress' : 'pct-locked');
+    const pctText = !unlocked ? '🔒 Locked' : (pct === 100 ? '✓ Done' : `${pct}%`);
 
     const card = document.createElement('div');
-    card.className = `track-card ${!unlocked ? 'locked' : ''}`;
+    card.className = 'roadmap-track-card';
     card.innerHTML = `
-      ${!unlocked ? '<div class="lock-overlay">🔒</div>' : ''}
-      <div class="track-card-icon">${track.icon}</div>
-      <div class="track-card-title">${track.name}</div>
-      <div class="track-card-desc">${track.description}</div>
-      <div class="track-card-meta">
-        <span>📚 ${track.lessons.length} lessons</span>
-        <span>⏱ ${track.totalTime} min</span>
+      <div class="roadmap-track-header">
+        <div class="track-icon-box">${track.icon}</div>
+        <div class="track-info">
+          <div class="track-name">${track.name}</div>
+          <div class="track-meta-row">
+            <span>${track.lessons.length} lessons</span>
+            <span>~${track.totalTime} min</span>
+            <span>${done} done</span>
+          </div>
+        </div>
+        <span class="track-pct-badge ${pctClass}">${pctText}</span>
+        <button class="track-chevron-btn">›</button>
       </div>
-      <div class="card-progress-bar">
-        <div class="card-progress-fill" style="width:${pct}%"></div>
+      <div class="track-progress-bar-row">
+        <div class="track-prog-bar">
+          <div class="track-prog-fill" style="width:${pct}%"></div>
+        </div>
+        <div class="track-prog-pct">${pct}%</div>
       </div>
-      <div style="font-size:11px;color:var(--text3);margin-top:6px">${done}/${track.lessons.length} complete · ${pct}%</div>
+      <div class="track-lessons-list">
+        ${track.lessons.map(l => {
+          const isDone = state.completed.has(l.id);
+          const isCurrent = state.currentLesson?.lessonId === l.id;
+          const dotClass = isDone ? 'done' : (isCurrent ? 'active' : '');
+          return `
+            <div class="track-lesson-row" data-track="${track.id}" data-lesson="${l.id}" style="${!unlocked ? 'opacity:0.4;cursor:not-allowed' : ''}">
+              <div class="lesson-status-dot ${dotClass}"></div>
+              <div class="lesson-row-title ${isDone ? 'done' : ''}">${l.title}</div>
+              <span class="lesson-row-time">${l.estimatedTime}m</span>
+              <span class="lesson-row-badge ${diffBadgeClass(l.difficulty)}">${diffLabel(l.difficulty)}</span>
+            </div>`;
+        }).join('')}
+      </div>
     `;
+
+    card.querySelector('.roadmap-track-header').addEventListener('click', () => {
+      card.classList.toggle('open');
+    });
 
     if (unlocked) {
-      card.addEventListener('click', () => {
-        // Open first incomplete lesson, or first lesson
-        const firstIncomplete = track.lessons.find(l => !state.completed.has(l.id));
-        const target = firstIncomplete || track.lessons[0];
-        if (target) openLesson(track.id, target.id);
+      card.querySelectorAll('.track-lesson-row').forEach(row => {
+        row.addEventListener('click', () => openLesson(row.dataset.track, row.dataset.lesson));
       });
     }
 
-    grid.appendChild(card);
+    list.appendChild(card);
   });
 }
 
-// ─── Sidebar ──────────────────────────────────────────────────────────────────
-function renderSidebar() {
-  const nav = document.getElementById('track-nav');
-  nav.innerHTML = '';
+// ─── Lessons Browser ──────────────────────────────────────────────────────────
+function renderLessonsBrowser() {
+  const view = document.getElementById('view-lessons');
+  view.innerHTML = `
+    <div class="view-header">
+      <h1>All Lessons</h1>
+      <p>Browse every lesson across all 7 tracks. Click any card to open.</p>
+    </div>
+  `;
 
   state.courses.tracks.forEach(track => {
-    const pct = getTrackProgress(track.id);
     const section = document.createElement('div');
-    section.className = 'track-section';
-
-    const isCurrentTrack = state.currentLesson?.trackId === track.id;
-
+    section.style.marginBottom = '32px';
+    const doneCount = track.lessons.filter(l => state.completed.has(l.id)).length;
     section.innerHTML = `
-      <div class="track-header ${isCurrentTrack ? 'open' : ''}" data-track="${track.id}">
-        <span class="track-icon">${track.icon}</span>
-        <span>${track.name}</span>
-        <span class="track-chevron">›</span>
-      </div>
-      <div class="track-progress-mini">
-        <div class="track-progress-mini-fill" style="width:${pct}%"></div>
-      </div>
-      <div class="lesson-list ${isCurrentTrack ? 'open' : ''}" id="lessons-${track.id}">
-        ${track.lessons.map(l => `
-          <div class="lesson-item ${state.completed.has(l.id) ? 'completed' : ''} ${state.currentLesson?.lessonId === l.id ? 'active' : ''}"
-               data-track="${track.id}" data-lesson="${l.id}">
-            <span class="lesson-dot"></span>
-            <span class="lesson-title-text">${l.title}</span>
-          </div>`).join('')}
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+        <span style="font-size:20px">${track.icon}</span>
+        <span style="font-size:15px;font-weight:700">${track.name}</span>
+        <span style="font-size:12px;color:var(--text4);margin-left:4px">${doneCount}/${track.lessons.length} done</span>
       </div>
     `;
 
-    // Toggle track expand
-    section.querySelector('.track-header').addEventListener('click', () => {
-      const header = section.querySelector('.track-header');
-      const list = section.querySelector('.lesson-list');
-      header.classList.toggle('open');
-      list.classList.toggle('open');
+    const grid = document.createElement('div');
+    grid.className = 'lessons-grid';
+
+    track.lessons.forEach(lesson => {
+      const isDone = state.completed.has(lesson.id);
+      const card = document.createElement('div');
+      card.className = `lesson-card${isDone ? ' completed' : ''}`;
+      card.innerHTML = `
+        <div class="lesson-card-icon">${isDone ? '✅' : track.icon}</div>
+        <div class="lesson-card-track">${track.name}</div>
+        <div class="lesson-card-title">${lesson.title}</div>
+        <div class="lesson-card-meta">
+          <span>⏱ ${lesson.estimatedTime}m</span>
+          <span class="lesson-row-badge ${diffBadgeClass(lesson.difficulty)}">${diffLabel(lesson.difficulty)}</span>
+        </div>
+      `;
+      card.addEventListener('click', () => openLesson(track.id, lesson.id));
+      grid.appendChild(card);
     });
 
-    // Lesson click
-    section.querySelectorAll('.lesson-item').forEach(item => {
-      item.addEventListener('click', () => {
-        openLesson(item.dataset.track, item.dataset.lesson);
-      });
-    });
-
-    nav.appendChild(section);
+    section.appendChild(grid);
+    view.appendChild(section);
   });
 }
 
-function updateSidebarActive(trackId, lessonId) {
-  document.querySelectorAll('.lesson-item').forEach(el => {
-    el.classList.toggle('active', el.dataset.track === trackId && el.dataset.lesson === lessonId);
-  });
-  // Expand the right track
-  document.querySelectorAll('.track-header').forEach(h => {
-    if (h.dataset.track === trackId) {
-      h.classList.add('open');
-      h.nextElementSibling?.nextElementSibling?.classList.add('open'); // lesson-list
-    }
+// ─── Practice View ────────────────────────────────────────────────────────────
+function renderPractice() {
+  const view = document.getElementById('view-practice');
+  view.innerHTML = `
+    <div class="view-header">
+      <h1>Practice</h1>
+      <p>Jump into exercises from any track. Choose a topic to start.</p>
+    </div>
+    <div class="ai-track-list">
+      ${state.courses.tracks.map(track => {
+        const tp = getTrackProgress(track.id);
+        return `
+          <div class="ai-track-item" data-trackid="${track.id}">
+            <div class="ai-item-icon" style="font-size:20px">${track.icon}</div>
+            <div style="flex:1">
+              <div style="font-size:14px;font-weight:600">${track.name}</div>
+              <div style="font-size:12px;color:var(--text4);margin-top:2px">${track.lessons.length} lessons · ${tp}% done</div>
+            </div>
+            <span class="track-pct-badge ${tp === 100 ? 'pct-done' : 'pct-progress'}">${tp}%</span>
+          </div>`;
+      }).join('')}
+    </div>
+  `;
+
+  view.querySelectorAll('.ai-track-item').forEach(item => {
+    item.addEventListener('click', () => {
+      const track = state.courses.tracks.find(t => t.id === item.dataset.trackid);
+      if (!track) return;
+      const first = track.lessons.find(l => !state.completed.has(l.id)) || track.lessons[0];
+      if (first) openLesson(track.id, first.id);
+    });
   });
 }
 
-function updateOverallProgress() {
+// ─── AI Track View ────────────────────────────────────────────────────────────
+function renderAITrack() {
+  const aiTracks = state.courses.tracks.filter(t => ['nn', 'cv', 'nlp', 'ioai'].includes(t.id));
+  const view = document.getElementById('view-aitrack');
+  view.innerHTML = `
+    <div class="view-header">
+      <h1>AI Track</h1>
+      <p>Neural networks, computer vision, NLP, and IOAI competition strategy.</p>
+    </div>
+    <div class="ai-track-list">
+      ${aiTracks.map(track => {
+        const tp = getTrackProgress(track.id);
+        return `
+          <div class="ai-track-item" data-trackid="${track.id}">
+            <div class="ai-item-icon" style="font-size:22px">${track.icon}</div>
+            <div style="flex:1">
+              <div style="font-size:14px;font-weight:600;margin-bottom:4px">${track.name}</div>
+              <div style="font-size:12px;color:var(--text3);margin-bottom:8px">${track.description}</div>
+              <div style="height:4px;background:var(--border);border-radius:2px;max-width:320px">
+                <div style="height:100%;width:${tp}%;background:var(--blue);border-radius:2px"></div>
+              </div>
+            </div>
+            <span class="track-pct-badge ${tp === 100 ? 'pct-done' : 'pct-progress'}">${tp}%</span>
+          </div>`;
+      }).join('')}
+    </div>
+  `;
+
+  view.querySelectorAll('.ai-track-item').forEach(item => {
+    item.addEventListener('click', () => {
+      const track = state.courses.tracks.find(t => t.id === item.dataset.trackid);
+      if (!track) return;
+      const first = track.lessons.find(l => !state.completed.has(l.id)) || track.lessons[0];
+      if (first) openLesson(track.id, first.id);
+    });
+  });
+}
+
+// ─── Math View ────────────────────────────────────────────────────────────────
+function renderMathView() {
+  const mathTrack = state.courses.tracks.find(t => t.id === 'math');
+  const view = document.getElementById('view-math');
+  if (!mathTrack) { view.innerHTML = '<div class="view-header"><h1>Math for AI</h1></div>'; return; }
+  const tp = getTrackProgress('math');
+
+  view.innerHTML = `
+    <div class="view-header">
+      <h1>Math for AI</h1>
+      <p>Linear algebra, calculus, probability, and information theory. The foundation everything else is built on.</p>
+    </div>
+    <div style="background:var(--white);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px 24px;margin-bottom:20px;display:flex;align-items:center;gap:20px">
+      <div style="font-size:30px">∑</div>
+      <div style="flex:1">
+        <div style="font-weight:600;margin-bottom:6px">Track progress: ${tp}%</div>
+        <div style="height:6px;background:var(--border);border-radius:3px">
+          <div style="height:100%;width:${tp}%;background:${tp === 100 ? 'var(--green)' : 'var(--blue)'};border-radius:3px"></div>
+        </div>
+      </div>
+      <span class="track-pct-badge ${tp === 100 ? 'pct-done' : 'pct-progress'}">${tp}%</span>
+    </div>
+    <div class="ai-track-list">
+      ${mathTrack.lessons.map((lesson, idx) => {
+        const isDone = state.completed.has(lesson.id);
+        return `
+          <div class="ai-track-item" data-trackid="math" data-lessonid="${lesson.id}">
+            <div class="ai-item-icon" style="font-size:15px;font-weight:700;background:var(--purple-lt);color:var(--purple)">${isDone ? '✓' : (idx + 1)}</div>
+            <div style="flex:1">
+              <div style="font-size:14px;font-weight:600;${isDone ? 'color:var(--text3)' : ''}">${lesson.title}</div>
+              <div style="font-size:12px;color:var(--text4)">~${lesson.estimatedTime} min · ${diffLabel(lesson.difficulty)}</div>
+            </div>
+            ${isDone ? '<span style="color:var(--green);font-size:16px">✓</span>' : `<span class="lesson-row-badge ${diffBadgeClass(lesson.difficulty)}">${diffLabel(lesson.difficulty)}</span>`}
+          </div>`;
+      }).join('')}
+    </div>
+  `;
+
+  view.querySelectorAll('[data-lessonid]').forEach(item => {
+    item.addEventListener('click', () => openLesson('math', item.dataset.lessonid));
+  });
+}
+
+// ─── Progress View ────────────────────────────────────────────────────────────
+function renderProgress() {
+  const view = document.getElementById('view-progress');
   const pct = getOverallProgress();
-  document.getElementById('overall-bar').style.width = pct + '%';
-  document.getElementById('overall-pct').textContent = pct + '%';
+  const total = state.courses.tracks.flatMap(t => t.lessons).length;
+
+  view.innerHTML = `
+    <div class="view-header">
+      <h1>Your Progress</h1>
+      <p>Track your journey from Python basics to IOAI competition level.</p>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px">
+      <div style="background:var(--white);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;text-align:center">
+        <div style="font-size:32px;font-weight:700;color:var(--blue)">${state.completed.size}</div>
+        <div style="font-size:13px;color:var(--text3);margin-top:4px">Lessons done</div>
+      </div>
+      <div style="background:var(--white);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;text-align:center">
+        <div style="font-size:32px;font-weight:700;color:var(--orange)">${state.xp}</div>
+        <div style="font-size:13px;color:var(--text3);margin-top:4px">XP earned</div>
+      </div>
+      <div style="background:var(--white);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;text-align:center">
+        <div style="font-size:32px;font-weight:700;color:var(--green)">${state.streak}</div>
+        <div style="font-size:13px;color:var(--text3);margin-top:4px">Day streak 🔥</div>
+      </div>
+    </div>
+    <div style="background:var(--white);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;margin-bottom:24px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:10px">
+        <span style="font-weight:600">Overall progress</span>
+        <span style="color:var(--blue);font-weight:700">${pct}%</span>
+      </div>
+      <div style="height:8px;background:var(--border);border-radius:4px;overflow:hidden">
+        <div style="height:100%;width:${pct}%;background:var(--blue);border-radius:4px;transition:width 0.6s"></div>
+      </div>
+      <div style="font-size:12px;color:var(--text4);margin-top:6px">${state.completed.size} of ${total} lessons completed</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      ${state.courses.tracks.map(track => {
+        const tp = getTrackProgress(track.id);
+        const done = track.lessons.filter(l => state.completed.has(l.id)).length;
+        return `
+          <div style="background:var(--white);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 20px">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+              <span style="font-size:18px">${track.icon}</span>
+              <span style="font-weight:600;flex:1">${track.name}</span>
+              <span style="font-size:13px;color:var(--text3)">${done}/${track.lessons.length}</span>
+              <span style="font-weight:700;color:${tp === 100 ? 'var(--green)' : 'var(--blue)'}">${tp}%</span>
+            </div>
+            <div style="height:5px;background:var(--border);border-radius:3px;overflow:hidden">
+              <div style="height:100%;width:${tp}%;background:${tp === 100 ? 'var(--green)' : 'var(--blue)'};border-radius:3px"></div>
+            </div>
+          </div>`;
+      }).join('')}
+    </div>
+  `;
 }
 
-// ─── View Router ──────────────────────────────────────────────────────────────
-function showView(name) {
-  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-  document.getElementById(`view-${name}`).classList.add('active');
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.view === name));
+// ─── Settings View ────────────────────────────────────────────────────────────
+function renderSettings() {
+  const view = document.getElementById('view-settings');
+  view.innerHTML = `
+    <div class="view-header">
+      <h1>Settings</h1>
+      <p>Manage your profile and learning preferences.</p>
+    </div>
+    <div style="max-width:480px;display:flex;flex-direction:column;gap:16px">
+      <div style="background:var(--white);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px">
+        <div style="font-weight:600;margin-bottom:14px">Profile</div>
+        <label style="font-size:13px;color:var(--text3);display:block;margin-bottom:6px">Your name</label>
+        <input id="settings-name" class="modal-input" type="text" value="${state.userName}" placeholder="Enter your name" maxlength="30" style="margin-bottom:12px"/>
+        <button class="btn-save-notes" id="btn-save-name">Save changes</button>
+      </div>
+      <div style="background:var(--white);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px">
+        <div style="font-weight:600;margin-bottom:6px">Reset progress</div>
+        <div style="font-size:13px;color:var(--text3);margin-bottom:14px">Clear all completed lessons and XP. This cannot be undone.</div>
+        <button id="btn-reset" style="background:var(--red-lt);border:1px solid var(--red);color:var(--red);padding:7px 18px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer">Reset all progress</button>
+      </div>
+    </div>
+  `;
+
+  view.querySelector('#btn-save-name').addEventListener('click', () => {
+    const name = view.querySelector('#settings-name').value.trim();
+    if (!name) return;
+    state.userName = name;
+    localStorage.setItem('ioai_name', name);
+    document.getElementById('user-name-display').textContent = name;
+    document.getElementById('user-avatar').textContent = name[0].toUpperCase();
+    toast('Name saved!');
+  });
+
+  view.querySelector('#btn-reset').addEventListener('click', () => {
+    if (!confirm('Reset all progress? This cannot be undone.')) return;
+    state.completed.clear();
+    state.xp = 0;
+    state.streak = 0;
+    saveProgress();
+    toast('Progress reset.');
+    navigate('home');
+    renderHome();
+  });
+}
+
+// ─── Name Modal ───────────────────────────────────────────────────────────────
+function setupNameModal() {
+  if (state.userName) return;
+  const modal = document.getElementById('name-modal');
+  modal.style.display = 'flex';
+
+  const input = document.getElementById('name-input');
+  const submitBtn = document.getElementById('name-submit');
+
+  function submit() {
+    const name = input.value.trim();
+    if (!name) { input.focus(); return; }
+    state.userName = name;
+    localStorage.setItem('ioai_name', name);
+    document.getElementById('user-name-display').textContent = name;
+    document.getElementById('user-avatar').textContent = name[0].toUpperCase();
+    modal.style.display = 'none';
+    renderHome();
+  }
+
+  submitBtn.addEventListener('click', submit);
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') submit(); });
+  setTimeout(() => input.focus(), 100);
 }
 
 // ─── Boot ─────────────────────────────────────────────────────────────────────
 async function boot() {
-  // Inject runtime elements
-  document.body.insertAdjacentHTML('beforeend', `
-    <div id="pyodide-status">
-      <span class="status-dot"></span>
-      <span class="status-label">Python</span>
-    </div>
-    <div id="toast"></div>
-  `);
-
-  // Inject Pyodide loader script
-  const script = document.createElement('script');
-  script.src = 'https://cdn.jsdelivr.net/pyodide/v0.26.2/full/pyodide.js';
-  document.head.appendChild(script);
+  // Load Pyodide async
+  const pyScript = document.createElement('script');
+  pyScript.src = 'https://cdn.jsdelivr.net/pyodide/v0.26.2/full/pyodide.js';
+  document.head.appendChild(pyScript);
 
   loadProgress();
   await loadCourses();
   configureMarked();
 
-  renderSidebar();
-  renderRoadmap();
-  updateXpDisplay();
-  updateStreakDisplay();
-  updateOverallProgress();
+  // Populate user info
+  if (state.userName) {
+    document.getElementById('user-name-display').textContent = state.userName;
+    document.getElementById('user-avatar').textContent = state.userName[0].toUpperCase();
+  }
 
-  // Tab buttons
-  document.getElementById('btn-roadmap').addEventListener('click', () => {
-    showView('roadmap');
-    renderRoadmap();
+  // Wire up sidebar nav
+  document.querySelectorAll('.nav-item[data-view]').forEach(item => {
+    item.addEventListener('click', () => {
+      const v = item.dataset.view;
+      navigate(v);
+      if (v === 'home') renderHome();
+      else if (v === 'roadmap') renderRoadmap();
+      else if (v === 'lessons') renderLessonsBrowser();
+      else if (v === 'practice') renderPractice();
+      else if (v === 'aitrack') renderAITrack();
+      else if (v === 'math') renderMathView();
+      else if (v === 'progress') renderProgress();
+      else if (v === 'settings') renderSettings();
+    });
   });
-  document.getElementById('btn-lesson').addEventListener('click', () => showView('lesson'));
+
+  // Wire up lesson tabs
+  document.querySelectorAll('.lesson-tab').forEach(tab => {
+    tab.addEventListener('click', () => switchTab(tab.dataset.tab));
+  });
+
+  // Initial render
+  renderHome();
+  navigate('home');
+  setupNameModal();
 }
 
 boot();

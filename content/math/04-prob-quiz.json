@@ -1,0 +1,66 @@
+{
+  "questions": [
+    {
+      "question": "You flip a fair coin twice. What is the probability of getting heads BOTH times?",
+      "options": ["0.5", "0.25", "1.0", "0.75"],
+      "correct": 1,
+      "explanation": "The two flips are independent, so multiply: P(H) * P(H) = 0.5 * 0.5 = 0.25. The multiply rule works because the flips do not affect each other."
+    },
+    {
+      "question": "What does the notation P(A | B) mean?",
+      "options": ["The probability of A or B", "The probability of A given that B has happened", "The probability of A times B", "A divided by B"],
+      "correct": 1,
+      "explanation": "The bar means 'given'. P(A | B) is the probability of A assuming B is true — it updates the probability based on new information. This is exactly what a classifier computes: P(class | input)."
+    },
+    {
+      "question": "A disease affects 1% of people and a test is 99% accurate. You test positive. Roughly what is the probability you actually have the disease?",
+      "options": ["99%", "About 50%", "1%", "90%"],
+      "correct": 1,
+      "explanation": "By Bayes' theorem it is about 50%. The disease is so rare that false positives from the large healthy population roughly equal the true positives from the tiny sick population. The prior (base rate) drags the answer far below 99%."
+    },
+    {
+      "question": "Which distribution is the natural model for a single binary (yes/no) outcome like 'is this email spam?'",
+      "options": ["Gaussian", "Uniform", "Bernoulli", "Poisson"],
+      "correct": 2,
+      "explanation": "A Bernoulli distribution has two outcomes: 1 with probability p and 0 with probability 1-p. It is exactly what binary classification models, e.g. spam with probability p."
+    },
+    {
+      "question": "The expected value of a fair six-sided die is 3.5, which is not even a possible roll. What does that tell you about expected value?",
+      "options": ["The calculation is wrong", "Expected value is the long-run average / balance point, not a value you will actually see on any single roll", "The die must be biased", "Expected value only works for coins"],
+      "correct": 1,
+      "explanation": "Expected value is the average you converge to over many trials, weighting each outcome by its probability. It need not be an achievable single outcome — it is a balance point, not a prediction of one roll."
+    }
+  ],
+  "exercises": [
+    {
+      "prompt": "Estimate the probability of rolling a number greater than 4 on a fair die by simulation. Roll 100000 times and store the fraction in <code>p</code>. (Use the given seeded generator.)",
+      "starter": "import numpy as np\nrng = np.random.default_rng(42)\nrolls = rng.integers(1, 7, size=100000)\n# p = fraction of rolls greater than 4\n",
+      "solution": "import numpy as np\nrng = np.random.default_rng(42)\nrolls = rng.integers(1, 7, size=100000)\np = np.mean(rolls > 4)",
+      "tests": ["abs(p - 2/6) < 0.02"],
+      "hints": [
+        "rolls > 4 gives a boolean array (True where the roll is 5 or 6).",
+        "np.mean of a boolean array gives the fraction that are True. The true probability is 2/6."
+      ]
+    },
+    {
+      "prompt": "Implement Bayes' theorem. Given the prior P(A), the likelihood P(B|A), and P(B|notA), compute the posterior P(A|B). Store it in <code>posterior</code>.",
+      "starter": "p_a = 0.01          # prior\np_b_given_a = 0.99  # likelihood\np_b_given_nota = 0.01\n# First compute P(B) overall, then apply Bayes\nposterior = None\n",
+      "solution": "p_a = 0.01\np_b_given_a = 0.99\np_b_given_nota = 0.01\np_b = p_b_given_a * p_a + p_b_given_nota * (1 - p_a)\nposterior = (p_b_given_a * p_a) / p_b",
+      "tests": ["abs(posterior - 0.5) < 1e-6"],
+      "hints": [
+        "P(B) = P(B|A)*P(A) + P(B|notA)*P(notA), where P(notA) = 1 - P(A).",
+        "Bayes: posterior = P(B|A)*P(A) / P(B). The answer here is exactly 0.5."
+      ]
+    },
+    {
+      "prompt": "Compute the expected value of a random variable with values [10, 20, 30] and probabilities [0.2, 0.5, 0.3]. Store it in <code>ev</code>.",
+      "starter": "import numpy as np\nvalues = np.array([10, 20, 30])\nprobs = np.array([0.2, 0.5, 0.3])\n# ev = expected value = sum of value * probability\n",
+      "solution": "import numpy as np\nvalues = np.array([10, 20, 30])\nprobs = np.array([0.2, 0.5, 0.3])\nev = np.sum(values * probs)",
+      "tests": ["abs(ev - 21.0) < 1e-9"],
+      "hints": [
+        "Expected value weights each value by its probability, then sums.",
+        "np.sum(values * probs) = 10*0.2 + 20*0.5 + 30*0.3 = 2 + 10 + 9 = 21."
+      ]
+    }
+  ]
+}

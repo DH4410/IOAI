@@ -1,0 +1,102 @@
+{
+  "questions": [
+    {
+      "question": "What problem does momentum solve compared to plain SGD?",
+      "options": [
+        "It removes the need for a loss function",
+        "It accumulates a velocity from past gradients, accelerating in consistent directions and damping zig-zag oscillations",
+        "It guarantees the global minimum is found",
+        "It eliminates the learning rate entirely"
+      ],
+      "correct": 1,
+      "explanation": "Momentum keeps a running velocity v = βv + ∇L. In consistent directions the velocity builds up (acceleration); in oscillating directions the opposing gradients cancel (damping). This smooths the path SGD would otherwise zig-zag along."
+    },
+    {
+      "question": "In RMSProp, what is the effect of dividing the update by sqrt(s), where s tracks the average squared gradient?",
+      "options": [
+        "It makes all weights use the same step size",
+        "It gives each weight its own adaptive step: weights with large recent gradients take smaller steps, small-gradient weights take larger steps",
+        "It converts gradients into probabilities",
+        "It removes the sign of the gradient"
+      ],
+      "correct": 1,
+      "explanation": "s measures each weight's recent gradient magnitude. Dividing by sqrt(s) shrinks steps for weights with big/volatile gradients and enlarges steps for weights with small steady gradients — a per-parameter adaptive learning rate."
+    },
+    {
+      "question": "Adam combines which two ideas?",
+      "options": [
+        "Dropout and batch normalization",
+        "Momentum (running average of the gradient) and RMSProp (running average of the squared gradient)",
+        "ReLU and softmax",
+        "Weight decay and gradient clipping"
+      ],
+      "correct": 1,
+      "explanation": "Adam keeps m (an EMA of the gradient — momentum) and v (an EMA of the squared gradient — RMSProp), plus bias correction. The update steps along m scaled per-parameter by 1/sqrt(v), getting the benefits of both."
+    },
+    {
+      "question": "Why does Adam use bias correction (dividing m and v by 1 − β^t)?",
+      "options": [
+        "To make the learning rate larger over time",
+        "Because m and v start at zero and are biased toward zero in the early steps; the correction removes this so early updates aren't artificially tiny",
+        "To prevent overfitting",
+        "To convert the gradient to a probability"
+      ],
+      "correct": 1,
+      "explanation": "Since m and v are initialized at 0, their running averages underestimate the true values during the first steps. Dividing by (1 − β^t) rescales them; the correction is strong early on and fades as t grows (β^t → 0)."
+    },
+    {
+      "question": "What makes AdamW different from Adam?",
+      "options": [
+        "AdamW uses a different activation function",
+        "AdamW applies weight decay decoupled from the adaptive gradient update, pulling weights toward zero separately rather than through the gradient",
+        "AdamW does not use momentum",
+        "AdamW only works on CPUs"
+      ],
+      "correct": 1,
+      "explanation": "In plain Adam, adding weight decay to the gradient means it gets distorted by the per-parameter 1/sqrt(v) scaling. AdamW instead applies the decay directly to the weights as a separate step, so regularization is clean and uniform. It's the standard for transformers."
+    }
+  ],
+  "exercises": [
+    {
+      "prompt": "Implement one momentum update step. Given the current weight w, gradient g, and velocity v, return the new weight and new velocity using v = beta*v + g and w = w - lr*v.",
+      "starter": "def momentum_step(w, g, v, lr=0.1, beta=0.9):\n    # update v, then update w, return (w, v)\n    pass\n",
+      "solution": "def momentum_step(w, g, v, lr=0.1, beta=0.9):\n    v = beta * v + g\n    w = w - lr * v\n    return w, v",
+      "tests": [
+        "w, v = momentum_step(1.0, 2.0, 0.0, lr=0.1, beta=0.9); assert abs(v - 2.0) < 1e-9 and abs(w - 0.8) < 1e-9",
+        "w, v = momentum_step(1.0, 1.0, 2.0, lr=0.1, beta=0.9); assert abs(v - 2.8) < 1e-9"
+      ],
+      "hints": [
+        "First compute v = beta * v + g",
+        "Then w = w - lr * v, and return both as a tuple (w, v)"
+      ]
+    },
+    {
+      "prompt": "Implement a single Adam update step. Given w, gradient g, moment estimates m and v, and step number t, return the updated (w, m, v). Use beta1=0.9, beta2=0.999, alpha=0.01, eps=1e-8. Include bias correction.",
+      "starter": "import numpy as np\n\ndef adam_step(w, g, m, v, t, alpha=0.01, beta1=0.9, beta2=0.999, eps=1e-8):\n    # 1) m = beta1*m + (1-beta1)*g\n    # 2) v = beta2*v + (1-beta2)*g**2\n    # 3) bias correct: m_hat, v_hat\n    # 4) w = w - alpha*m_hat/(sqrt(v_hat)+eps)\n    pass\n",
+      "solution": "import numpy as np\n\ndef adam_step(w, g, m, v, t, alpha=0.01, beta1=0.9, beta2=0.999, eps=1e-8):\n    m = beta1 * m + (1 - beta1) * g\n    v = beta2 * v + (1 - beta2) * g**2\n    m_hat = m / (1 - beta1**t)\n    v_hat = v / (1 - beta2**t)\n    w = w - alpha * m_hat / (np.sqrt(v_hat) + eps)\n    return w, m, v",
+      "tests": [
+        "import numpy as np; w,m,v = adam_step(1.0, 1.0, 0.0, 0.0, 1); assert w < 1.0",
+        "import numpy as np; w,m,v = adam_step(np.array([1.0]), np.array([1.0]), np.zeros(1), np.zeros(1), 1); assert abs(w[0] - 0.99) < 1e-3"
+      ],
+      "hints": [
+        "Update m and v first, then compute the bias-corrected m_hat = m/(1-beta1**t) and v_hat = v/(1-beta2**t)",
+        "The final step is w - alpha * m_hat / (np.sqrt(v_hat) + eps). On step 1 with g=1 and default betas, the step size is almost exactly alpha."
+      ]
+    },
+    {
+      "prompt": "Implement a warmup + cosine-decay learning-rate schedule. For step t < warmup, return a linear ramp max_lr*t/warmup. Otherwise return max_lr * 0.5 * (1 + cos(pi * progress)) where progress = (t - warmup)/(total - warmup).",
+      "starter": "import numpy as np\n\ndef lr_schedule(t, warmup=100, total=1000, max_lr=1e-3):\n    pass\n",
+      "solution": "import numpy as np\n\ndef lr_schedule(t, warmup=100, total=1000, max_lr=1e-3):\n    if t < warmup:\n        return max_lr * t / warmup\n    progress = (t - warmup) / (total - warmup)\n    return max_lr * 0.5 * (1 + np.cos(np.pi * progress))",
+      "tests": [
+        "assert abs(lr_schedule(0) - 0.0) < 1e-9",
+        "assert abs(lr_schedule(100) - 1e-3) < 1e-9",
+        "assert lr_schedule(1000) < 1e-6",
+        "assert lr_schedule(50) < lr_schedule(100)"
+      ],
+      "hints": [
+        "Handle the warmup case first with an if statement: linear ramp up to max_lr",
+        "After warmup, progress goes from 0 to 1, and cos(pi*progress) goes from 1 down to -1, so the rate decays from max_lr to 0"
+      ]
+    }
+  ]
+}

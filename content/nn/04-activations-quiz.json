@@ -1,0 +1,101 @@
+{
+  "questions": [
+    {
+      "question": "What is the 'saturation problem' of the sigmoid activation?",
+      "options": [
+        "It outputs values greater than 1",
+        "For large positive or negative inputs the curve is nearly flat, so its derivative is near zero and gradients vanish",
+        "It is too slow to compute",
+        "It can only be used on the output layer"
+      ],
+      "correct": 1,
+      "explanation": "At its tails the sigmoid is almost flat, giving a near-zero derivative (max is only 0.25). Multiplying these tiny slopes through many layers makes gradients vanish, so deep sigmoid networks barely train their early layers."
+    },
+    {
+      "question": "What is the derivative of ReLU for positive inputs, and why is that valuable?",
+      "options": [
+        "0.25, which speeds up training",
+        "0, which prevents overfitting",
+        "1, so gradients pass through undiminished and don't vanish on the positive side",
+        "The input value itself, which scales gradients"
+      ],
+      "correct": 2,
+      "explanation": "ReLU's derivative is exactly 1 for x > 0. Unlike sigmoid/tanh which shrink gradients, ReLU passes them through unchanged, which is why it made training very deep networks practical."
+    },
+    {
+      "question": "What is the 'dying ReLU' problem?",
+      "options": [
+        "ReLU outputs become infinite",
+        "A neuron whose pre-activation is always negative has zero gradient forever, so it never updates again",
+        "ReLU is too slow for large networks",
+        "ReLU produces negative probabilities"
+      ],
+      "correct": 1,
+      "explanation": "ReLU's derivative is 0 for negative inputs. If a neuron gets stuck always-negative, its gradient is always 0 and its weights never change — it's permanently dead. Leaky ReLU fixes this by allowing a small negative slope."
+    },
+    {
+      "question": "What does the softmax function produce?",
+      "options": [
+        "A single value between 0 and 1",
+        "The largest of the input logits",
+        "A vector of probabilities that are all positive and sum to 1, over the classes",
+        "The input values scaled to have mean zero"
+      ],
+      "correct": 2,
+      "explanation": "Softmax exponentiates each logit and divides by the sum, producing a probability distribution: every output is in (0,1) and they add up to 1. It's the standard output activation for multi-class classification."
+    },
+    {
+      "question": "Which activation is the standard choice inside modern transformers like BERT and GPT?",
+      "options": [
+        "Sigmoid",
+        "GELU",
+        "Step function",
+        "Softmax"
+      ],
+      "correct": 1,
+      "explanation": "GELU (Gaussian Error Linear Unit) is a smooth, ReLU-like activation used in essentially all modern transformers. Its smoothness helps very large models train stably."
+    }
+  ],
+  "exercises": [
+    {
+      "prompt": "Implement ReLU and its derivative using numpy so they work on arrays. <code>relu</code> returns max(0, x); <code>relu_deriv</code> returns 1.0 where x > 0 and 0.0 otherwise.",
+      "starter": "import numpy as np\n\ndef relu(x):\n    pass\n\ndef relu_deriv(x):\n    pass\n",
+      "solution": "import numpy as np\n\ndef relu(x):\n    return np.maximum(0, x)\n\ndef relu_deriv(x):\n    return (x > 0).astype(float)",
+      "tests": [
+        "import numpy as np; assert np.allclose(relu(np.array([-2.0, 0.0, 3.0])), [0.0, 0.0, 3.0])",
+        "import numpy as np; assert np.allclose(relu_deriv(np.array([-2.0, 0.0, 3.0])), [0.0, 0.0, 1.0])"
+      ],
+      "hints": [
+        "np.maximum(0, x) applies the max elementwise",
+        "For the derivative, (x > 0) gives a boolean array; convert it with .astype(float)"
+      ]
+    },
+    {
+      "prompt": "Implement a numerically stable softmax that works on a 1D array of logits. Subtract the max before exponentiating, then normalize so the outputs sum to 1.",
+      "starter": "import numpy as np\n\ndef softmax(z):\n    # subtract max for stability, exponentiate, then divide by the sum\n    pass\n",
+      "solution": "import numpy as np\n\ndef softmax(z):\n    z = z - np.max(z)\n    e = np.exp(z)\n    return e / np.sum(e)",
+      "tests": [
+        "import numpy as np; p = softmax(np.array([2.0, 1.0, 0.1])); assert abs(p.sum() - 1.0) < 1e-9",
+        "import numpy as np; p = softmax(np.array([2.0, 1.0, 0.1])); assert p[0] > p[1] > p[2]",
+        "import numpy as np; p = softmax(np.array([1000.0, 1000.0])); assert np.allclose(p, [0.5, 0.5])"
+      ],
+      "hints": [
+        "Compute z - np.max(z) first — this prevents overflow and doesn't change the result",
+        "Then e = np.exp(z) and return e / e.sum()"
+      ]
+    },
+    {
+      "prompt": "Implement Leaky ReLU with a configurable negative slope alpha (default 0.01). For x > 0 return x; for x <= 0 return alpha*x. Use np.where.",
+      "starter": "import numpy as np\n\ndef leaky_relu(x, alpha=0.01):\n    pass\n",
+      "solution": "import numpy as np\n\ndef leaky_relu(x, alpha=0.01):\n    return np.where(x > 0, x, alpha * x)",
+      "tests": [
+        "import numpy as np; assert np.allclose(leaky_relu(np.array([-10.0, 0.0, 5.0])), [-0.1, 0.0, 5.0])",
+        "import numpy as np; assert np.allclose(leaky_relu(np.array([-2.0]), alpha=0.5), [-1.0])"
+      ],
+      "hints": [
+        "np.where(condition, value_if_true, value_if_false) selects elementwise",
+        "The condition is x > 0, true value is x, false value is alpha * x"
+      ]
+    }
+  ]
+}

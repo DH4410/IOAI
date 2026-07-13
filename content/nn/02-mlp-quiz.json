@@ -1,0 +1,103 @@
+{
+  "questions": [
+    {
+      "question": "Why must an MLP use a non-linear activation function between layers?",
+      "options": [
+        "Non-linear functions run faster on GPUs",
+        "Without non-linearity, stacked linear layers collapse into a single linear layer, so depth adds no power",
+        "Non-linear functions use less memory",
+        "It is required only for the output layer, not hidden layers"
+      ],
+      "correct": 1,
+      "explanation": "Two stacked linear layers W2(W1x+b1)+b2 simplify to (W2W1)x + const — one linear layer. The non-linear activation between layers breaks this collapse, so each layer adds genuinely new expressive power."
+    },
+    {
+      "question": "What does the Universal Approximation Theorem actually promise?",
+      "options": [
+        "That backpropagation will always find the best weights",
+        "That a single-hidden-layer MLP with enough neurons can approximate any continuous function arbitrarily well",
+        "That deep networks always beat shallow ones",
+        "That an MLP needs no training data"
+      ],
+      "correct": 1,
+      "explanation": "The theorem guarantees such a network EXISTS — it can represent any continuous function given enough hidden neurons. It does NOT tell you how to find the weights (that's training) and doesn't say the required width is small."
+    },
+    {
+      "question": "For a fully-connected layer with 100 inputs and 20 outputs, how many parameters does it have?",
+      "options": [
+        "2000",
+        "120",
+        "2020",
+        "200"
+      ],
+      "correct": 2,
+      "explanation": "Weights = inputs × outputs = 100 × 20 = 2000. Biases = one per output = 20. Total = 2000 + 20 = 2020 parameters."
+    },
+    {
+      "question": "In the batched forward pass, an input batch X has shape (32, 784) and the first weight matrix W1 has shape (784, 128). What is the shape of X @ W1?",
+      "options": [
+        "(32, 784)",
+        "(784, 128)",
+        "(32, 128)",
+        "(128, 32)"
+      ],
+      "correct": 2,
+      "explanation": "Matrix multiply (32,784) @ (784,128): the inner dimensions (784) must match and cancel, leaving the outer dimensions (32, 128). That's 32 examples, each now represented by 128 hidden values."
+    },
+    {
+      "question": "What is the main job of a hidden layer in an MLP?",
+      "options": [
+        "To store the training data for later lookup",
+        "To learn a new representation (features) of the input that makes the next layer's job easier",
+        "To slow down training so it doesn't overfit",
+        "To convert the output back into the original input"
+      ],
+      "correct": 1,
+      "explanation": "Hidden layers perform representation learning: each transforms its input into a richer set of features. Early layers find simple patterns, deeper ones combine them into complex concepts, ultimately making the classes easy to separate."
+    }
+  ],
+  "exercises": [
+    {
+      "prompt": "Implement the sigmoid activation function <code>1 / (1 + e^(-z))</code> using numpy so it works elementwise on arrays.",
+      "starter": "import numpy as np\n\ndef sigmoid(z):\n    # Return 1 / (1 + e^(-z))\n    pass\n",
+      "solution": "import numpy as np\n\ndef sigmoid(z):\n    return 1.0 / (1.0 + np.exp(-z))",
+      "tests": [
+        "assert abs(sigmoid(0.0) - 0.5) < 1e-9",
+        "assert sigmoid(100) > 0.99",
+        "assert sigmoid(-100) < 0.01",
+        "import numpy as np; out = sigmoid(np.array([0.0, 0.0])); assert out.shape == (2,)"
+      ],
+      "hints": [
+        "Use np.exp(-z) for the exponential term",
+        "numpy applies the arithmetic elementwise automatically, so no loop is needed"
+      ]
+    },
+    {
+      "prompt": "Write <code>count_params(layer_sizes)</code> that returns the total number of parameters (weights + biases) for a fully-connected MLP. Example: for [784, 128, 10] it should return 101770.",
+      "starter": "def count_params(layer_sizes):\n    # weights between consecutive layers = n_in * n_out, plus n_out biases\n    total = 0\n    # TODO\n    return total\n",
+      "solution": "def count_params(layer_sizes):\n    total = 0\n    for n_in, n_out in zip(layer_sizes[:-1], layer_sizes[1:]):\n        total += n_in * n_out + n_out\n    return total",
+      "tests": [
+        "assert count_params([784, 128, 10]) == 101770",
+        "assert count_params([100, 20]) == 2020",
+        "assert count_params([3, 5, 2]) == 32"
+      ],
+      "hints": [
+        "Loop over pairs of consecutive sizes with zip(layer_sizes[:-1], layer_sizes[1:])",
+        "For each pair add n_in * n_out (weights) plus n_out (biases)"
+      ]
+    },
+    {
+      "prompt": "Complete the forward pass of a 2-layer MLP. Given W1, b1, W2, b2 and a batched input X, compute hidden activations with sigmoid, then the output (also sigmoid). Return the final output array.",
+      "starter": "import numpy as np\n\ndef sigmoid(z):\n    return 1.0 / (1.0 + np.exp(-z))\n\ndef forward(X, W1, b1, W2, b2):\n    # Z1 = X @ W1 + b1 ; H = sigmoid(Z1)\n    # Z2 = H @ W2 + b2 ; Y = sigmoid(Z2)\n    pass\n\n# quick shape check\nX = np.zeros((4, 3))\nW1 = np.zeros((3, 5)); b1 = np.zeros(5)\nW2 = np.zeros((5, 2)); b2 = np.zeros(2)\nout = forward(X, W1, b1, W2, b2)\n",
+      "solution": "import numpy as np\n\ndef sigmoid(z):\n    return 1.0 / (1.0 + np.exp(-z))\n\ndef forward(X, W1, b1, W2, b2):\n    Z1 = X @ W1 + b1\n    H = sigmoid(Z1)\n    Z2 = H @ W2 + b2\n    Y = sigmoid(Z2)\n    return Y\n\nX = np.zeros((4, 3))\nW1 = np.zeros((3, 5)); b1 = np.zeros(5)\nW2 = np.zeros((5, 2)); b2 = np.zeros(2)\nout = forward(X, W1, b1, W2, b2)",
+      "tests": [
+        "assert out.shape == (4, 2)",
+        "import numpy as np; assert np.allclose(out, 0.5)"
+      ],
+      "hints": [
+        "Use the @ operator for matrix multiplication and + for the bias (it broadcasts across rows)",
+        "With all-zero weights and biases, every pre-activation is 0 and sigmoid(0) = 0.5, so the output is all 0.5"
+      ]
+    }
+  ]
+}

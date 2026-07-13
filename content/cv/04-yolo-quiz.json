@@ -1,0 +1,66 @@
+{
+  "questions": [
+    {
+      "question": "You need to count how many chickens are in each photo. Which task type do you need?",
+      "options": ["Classification", "Object detection", "Image generation", "Style transfer"],
+      "correct": 1,
+      "explanation": "Classification gives one label per image and cannot count. Object detection draws a bounding box around every object, so you can count them (len(boxes)) and locate them. This is exactly the IOAI 2025 Chicken Counting setup."
+    },
+    {
+      "question": "In YOLO label format, how is a bounding box stored?",
+      "options": ["(x1, y1, x2, y2) as raw pixel corners", "(x_center, y_center, width, height) normalized to [0, 1]", "(area, aspect_ratio) only", "As a per-pixel mask"],
+      "correct": 1,
+      "explanation": "YOLO uses center format normalized by image size: class_id x_center y_center width height, all box values in [0,1]. Normalizing makes labels independent of image resolution."
+    },
+    {
+      "question": "Two boxes have an intersection area of 20 and a union area of 50. What is their IoU?",
+      "options": ["0.2", "0.4", "0.7", "2.5"],
+      "correct": 1,
+      "explanation": "IoU = intersection / union = 20 / 50 = 0.4. IoU ranges from 0 (no overlap) to 1 (perfect match). A prediction is often counted correct when IoU exceeds 0.5."
+    },
+    {
+      "question": "What problem does Non-Maximum Suppression (NMS) solve?",
+      "options": ["It makes the image brighter", "The detector predicts several overlapping boxes for the same object; NMS keeps the highest-confidence one and removes the duplicates", "It converts boxes to segmentation masks", "It normalizes pixel values"],
+      "correct": 1,
+      "explanation": "Detectors output many overlapping boxes per object. Without NMS you'd count one chicken as several. NMS keeps the top-confidence box and suppresses others that overlap it too much (IoU above a threshold)."
+    },
+    {
+      "question": "For the Chicken Counting task, which single setting most directly affects whether your count matches the truth?",
+      "options": ["The image file format", "The confidence threshold used to keep detections (too low counts noise, too high misses real chickens)", "The learning rate of the optimizer only", "The color of the bounding boxes"],
+      "correct": 1,
+      "explanation": "The confidence threshold decides which detections count. Set it too low and noise inflates the count; too high and you miss birds. It (along with the NMS threshold) should be tuned on validation against the true counts."
+    }
+  ],
+  "exercises": [
+    {
+      "prompt": "Implement IoU for two axis-aligned boxes in xyxy pixel format. Complete <code>iou(a, b)</code>. Each box is (x1, y1, x2, y2). Return intersection area divided by union area (0.0 if they don't overlap).",
+      "starter": "def iou(a, b):\n    xa = max(a[0], b[0])\n    ya = max(a[1], b[1])\n    xb = min(a[2], b[2])\n    yb = min(a[3], b[3])\n    inter = \n    areaA = (a[2] - a[0]) * (a[3] - a[1])\n    areaB = (b[2] - b[0]) * (b[3] - b[1])\n    union = areaA + areaB - inter\n    return inter / union if union > 0 else 0.0\n\nprint(round(iou((0, 0, 2, 2), (1, 1, 3, 3)), 4))\n",
+      "solution": "def iou(a, b):\n    xa = max(a[0], b[0])\n    ya = max(a[1], b[1])\n    xb = min(a[2], b[2])\n    yb = min(a[3], b[3])\n    inter = max(0, xb - xa) * max(0, yb - ya)\n    areaA = (a[2] - a[0]) * (a[3] - a[1])\n    areaB = (b[2] - b[0]) * (b[3] - b[1])\n    union = areaA + areaB - inter\n    return inter / union if union > 0 else 0.0\n\nprint(round(iou((0, 0, 2, 2), (1, 1, 3, 3)), 4))",
+      "tests": ["assert abs(iou((0, 0, 2, 2), (1, 1, 3, 3)) - (1/7)) < 1e-6", "assert iou((0, 0, 1, 1), (5, 5, 6, 6)) == 0.0", "assert abs(iou((0, 0, 2, 2), (0, 0, 2, 2)) - 1.0) < 1e-6"],
+      "hints": [
+        "The intersection width is max(0, xb - xa) and height is max(0, yb - ya). Multiply them.",
+        "The max(0, ...) clamps to zero when the boxes don't overlap."
+      ]
+    },
+    {
+      "prompt": "Convert a corner-format box to YOLO center format. Given (x1, y1, x2, y2) pixels and image size (W, H), return (xc, yc, w, h) all normalized to [0,1]. Complete <code>to_yolo</code>.",
+      "starter": "def to_yolo(x1, y1, x2, y2, W, H):\n    xc = \n    yc = \n    w = \n    h = \n    return (xc, yc, w, h)\n\nprint(to_yolo(0, 0, 100, 50, 200, 100))\n",
+      "solution": "def to_yolo(x1, y1, x2, y2, W, H):\n    xc = (x1 + x2) / 2 / W\n    yc = (y1 + y2) / 2 / H\n    w = (x2 - x1) / W\n    h = (y2 - y1) / H\n    return (xc, yc, w, h)\n\nprint(to_yolo(0, 0, 100, 50, 200, 100))",
+      "tests": ["assert to_yolo(0, 0, 100, 50, 200, 100) == (0.25, 0.25, 0.5, 0.5)", "assert to_yolo(0, 0, 200, 100, 200, 100) == (0.5, 0.5, 1.0, 1.0)"],
+      "hints": [
+        "Center x is the average of x1 and x2, then divide by W to normalize.",
+        "Width is (x2 - x1) / W; height is (y2 - y1) / H."
+      ]
+    },
+    {
+      "prompt": "Count objects above a confidence threshold. Given a list of detection confidences <code>confs</code> and a threshold <code>t</code>, return how many detections have confidence >= t. Complete <code>count_above</code>.",
+      "starter": "def count_above(confs, t):\n    # Count detections with confidence >= t\n    pass\n\nprint(count_above([0.9, 0.4, 0.75, 0.2, 0.55], 0.5))\n",
+      "solution": "def count_above(confs, t):\n    return sum(1 for c in confs if c >= t)\n\nprint(count_above([0.9, 0.4, 0.75, 0.2, 0.55], 0.5))",
+      "tests": ["assert count_above([0.9, 0.4, 0.75, 0.2, 0.55], 0.5) == 3", "assert count_above([0.1, 0.2], 0.5) == 0", "assert count_above([0.5, 0.5, 0.5], 0.5) == 3"],
+      "hints": [
+        "Use a generator with a condition: sum(1 for c in confs if c >= t).",
+        "Remember to use >= so a confidence exactly equal to the threshold counts."
+      ]
+    }
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "questions": [
+    {
+      "question": "What is the dot product of [1, 3, 5] and [2, 0, 4]?",
+      "options": ["22", "10", "12", "[2, 0, 20]"],
+      "correct": 0,
+      "explanation": "Multiply matching positions and add: 1*2 + 3*0 + 5*4 = 2 + 0 + 20 = 22. The dot product turns two vectors into a single number."
+    },
+    {
+      "question": "Two vectors have a dot product of exactly 0. What does that tell you?",
+      "options": ["They point in the same direction", "They are orthogonal (perpendicular) — unrelated in direction", "They are the same vector", "One of them must be all zeros"],
+      "correct": 1,
+      "explanation": "A dot product of 0 means the vectors are orthogonal (at a right angle). Their cosine similarity is 0, meaning their directions are unrelated. Neither vector has to be zero."
+    },
+    {
+      "question": "What is the L2 norm (length) of the vector [6, 8]?",
+      "options": ["14", "10", "48", "100"],
+      "correct": 1,
+      "explanation": "L2 norm = sqrt(6^2 + 8^2) = sqrt(36 + 64) = sqrt(100) = 10. This is the Pythagorean theorem — the straight-line distance from the origin."
+    },
+    {
+      "question": "Why does CLIP (and semantic search) use cosine similarity instead of the raw dot product to compare vectors?",
+      "options": ["Cosine similarity is faster to compute", "Cosine similarity ignores vector length and measures only direction agreement, so it compares meaning fairly regardless of magnitude", "The raw dot product cannot be negative", "Cosine similarity works only for images"],
+      "correct": 1,
+      "explanation": "Cosine similarity divides out the lengths, so it measures pure direction (meaning) between -1 and +1. Two vectors pointing the same way score 1.0 even if one is much longer. That fairness is why it is the standard similarity measure."
+    },
+    {
+      "question": "Compared to the L2 norm, how does the L1 norm treat a single very large component of a vector?",
+      "options": ["It squares it, punishing large values harshly", "It treats it linearly (no squaring), so large values are penalized less aggressively than L2 does", "It ignores it completely", "It is identical to L2 in all cases"],
+      "correct": 1,
+      "explanation": "L1 sums absolute values (linear), while L2 squares each component. Squaring makes L2 punish large values much more harshly. This difference is why L1 (Lasso) encourages sparsity and L2 (Ridge) keeps all weights small and smooth."
+    }
+  ],
+  "exercises": [
+    {
+      "prompt": "Write a function <code>dot(a, b)</code> that computes the dot product of two numpy vectors WITHOUT using np.dot or the @ operator. Use elementwise multiply and np.sum.",
+      "starter": "import numpy as np\ndef dot(a, b):\n    # multiply positions and sum them\n    pass\n\nresult = dot(np.array([1, 2, 3]), np.array([4, 5, 6]))\n",
+      "solution": "import numpy as np\ndef dot(a, b):\n    return np.sum(a * b)\n\nresult = dot(np.array([1, 2, 3]), np.array([4, 5, 6]))",
+      "tests": ["result == 32", "dot(np.array([1, 0]), np.array([0, 1])) == 0"],
+      "hints": [
+        "a * b multiplies position by position, giving a new array.",
+        "np.sum(...) adds all the elements of that array. That's the whole definition of the dot product."
+      ]
+    },
+    {
+      "prompt": "Write <code>cosine_similarity(a, b)</code> using np.dot and np.linalg.norm. Then use it to score how similar <code>a</code> and <code>b</code> are.",
+      "starter": "import numpy as np\ndef cosine_similarity(a, b):\n    pass\n\na = np.array([1.0, 2.0, 2.0])\nb = np.array([2.0, 4.0, 4.0])\nsim = cosine_similarity(a, b)\n",
+      "solution": "import numpy as np\ndef cosine_similarity(a, b):\n    return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))\n\na = np.array([1.0, 2.0, 2.0])\nb = np.array([2.0, 4.0, 4.0])\nsim = cosine_similarity(a, b)",
+      "tests": ["abs(sim - 1.0) < 1e-9"],
+      "hints": [
+        "Cosine similarity = dot(a, b) divided by (norm of a times norm of b).",
+        "b is just a scaled by 2, so they point the same direction and the similarity should be exactly 1.0."
+      ]
+    },
+    {
+      "prompt": "Given a query vector and a list of document vectors, find the INDEX of the document most similar to the query by cosine similarity. Store it in <code>best</code>.",
+      "starter": "import numpy as np\ndef cos(a, b):\n    return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))\n\nquery = np.array([1.0, 0.0])\ndocs = [np.array([0.0, 1.0]), np.array([0.9, 0.1]), np.array([-1.0, 0.0])]\n# best = index of the doc with highest cosine similarity to query\n",
+      "solution": "import numpy as np\ndef cos(a, b):\n    return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))\n\nquery = np.array([1.0, 0.0])\ndocs = [np.array([0.0, 1.0]), np.array([0.9, 0.1]), np.array([-1.0, 0.0])]\nscores = [cos(query, d) for d in docs]\nbest = int(np.argmax(scores))",
+      "tests": ["best == 1"],
+      "hints": [
+        "Compute the cosine similarity of the query against each document to get a list of scores.",
+        "np.argmax returns the index of the largest value in a list."
+      ]
+    }
+  ]
+}

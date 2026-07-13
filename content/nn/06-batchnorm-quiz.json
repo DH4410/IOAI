@@ -1,0 +1,102 @@
+{
+  "questions": [
+    {
+      "question": "What does the normalization step of BatchNorm do to a feature?",
+      "options": [
+        "Sets all values to exactly zero",
+        "Subtracts the batch mean and divides by the batch standard deviation, giving mean 0 and variance 1",
+        "Rounds the values to the nearest integer",
+        "Multiplies each value by a random number"
+      ],
+      "correct": 1,
+      "explanation": "BatchNorm computes x_hat = (x - μ_batch) / sqrt(σ²_batch + ε), which centers the feature at 0 and scales it to unit variance across the examples in the batch. This gives every layer well-behaved inputs."
+    },
+    {
+      "question": "Why does BatchNorm include the learnable parameters γ (scale) and β (shift)?",
+      "options": [
+        "To make the computation slower on purpose",
+        "So the network can learn the best scale and shift, instead of being forced to always use mean 0 and variance 1",
+        "To store the training labels",
+        "They replace the weights of the layer"
+      ],
+      "correct": 1,
+      "explanation": "Forcing every layer to mean-0/variance-1 might not be optimal. γ and β let the network learn to rescale and shift the normalized values — it can even undo the normalization if that works better, giving stability plus flexibility."
+    },
+    {
+      "question": "During inference (prediction), what statistics does BatchNorm use?",
+      "options": [
+        "The mean and variance of the current mini-batch",
+        "Randomly generated statistics",
+        "Frozen running (moving-average) mean and variance accumulated during training",
+        "The statistics of the training labels"
+      ],
+      "correct": 2,
+      "explanation": "At inference you may have a single example and want deterministic output, so BatchNorm uses the running mean/variance it tracked during training rather than batch statistics. This is why you must call model.eval() before predicting."
+    },
+    {
+      "question": "How does dropout reduce overfitting?",
+      "options": [
+        "By deleting the training data",
+        "By randomly zeroing neurons during training, forcing the network to spread knowledge across many neurons and learn robust, redundant features (like training an ensemble)",
+        "By increasing the learning rate",
+        "By adding more layers automatically"
+      ],
+      "correct": 1,
+      "explanation": "Randomly dropping neurons means no neuron can depend on any specific other neuron, so the network learns redundant, robust features. It also acts like training an ensemble of many thinned sub-networks that share weights, which generalizes better."
+    },
+    {
+      "question": "In inverted dropout with rate p, why are the surviving neurons scaled up by 1/(1-p) during training?",
+      "options": [
+        "To make training slower",
+        "So the expected total signal stays the same, letting inference use all neurons with no scaling",
+        "To increase the dropout rate over time",
+        "Because it makes the gradients zero"
+      ],
+      "correct": 1,
+      "explanation": "Dropping a fraction p of neurons would halve (roughly) the signal reaching the next layer. Scaling survivors by 1/(1-p) keeps the expected sum constant, so at inference all neurons can be used directly with no adjustment — dropout just switches off."
+    }
+  ],
+  "exercises": [
+    {
+      "prompt": "Implement the BatchNorm normalization step (training mode, no γ/β yet). Given a batch x of shape (batch, features), compute the per-feature mean and variance over axis 0, then return (x - mean) / sqrt(var + eps).",
+      "starter": "import numpy as np\n\ndef batchnorm_normalize(x, eps=1e-5):\n    # mean and var over the batch dimension (axis 0)\n    pass\n",
+      "solution": "import numpy as np\n\ndef batchnorm_normalize(x, eps=1e-5):\n    mu = x.mean(axis=0)\n    var = x.var(axis=0)\n    return (x - mu) / np.sqrt(var + eps)",
+      "tests": [
+        "import numpy as np; rng=np.random.default_rng(0); x=rng.normal(5,2,size=(100,4)); out=batchnorm_normalize(x); assert np.allclose(out.mean(axis=0), 0, atol=1e-6)",
+        "import numpy as np; rng=np.random.default_rng(1); x=rng.normal(5,2,size=(100,4)); out=batchnorm_normalize(x); assert np.allclose(out.std(axis=0), 1, atol=1e-2)"
+      ],
+      "hints": [
+        "Use x.mean(axis=0) and x.var(axis=0) to compute statistics per feature across the batch",
+        "Return (x - mu) / np.sqrt(var + eps)"
+      ]
+    },
+    {
+      "prompt": "Implement inverted dropout. If not training, return x unchanged. Otherwise build a random keep-mask (each element kept with probability 1-p), apply it, and scale survivors by 1/(1-p). Use the provided rng for reproducibility.",
+      "starter": "import numpy as np\n\ndef dropout(x, p, training, rng):\n    if not training or p == 0.0:\n        return x\n    keep_prob = 1.0 - p\n    # mask, apply, and scale\n    pass\n",
+      "solution": "import numpy as np\n\ndef dropout(x, p, training, rng):\n    if not training or p == 0.0:\n        return x\n    keep_prob = 1.0 - p\n    mask = (rng.random(x.shape) < keep_prob).astype(float)\n    return x * mask / keep_prob",
+      "tests": [
+        "import numpy as np; rng=np.random.default_rng(0); x=np.ones((1,10000)); out=dropout(x,0.5,True,rng); assert set(np.unique(out)).issubset({0.0,2.0})",
+        "import numpy as np; rng=np.random.default_rng(0); x=np.ones((5,5)); out=dropout(x,0.5,False,rng); assert np.allclose(out, 1.0)",
+        "import numpy as np; rng=np.random.default_rng(0); x=np.ones((1,100000)); out=dropout(x,0.5,True,rng); assert abs(out.mean()-1.0) < 0.05"
+      ],
+      "hints": [
+        "Return x immediately if not training",
+        "mask = (rng.random(x.shape) < keep_prob).astype(float), then return x * mask / keep_prob so survivors become 1/keep_prob"
+      ]
+    },
+    {
+      "prompt": "Implement a running-statistics update as used by BatchNorm during training. Given the current running value, a new batch value, and momentum, return (1 - momentum)*running + momentum*batch.",
+      "starter": "def update_running(running, batch_value, momentum=0.1):\n    pass\n",
+      "solution": "def update_running(running, batch_value, momentum=0.1):\n    return (1 - momentum) * running + momentum * batch_value",
+      "tests": [
+        "assert abs(update_running(0.0, 10.0, 0.1) - 1.0) < 1e-9",
+        "assert abs(update_running(5.0, 5.0, 0.1) - 5.0) < 1e-9",
+        "assert abs(update_running(0.0, 1.0, 0.5) - 0.5) < 1e-9"
+      ],
+      "hints": [
+        "It's a weighted blend: mostly the old running value plus a small momentum fraction of the new batch value",
+        "return (1 - momentum) * running + momentum * batch_value"
+      ]
+    }
+  ]
+}

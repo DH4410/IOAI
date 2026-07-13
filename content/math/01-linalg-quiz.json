@@ -1,0 +1,66 @@
+{
+  "questions": [
+    {
+      "question": "A matrix has shape (3, 5). How many rows and columns does it have?",
+      "options": ["5 rows, 3 columns", "3 rows, 5 columns", "15 rows, 1 column", "8 rows, 8 columns"],
+      "correct": 1,
+      "explanation": "Shape is always given as (rows, columns) — rows first, then columns. So (3, 5) means 3 rows and 5 columns."
+    },
+    {
+      "question": "In numpy, which operator performs matrix multiplication (row dot column)?",
+      "options": ["The <code>*</code> operator", "The <code>@</code> operator", "The <code>+</code> operator", "The <code>**</code> operator"],
+      "correct": 1,
+      "explanation": "<code>@</code> is matrix multiplication. <code>*</code> does elementwise multiplication (position by position), which is a different operation. Mixing them up is a very common bug."
+    },
+    {
+      "question": "You want to multiply a (2, 3) matrix by another matrix. Which shape is a LEGAL right-hand side?",
+      "options": ["(2, 3)", "(2, 2)", "(3, 4)", "(4, 3)"],
+      "correct": 2,
+      "explanation": "For A @ B the inner numbers must match. A is (2, 3), so B must have 3 rows. Only (3, 4) works, and the result is (2, 4) — the outer numbers."
+    },
+    {
+      "question": "What is the result of multiplying the row [1, 2] by the column [10, 20] as a dot product (the building block of matrix multiplication)?",
+      "options": ["30", "50", "3", "[10, 40]"],
+      "correct": 1,
+      "explanation": "Multiply pairwise and add: 1*10 + 2*20 = 10 + 40 = 50. Each entry of a matrix product is exactly one of these row-dot-column sums."
+    },
+    {
+      "question": "Why is 'a matrix transforms space' a useful way to think about matrices in AI?",
+      "options": ["Because a matrix deletes data", "Because multiplying a matrix by a vector turns it into a new vector — stretching, rotating, or reshaping it — which is exactly what a neural network layer does", "Because matrices can only rotate images", "Because it makes matrices slower to compute"],
+      "correct": 1,
+      "explanation": "A matrix times a vector produces a new vector: the matrix transforms the input. Neural network layers do exactly this (y = Wx + b), transforming data step by step through the network."
+    }
+  ],
+  "exercises": [
+    {
+      "prompt": "Given the vectors below, compute their sum and store it in <code>c</code>. Then compute <code>3 * a</code> and store it in <code>scaled</code>.",
+      "starter": "import numpy as np\na = np.array([1, 2, 3])\nb = np.array([4, 5, 6])\n# c = sum of a and b\n# scaled = a times 3\n",
+      "solution": "import numpy as np\na = np.array([1, 2, 3])\nb = np.array([4, 5, 6])\nc = a + b\nscaled = 3 * a",
+      "tests": ["list(c) == [5, 7, 9]", "list(scaled) == [3, 6, 9]"],
+      "hints": [
+        "Vector addition is just a + b in numpy — it adds position by position.",
+        "Scalar multiplication is 3 * a — it multiplies every element by 3."
+      ]
+    },
+    {
+      "prompt": "Multiply the matrix A by the vector x using the <code>@</code> operator. Store the result in <code>y</code>. Work out by hand what you expect first!",
+      "starter": "import numpy as np\nA = np.array([[1, 2], [3, 4]])\nx = np.array([5, 6])\n# y = A times x\n",
+      "solution": "import numpy as np\nA = np.array([[1, 2], [3, 4]])\nx = np.array([5, 6])\ny = A @ x",
+      "tests": ["list(y) == [17, 39]"],
+      "hints": [
+        "Use the @ operator: A @ x. Do NOT use * (that would be elementwise).",
+        "Row 1: 1*5 + 2*6 = 17. Row 2: 3*5 + 4*6 = 39."
+      ]
+    },
+    {
+      "prompt": "Build a tiny neural network layer. Compute <code>y = W @ x + b</code> where W is the weight matrix, x is the input, and b is the bias.",
+      "starter": "import numpy as np\nW = np.array([[1.0, 0.0, 2.0], [0.0, 1.0, 1.0]])\nx = np.array([1.0, 2.0, 3.0])\nb = np.array([0.5, -0.5])\n# y = W @ x + b\n",
+      "solution": "import numpy as np\nW = np.array([[1.0, 0.0, 2.0], [0.0, 1.0, 1.0]])\nx = np.array([1.0, 2.0, 3.0])\nb = np.array([0.5, -0.5])\ny = W @ x + b",
+      "tests": ["list(y) == [7.5, 4.5]"],
+      "hints": [
+        "Matrix-vector multiply with @, then add the bias vector b.",
+        "Row 1: 1*1 + 0*2 + 2*3 = 7, plus bias 0.5 = 7.5. Row 2: 0*1 + 1*2 + 1*3 = 5, plus bias -0.5 = 4.5."
+      ]
+    }
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "questions": [
+    {
+      "question": "What is the difference between a class and an object?",
+      "options": ["They are the same thing", "A class is a blueprint/template; an object is an actual thing built from that blueprint", "An object is a blueprint; a class is a thing built from it", "A class stores data; an object stores functions"],
+      "correct": 1,
+      "explanation": "A class is the blueprint (like the design for a house), and an object (or instance) is an actual thing created from it (an actual house). One class can create many objects, each with its own data."
+    },
+    {
+      "question": "When does the <code>__init__</code> method run?",
+      "options": ["Every time any method is called", "Automatically when you create a new object from the class", "Only when you call it directly with obj.__init__()", "Never — it's just documentation"],
+      "correct": 1,
+      "explanation": "__init__ runs automatically each time you create an object (e.g. Dog('Rex')). It's the constructor, where you set up the object's starting data. You never call it directly yourself."
+    },
+    {
+      "question": "What does <code>self</code> refer to inside a method?",
+      "options": ["The class itself", "The specific object the method is being called on", "A global variable", "The parent class"],
+      "correct": 1,
+      "explanation": "self refers to the particular object the method was called on. When you write rex.bark(), Python passes rex in as self. That's how one method can work on many different objects — self points to a different one each time."
+    },
+    {
+      "question": "In <code>class Dog(Animal):</code>, what does this mean?",
+      "options": ["Dog contains an Animal", "Dog inherits from Animal, getting all its attributes and methods", "Animal inherits from Dog", "Dog and Animal are the same class"],
+      "correct": 1,
+      "explanation": "class Dog(Animal) means Dog inherits from Animal. Dog automatically gets all of Animal's methods and attributes, and can add its own or override them. This models an 'is-a' relationship: a Dog is an Animal."
+    },
+    {
+      "question": "Why is inheritance especially important for AI with PyTorch?",
+      "options": ["It makes code run faster", "Every neural network you build inherits from nn.Module, getting PyTorch's machinery for free", "It removes the need for functions", "It is only used for printing models"],
+      "correct": 1,
+      "explanation": "In PyTorch you write class MyModel(nn.Module). By inheriting from nn.Module, your model automatically gets parameter tracking, GPU support, saving/loading, and more — you only add the parts specific to your model."
+    }
+  ],
+  "exercises": [
+    {
+      "prompt": "Write a class <code>Rectangle</code> with an <code>__init__</code> that stores <code>width</code> and <code>height</code>, and a method <code>area</code> that returns width times height.",
+      "starter": "class Rectangle:\n    def __init__(self, width, height):\n        # store width and height on self\n        pass\n\n    def area(self):\n        # return the area\n        pass\n",
+      "solution": "class Rectangle:\n    def __init__(self, width, height):\n        self.width = width\n        self.height = height\n\n    def area(self):\n        return self.width * self.height",
+      "tests": ["Rectangle(4, 5).area() == 20", "Rectangle(3, 3).area() == 9", "Rectangle(2, 10).width == 2"],
+      "hints": [
+        "In __init__, store the values with self.width = width and self.height = height.",
+        "In area, return self.width * self.height. Don't forget the self. prefix to access the object's data."
+      ]
+    },
+    {
+      "prompt": "Write a class <code>Counter</code> with an __init__ that sets <code>self.count</code> to 0, and a method <code>increment</code> that adds 1 to self.count each time it's called.",
+      "starter": "class Counter:\n    def __init__(self):\n        # set count to 0\n        pass\n\n    def increment(self):\n        # add 1 to count\n        pass\n",
+      "solution": "class Counter:\n    def __init__(self):\n        self.count = 0\n\n    def increment(self):\n        self.count += 1",
+      "tests": ["c = Counter(); c.increment(); c.increment(); c.count == 2", "Counter().count == 0"],
+      "hints": [
+        "In __init__, write self.count = 0.",
+        "In increment, write self.count += 1 to add one each call."
+      ]
+    },
+    {
+      "prompt": "Create a base class <code>Animal</code> with a method <code>describe</code> that returns the string <code>\"I am an animal\"</code>. Then create a subclass <code>Dog</code> that inherits from Animal and adds a method <code>speak</code> returning <code>\"Woof\"</code>.",
+      "starter": "class Animal:\n    def describe(self):\n        pass\n\nclass Dog(Animal):\n    def speak(self):\n        pass\n",
+      "solution": "class Animal:\n    def describe(self):\n        return \"I am an animal\"\n\nclass Dog(Animal):\n    def speak(self):\n        return \"Woof\"",
+      "tests": ["Dog().speak() == \"Woof\"", "Dog().describe() == \"I am an animal\""],
+      "hints": [
+        "Animal.describe should return \"I am an animal\".",
+        "Dog inherits describe automatically via class Dog(Animal). Just add speak returning \"Woof\"."
+      ]
+    }
+  ]
+}

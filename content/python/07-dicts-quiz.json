@@ -1,0 +1,66 @@
+{
+  "questions": [
+    {
+      "question": "How do you access the value for the key <code>\"name\"</code> in a dictionary <code>d</code>?",
+      "options": ["d(0)", "d.name", "d[\"name\"]", "d.get(0)"],
+      "correct": 2,
+      "explanation": "You access a dictionary value by putting its key in square brackets: d[\"name\"]. Unlike a list, you use the key (a label) rather than a numeric position."
+    },
+    {
+      "question": "What happens when you access a key that does NOT exist, like <code>d[\"missing\"]</code>?",
+      "options": ["It returns None", "It returns 0", "It raises a KeyError", "It creates the key automatically"],
+      "correct": 2,
+      "explanation": "Accessing a missing key with square brackets raises a KeyError and stops the program. To avoid this, use d.get(\"missing\", default) which returns a fallback instead of crashing."
+    },
+    {
+      "question": "What does <code>d.get(\"score\", 0)</code> return if the key \"score\" is not in the dictionary?",
+      "options": ["A KeyError", "None", "0", "An empty string"],
+      "correct": 2,
+      "explanation": ".get() returns the second argument as a default when the key is missing. Here that default is 0, so you get 0 instead of a crash. This is the safe way to look up possibly-missing keys."
+    },
+    {
+      "question": "Which method lets you loop over both keys AND values at the same time?",
+      "options": [".keys()", ".values()", ".items()", ".pairs()"],
+      "correct": 2,
+      "explanation": ".items() gives you each key-value pair, so you can write: for key, value in d.items(). Looping over the dictionary directly only gives you the keys."
+    },
+    {
+      "question": "After <code>counts = {}</code> then running <code>counts[w] = counts.get(w, 0) + 1</code> for w in ['a', 'b', 'a'], what is counts['a']?",
+      "options": ["1", "2", "3", "0"],
+      "correct": 1,
+      "explanation": "This is the counting pattern. 'a' appears twice, so its count becomes 2. The .get(w, 0) returns the current count (0 the first time), then adds 1 and stores it back."
+    }
+  ],
+  "exercises": [
+    {
+      "prompt": "Create a dictionary <code>ages</code> with the pairs \"Ada\": 20 and \"Alan\": 22. Then add a new pair \"Grace\": 25, and update Ada's age to 21.",
+      "starter": "# Create the dictionary, add Grace, update Ada\nages = \n\n",
+      "solution": "ages = {\"Ada\": 20, \"Alan\": 22}\nages[\"Grace\"] = 25\nages[\"Ada\"] = 21",
+      "tests": ["ages[\"Ada\"] == 21", "ages[\"Grace\"] == 25", "len(ages) == 3"],
+      "hints": [
+        "Start with ages = {\"Ada\": 20, \"Alan\": 22}.",
+        "Add a key by assigning: ages[\"Grace\"] = 25. Update the same way: ages[\"Ada\"] = 21."
+      ]
+    },
+    {
+      "prompt": "Given the list <code>items = [\"red\", \"blue\", \"red\", \"green\", \"blue\", \"red\"]</code>, build a dictionary <code>counts</code> that maps each color to how many times it appears.",
+      "starter": "items = [\"red\", \"blue\", \"red\", \"green\", \"blue\", \"red\"]\ncounts = {}\n# Count each color\n\nprint(counts)\n",
+      "solution": "items = [\"red\", \"blue\", \"red\", \"green\", \"blue\", \"red\"]\ncounts = {}\nfor item in items:\n    counts[item] = counts.get(item, 0) + 1\nprint(counts)",
+      "tests": ["counts[\"red\"] == 3", "counts[\"blue\"] == 2", "counts[\"green\"] == 1"],
+      "hints": [
+        "Loop through items and use the counting pattern.",
+        "counts[item] = counts.get(item, 0) + 1 handles both first-time and repeat items."
+      ]
+    },
+    {
+      "prompt": "You have a label map for a model. Given <code>label_map = {0: \"cat\", 1: \"dog\", 2: \"bird\"}</code> and a prediction number, look up the class name and store it in <code>predicted_class</code>.",
+      "starter": "label_map = {0: \"cat\", 1: \"dog\", 2: \"bird\"}\nprediction = 2\n# Look up the class name\npredicted_class = \nprint(predicted_class)\n",
+      "solution": "label_map = {0: \"cat\", 1: \"dog\", 2: \"bird\"}\nprediction = 2\npredicted_class = label_map[prediction]\nprint(predicted_class)",
+      "tests": ["predicted_class == \"bird\""],
+      "hints": [
+        "Use the prediction number as the key into label_map.",
+        "predicted_class = label_map[prediction] gives 'bird' for prediction 2."
+      ]
+    }
+  ]
+}

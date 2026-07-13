@@ -1,0 +1,66 @@
+{
+  "questions": [
+    {
+      "question": "What is the difference between <code>print</code> and <code>return</code> in a function?",
+      "options": ["They are the same", "print shows a value on screen; return hands the value back to the caller so it can be reused", "return shows a value on screen; print hands it back", "print is faster than return"],
+      "correct": 1,
+      "explanation": "print only displays something to a human and the value is gone. return sends the value back to your program so you can store it in a variable or use it in more calculations. A function with no return gives back None."
+    },
+    {
+      "question": "What does a function return if it has no <code>return</code> statement?",
+      "options": ["0", "An empty string", "None", "It causes an error"],
+      "correct": 2,
+      "explanation": "A function without a return statement automatically returns None, which is Python's way of saying 'nothing'. That's why x = my_func() gives x the value None if the function only prints."
+    },
+    {
+      "question": "Which function definition is valid in Python?",
+      "options": ["def f(a=1, b):", "def f(a, b=2):", "def f(=a, b):", "def f(a, b, =3):"],
+      "correct": 1,
+      "explanation": "Parameters with defaults must come AFTER parameters without defaults. def f(a, b=2) is valid; def f(a=1, b) is a SyntaxError because a required parameter follows a default one."
+    },
+    {
+      "question": "What is a 'base case' in recursion?",
+      "options": ["The first line of any function", "The condition where the function stops calling itself and returns a value directly", "The largest input the function accepts", "A default parameter value"],
+      "correct": 1,
+      "explanation": "A base case is the stopping condition that returns a plain value without recursing further. Without it, the function calls itself forever and crashes with a RecursionError."
+    },
+    {
+      "question": "A variable created inside a function is:",
+      "options": ["Global and visible everywhere", "Local — it exists only while the function runs and can't be seen outside", "Automatically returned", "Shared between all functions"],
+      "correct": 1,
+      "explanation": "Variables created inside a function are local. They exist only during that function's execution and disappear when it ends. Trying to use one outside the function gives a NameError. To get a value out, return it."
+    }
+  ],
+  "exercises": [
+    {
+      "prompt": "Write a function <code>rectangle_area</code> that takes <code>width</code> and <code>height</code> and RETURNS their product (the area). Do not print inside the function.",
+      "starter": "def rectangle_area(width, height):\n    # return the area\n    pass\n",
+      "solution": "def rectangle_area(width, height):\n    return width * height",
+      "tests": ["rectangle_area(4, 5) == 20", "rectangle_area(3, 3) == 9", "rectangle_area(10, 0) == 0"],
+      "hints": [
+        "Area of a rectangle is width times height.",
+        "Use return width * height (not print)."
+      ]
+    },
+    {
+      "prompt": "Write a function <code>apply_discount</code> that takes a <code>price</code> and an optional <code>percent</code> with a default of 10. It should return the price after removing that percent. For example apply_discount(100) returns 90.0 and apply_discount(100, 25) returns 75.0.",
+      "starter": "def apply_discount(price, percent=10):\n    # return the discounted price\n    pass\n",
+      "solution": "def apply_discount(price, percent=10):\n    return price - price * percent / 100",
+      "tests": ["apply_discount(100) == 90.0", "apply_discount(100, 25) == 75.0", "apply_discount(50, 50) == 25.0"],
+      "hints": [
+        "The discount amount is price * percent / 100.",
+        "Subtract that from the price: return price - price * percent / 100. The default percent=10 handles the one-argument calls."
+      ]
+    },
+    {
+      "prompt": "Write a recursive function <code>countdown_sum</code> that returns the sum of all whole numbers from n down to 1. For example countdown_sum(5) returns 15 (5+4+3+2+1). Use a base case for when n is 0.",
+      "starter": "def countdown_sum(n):\n    # base case: if n is 0, return 0\n    # otherwise return n + countdown_sum(n - 1)\n    pass\n",
+      "solution": "def countdown_sum(n):\n    if n == 0:\n        return 0\n    return n + countdown_sum(n - 1)",
+      "tests": ["countdown_sum(5) == 15", "countdown_sum(1) == 1", "countdown_sum(0) == 0", "countdown_sum(10) == 55"],
+      "hints": [
+        "The base case: when n is 0, return 0 (nothing left to add).",
+        "Otherwise return n + countdown_sum(n - 1), moving toward the base case."
+      ]
+    }
+  ]
+}
