@@ -1,0 +1,108 @@
+{
+  "questions": [
+    {
+      "question": "Temperature T is applied to logits before the softmax during text generation. Which statement correctly describes the effect of setting T = 0.3 versus T = 1.5?",
+      "options": [
+        "T=0.3 increases the entropy of the output distribution (more random); T=1.5 decreases it (more deterministic)",
+        "T=0.3 sharpens the distribution (top token gets more weight, more deterministic); T=1.5 flattens it (more uniform, more random)",
+        "T=0.3 scales down all token probabilities by 0.3; T=1.5 scales them up by 1.5",
+        "Temperature only affects the absolute values of logits, not the relative ordering of token probabilities"
+      ],
+      "correct": 1,
+      "explanation": "Temperature divides logits before softmax: logits_scaled = logits / T. When T=0.3, logits are amplified (equivalent to a steeper distribution) — the highest logit gets relatively more mass, producing near-greedy behavior. When T=1.5, logits are compressed toward zero, making the distribution more uniform. The mathematical effect: low T → low entropy (concentrated, deterministic); high T → high entropy (spread, random)."
+    },
+    {
+      "question": "What is the key advantage of top-p (nucleus) sampling over top-k sampling?",
+      "options": [
+        "Top-p is faster to compute because it requires only one pass over the vocabulary, while top-k requires sorting",
+        "Top-p adapts the number of candidates to the model's confidence — small nucleus when the model is sure, large nucleus when uncertain; top-k always uses exactly k candidates regardless of context",
+        "Top-p guarantees that the most probable token is always selected, while top-k may exclude it",
+        "Top-p prevents repetition by automatically reducing the weight of tokens that have already been generated"
+      ],
+      "correct": 1,
+      "explanation": "Top-k always keeps exactly k tokens, which is too many when the model is very confident (e.g., one token has 95% probability — keeping k=40 means 39 low-quality alternatives are included) and too few when the model is uncertain (40 may be a small fraction of viable options). Top-p adapts: when one token dominates, the nucleus is size 1 or 2; when probability spreads across many tokens, the nucleus grows to include them all."
+    },
+    {
+      "question": "In RLHF (Reinforcement Learning from Human Feedback), what is the purpose of the KL divergence penalty term added to the PPO objective?",
+      "options": [
+        "It ensures the model generates exactly the same responses as the SFT model, preventing any change from fine-tuning",
+        "It prevents the RL policy from deviating too far from the SFT model, stopping the model from 'gaming' the reward model with degenerate outputs",
+        "It measures the quality of the reward model's predictions and terminates training when the KL is sufficiently small",
+        "It replaces the need for human feedback by using the SFT model's outputs as a reference distribution"
+      ],
+      "correct": 1,
+      "explanation": "Without a KL constraint, RL optimization would exploit weaknesses in the reward model — finding degenerate outputs (e.g., gibberish repetition, sycophantic patterns) that score high according to the imperfect learned reward model but are low quality. The KL penalty β·KL(π_θ || π_SFT) penalizes large deviations from the SFT model, keeping the RL policy near human-aligned behavior while still allowing beneficial improvements."
+    },
+    {
+      "question": "Why do language models hallucinate — generating confident but factually incorrect statements?",
+      "options": [
+        "Language models are trained with a factual accuracy objective that sometimes overfits to common misconceptions in the training data",
+        "The next-token prediction training objective rewards fluency and coherence rather than factual accuracy; plausible-sounding false statements are learned alongside true ones",
+        "Hallucination is caused by tokenization errors that corrupt factual information during pre-training",
+        "Models hallucinate only when the context window is too short to include relevant facts, causing the model to generate from memory"
+      ],
+      "correct": 1,
+      "explanation": "Language models are optimized to predict the next token in a way that is statistically consistent with training data. A confident but wrong statement can be just as syntactically and semantically plausible as a correct one. There is no explicit 'is this true?' signal in the training objective. The model interpolates between patterns it has seen, sometimes producing plausible-sounding combinations that are factually incorrect."
+    },
+    {
+      "question": "Beam search with beam width B=5 maintains 5 partial sequences and expands each at every step. Compared to greedy decoding (B=1), what is the main trade-off?",
+      "options": [
+        "Beam search is strictly better — it always finds the globally optimal sequence while being equally fast as greedy decoding",
+        "Beam search explores more of the search space and often finds higher-probability sequences than greedy, but it is 5x more computationally expensive and tends to produce more generic, repetitive text",
+        "Beam search produces more creative and diverse outputs than greedy decoding because it maintains multiple candidate sequences",
+        "Beam search has the same computational cost as greedy decoding because it prunes candidates early, eliminating low-probability paths before they are fully expanded"
+      ],
+      "correct": 1,
+      "explanation": "Beam search finds better sequences than greedy (locally optimal choices can lead to globally poor sequences). However: (1) it costs ~B times more compute per step; (2) it tends to produce 'safe,' high-probability, repetitive text because it maximizes the sequence probability, which biases toward common patterns. For open-ended generation, sampling methods produce more natural, diverse text than beam search."
+    }
+  ],
+  "exercises": [
+    {
+      "prompt": "Implement temperature scaling and top-p (nucleus) sampling for text generation.\n\n1. Write apply_temperature(logits, T) — divides logits by T before returning (do NOT apply softmax here)\n2. Write top_p_filter(logits, p) — sets all logits below the nucleus threshold to -inf:\n   - Convert logits to probabilities with softmax\n   - Sort tokens by descending probability\n   - Find the smallest set S with cumulative prob >= p\n   - Return logits with tokens outside S set to -1e9\n3. Write sample_token(logits) — applies softmax to logits and samples one token index\n\nDemonstrate: for the same base logits, show that T=0.5 has a larger max probability than T=1.5.",
+      "starter": "import numpy as np\nfrom scipy.special import softmax\n\ndef apply_temperature(logits, T):\n    \"\"\"Divide logits by temperature T. Returns scaled logits.\"\"\"\n    # YOUR CODE HERE\n    pass\n\ndef top_p_filter(logits, p):\n    \"\"\"\n    Filter logits to nucleus (top-p).\n    Returns logits with out-of-nucleus tokens set to -1e9.\n    \"\"\"\n    # YOUR CODE HERE\n    pass\n\ndef sample_token(logits, seed=None):\n    \"\"\"Sample one token index from softmax(logits).\"\"\"\n    if seed is not None:\n        np.random.seed(seed)\n    probs = softmax(logits)\n    return np.random.choice(len(probs), p=probs)\n\n# Tests\nnp.random.seed(42)\nlogits = np.array([3.0, 2.0, 1.0, 0.5, -0.5, -1.0, -2.0, -3.0])\n\n# Temperature effect\nprobs_low_T = softmax(apply_temperature(logits, 0.5))\nprobs_high_T = softmax(apply_temperature(logits, 1.5))\nprint(f'Max prob at T=0.5: {probs_low_T.max():.4f}')\nprint(f'Max prob at T=1.5: {probs_high_T.max():.4f}')\nprint('T=0.5 more concentrated:', probs_low_T.max() > probs_high_T.max())\n\n# Nucleus filter\nfiltered = top_p_filter(logits, p=0.9)\nnucleus_size = np.sum(filtered > -1e8)\nprint(f'Nucleus size for p=0.9: {nucleus_size} out of {len(logits)} tokens')\n\n# Sample\ntoken = sample_token(filtered, seed=0)\nprint(f'Sampled token: {token}')",
+      "solution": "import numpy as np\nfrom scipy.special import softmax\n\ndef apply_temperature(logits, T):\n    return logits / T\n\ndef top_p_filter(logits, p):\n    probs = softmax(logits)\n    sorted_idx = np.argsort(probs)[::-1]\n    sorted_probs = probs[sorted_idx]\n    cumsum = np.cumsum(sorted_probs)\n    # Find cutoff: first index where cumsum >= p\n    cutoff = np.searchsorted(cumsum, p) + 1\n    nucleus_idx = sorted_idx[:cutoff]\n    filtered = np.full_like(logits, -1e9, dtype=float)\n    filtered[nucleus_idx] = logits[nucleus_idx]\n    return filtered\n\ndef sample_token(logits, seed=None):\n    if seed is not None:\n        np.random.seed(seed)\n    probs = softmax(logits)\n    return np.random.choice(len(probs), p=probs)\n\nnp.random.seed(42)\nlogits = np.array([3.0, 2.0, 1.0, 0.5, -0.5, -1.0, -2.0, -3.0])\n\nprobs_low_T = softmax(apply_temperature(logits, 0.5))\nprobs_high_T = softmax(apply_temperature(logits, 1.5))\nprint(f'Max prob at T=0.5: {probs_low_T.max():.4f}')\nprint(f'Max prob at T=1.5: {probs_high_T.max():.4f}')\nprint('T=0.5 more concentrated:', probs_low_T.max() > probs_high_T.max())\n\nfiltered = top_p_filter(logits, p=0.9)\nnucleus_size = np.sum(filtered > -1e8)\nprint(f'Nucleus size for p=0.9: {nucleus_size} out of {len(logits)} tokens')\n\ntoken = sample_token(filtered, seed=0)\nprint(f'Sampled token: {token}')",
+      "hints": [
+        "apply_temperature is just: return logits / T — no softmax here",
+        "In top_p_filter: sort tokens by descending probability (argsort then reverse), compute cumsum, find cutoff with np.searchsorted(cumsum, p) + 1, then set all non-nucleus logits to -1e9",
+        "sample_token: apply softmax to get probs, then np.random.choice(len(probs), p=probs)"
+      ],
+      "tests": [
+        "logits = np.array([2.0, 1.0, 0.0]); assert np.allclose(apply_temperature(logits, 2.0), np.array([1.0, 0.5, 0.0]))",
+        "p05 = softmax(apply_temperature(np.array([3.0,1.0,0.0,-1.0]), 0.5)).max(); p15 = softmax(apply_temperature(np.array([3.0,1.0,0.0,-1.0]), 1.5)).max(); assert p05 > p15, 'Lower T should give higher max probability'",
+        "filtered = top_p_filter(np.array([5.0, 1.0, 0.0, -1.0, -2.0]), p=0.95); assert np.sum(filtered > -1e8) >= 1, 'At least 1 token in nucleus'",
+        "filtered = top_p_filter(np.array([5.0, 1.0, 0.0, -1.0, -2.0]), p=0.95); probs = softmax(np.where(filtered > -1e8, filtered, -np.inf)); valid = np.isfinite(probs) & (probs > 0); assert np.allclose(probs[valid].sum(), 1.0, atol=1e-5)"
+      ]
+    },
+    {
+      "prompt": "Implement greedy decoding and compare it with sampling. Given a sequence of logit arrays (one per generation step), simulate:\n1. greedy_decode(logits_list) — at each step, pick argmax\n2. sample_decode(logits_list, temperature, seed) — at each step, apply temperature and sample\n\nThen run both on the same logits_list (shape: steps × vocab_size) and compute the probability of each generated sequence under the model (the product of probabilities at each chosen token).\n\nShow that greedy decoding does NOT always produce the highest-probability sequence across all steps combined (hint: consider when the second step's logits strongly favor a token that greedy didn't lead to).",
+      "starter": "import numpy as np\nfrom scipy.special import softmax\n\ndef greedy_decode(logits_list):\n    \"\"\"\n    logits_list: list of (vocab_size,) arrays, one per step\n    Returns: list of chosen token indices\n    \"\"\"\n    # YOUR CODE HERE\n    pass\n\ndef sample_decode(logits_list, temperature=1.0, seed=42):\n    \"\"\"\n    logits_list: list of (vocab_size,) arrays\n    Returns: list of sampled token indices\n    \"\"\"\n    # YOUR CODE HERE\n    pass\n\ndef sequence_log_prob(logits_list, tokens):\n    \"\"\"\n    Compute log probability of a token sequence.\n    logits_list: list of (vocab_size,) arrays\n    tokens: list of chosen token indices\n    Returns: sum of log probs (log P(sequence))\n    \"\"\"\n    # YOUR CODE HERE\n    pass\n\n# Test\nnp.random.seed(0)\nsteps, vocab = 5, 10\nlogits_list = [np.random.randn(vocab) for _ in range(steps)]\n\ngreedy_seq = greedy_decode(logits_list)\nsampled_seq = sample_decode(logits_list, temperature=1.0, seed=7)\n\ngreedy_lp = sequence_log_prob(logits_list, greedy_seq)\nsampled_lp = sequence_log_prob(logits_list, sampled_seq)\n\nprint('Greedy sequence:', greedy_seq)\nprint('Sampled sequence:', sampled_seq)\nprint(f'Greedy log-prob: {greedy_lp:.4f}')\nprint(f'Sampled log-prob: {sampled_lp:.4f}')\nprint('Greedy >= sampled per-step?', greedy_lp >= sampled_lp)",
+      "solution": "import numpy as np\nfrom scipy.special import softmax\n\ndef greedy_decode(logits_list):\n    return [int(np.argmax(logits)) for logits in logits_list]\n\ndef sample_decode(logits_list, temperature=1.0, seed=42):\n    rng = np.random.RandomState(seed)\n    tokens = []\n    for logits in logits_list:\n        probs = softmax(logits / temperature)\n        token = rng.choice(len(probs), p=probs)\n        tokens.append(int(token))\n    return tokens\n\ndef sequence_log_prob(logits_list, tokens):\n    log_prob = 0.0\n    for logits, token in zip(logits_list, tokens):\n        probs = softmax(logits)\n        log_prob += np.log(probs[token] + 1e-10)\n    return log_prob\n\nnp.random.seed(0)\nsteps, vocab = 5, 10\nlogits_list = [np.random.randn(vocab) for _ in range(steps)]\n\ngreedy_seq = greedy_decode(logits_list)\nsampled_seq = sample_decode(logits_list, temperature=1.0, seed=7)\n\ngreedy_lp = sequence_log_prob(logits_list, greedy_seq)\nsampled_lp = sequence_log_prob(logits_list, sampled_seq)\n\nprint('Greedy sequence:', greedy_seq)\nprint('Sampled sequence:', sampled_seq)\nprint(f'Greedy log-prob: {greedy_lp:.4f}')\nprint(f'Sampled log-prob: {sampled_lp:.4f}')\nprint('Greedy >= sampled per-step?', greedy_lp >= sampled_lp)",
+      "hints": [
+        "greedy_decode: for each logits array, return np.argmax(logits)",
+        "sample_decode: for each step, apply softmax(logits / temperature) and use np.random.choice(len(probs), p=probs)",
+        "sequence_log_prob: sum up np.log(softmax(logits)[token]) for each step — this gives the log-probability of the full sequence"
+      ],
+      "tests": [
+        "logits_list = [np.array([5.0, 1.0, 0.0]), np.array([0.0, 0.0, 5.0])]; assert greedy_decode(logits_list) == [0, 2], 'Greedy should pick argmax at each step'",
+        "logits_list = [np.array([1.0]*5) for _ in range(3)]; seq = sample_decode(logits_list, temperature=1.0, seed=42); assert len(seq) == 3 and all(0 <= t < 5 for t in seq)",
+        "logits_list = [np.array([5.0, 1.0, 0.0])]; lp = sequence_log_prob(logits_list, [0]); assert lp > sequence_log_prob(logits_list, [2]), 'Token 0 should have higher log-prob than token 2'"
+      ]
+    },
+    {
+      "prompt": "Implement the repetition penalty and compare generation quality (entropy of output distribution) with and without it.\n\n1. Write apply_repetition_penalty(logits, generated_ids, penalty) — for each token in generated_ids:\n   - if logits[token] > 0: divide by penalty\n   - else: multiply by penalty\n   (This makes positive logits smaller and negative logits more negative — both reduce probability)\n\n2. Simulate 10 generation steps where the model keeps predicting the same top-2 tokens (high repetition scenario). Show that the repetition penalty reduces the probability of already-generated tokens.\n\n3. Compute the average entropy of the output distribution over 10 steps, with and without penalty.",
+      "starter": "import numpy as np\nfrom scipy.special import softmax\n\ndef apply_repetition_penalty(logits, generated_ids, penalty=1.3):\n    \"\"\"\n    logits: (vocab_size,) array\n    generated_ids: set or list of token IDs already generated\n    penalty: float > 1.0\n    Returns: modified logits\n    \"\"\"\n    # YOUR CODE HERE\n    pass\n\ndef entropy(probs):\n    \"\"\"Compute entropy of a probability distribution.\"\"\"\n    probs = np.asarray(probs)\n    return float(-np.sum(probs * np.log(probs + 1e-10)))\n\n# Simulate a repetitive model: always high logits for tokens 0 and 1\nnp.random.seed(42)\nvocab_size = 20\nbase_logits = np.array([4.0, 3.5] + [-1.0] * 18)  # tokens 0,1 dominate\n\ngenerated = []\nentropies_no_pen = []\nentropies_with_pen = []\n\nfor step in range(10):\n    # Without penalty\n    probs_no_pen = softmax(base_logits)\n    entropies_no_pen.append(entropy(probs_no_pen))\n    token_no_pen = int(np.argmax(probs_no_pen))  # greedy for simplicity\n\n    # With penalty\n    penalized = apply_repetition_penalty(base_logits, set(generated), penalty=1.5)\n    probs_with_pen = softmax(penalized)\n    entropies_with_pen.append(entropy(probs_with_pen))\n    token_with_pen = int(np.argmax(probs_with_pen))\n\n    generated.append(token_no_pen)  # track what was generated\n\nprint(f'Avg entropy WITHOUT penalty: {np.mean(entropies_no_pen):.4f}')\nprint(f'Avg entropy WITH penalty:    {np.mean(entropies_with_pen):.4f}')\nprint('Penalty increased diversity:', np.mean(entropies_with_pen) > np.mean(entropies_no_pen))",
+      "solution": "import numpy as np\nfrom scipy.special import softmax\n\ndef apply_repetition_penalty(logits, generated_ids, penalty=1.3):\n    adjusted = logits.copy().astype(float)\n    for token_id in generated_ids:\n        if adjusted[token_id] > 0:\n            adjusted[token_id] /= penalty\n        else:\n            adjusted[token_id] *= penalty\n    return adjusted\n\ndef entropy(probs):\n    probs = np.asarray(probs)\n    return float(-np.sum(probs * np.log(probs + 1e-10)))\n\nnp.random.seed(42)\nvocab_size = 20\nbase_logits = np.array([4.0, 3.5] + [-1.0] * 18)\n\ngenerated = []\nentropies_no_pen = []\nentropies_with_pen = []\n\nfor step in range(10):\n    probs_no_pen = softmax(base_logits)\n    entropies_no_pen.append(entropy(probs_no_pen))\n    token_no_pen = int(np.argmax(probs_no_pen))\n\n    penalized = apply_repetition_penalty(base_logits, set(generated), penalty=1.5)\n    probs_with_pen = softmax(penalized)\n    entropies_with_pen.append(entropy(probs_with_pen))\n\n    generated.append(token_no_pen)\n\nprint(f'Avg entropy WITHOUT penalty: {np.mean(entropies_no_pen):.4f}')\nprint(f'Avg entropy WITH penalty:    {np.mean(entropies_with_pen):.4f}')\nprint('Penalty increased diversity:', np.mean(entropies_with_pen) > np.mean(entropies_no_pen))",
+      "hints": [
+        "Copy logits first with logits.copy().astype(float) to avoid modifying the original",
+        "For each token_id in generated_ids: if logits[token_id] > 0, divide by penalty (making it smaller); else multiply by penalty (making it more negative)",
+        "After applying the penalty, compare entropy of softmax(original_logits) vs softmax(penalized_logits) — the penalty should increase entropy"
+      ],
+      "tests": [
+        "logits = np.array([3.0, 1.0, -1.0]); pen = apply_repetition_penalty(logits, {0}, penalty=2.0); assert pen[0] == 1.5, 'Positive logit for generated token should be halved'",
+        "logits = np.array([3.0, 1.0, -1.0]); pen = apply_repetition_penalty(logits, {2}, penalty=2.0); assert pen[2] == -2.0, 'Negative logit for generated token should be doubled in magnitude'",
+        "logits = np.array([3.0, 1.0, -1.0]); pen = apply_repetition_penalty(logits, {0}, penalty=1.5); assert pen[1] == logits[1], 'Non-generated tokens should not be changed'",
+        "logits = np.array([3.0, 1.0, -1.0]); probs_orig = softmax(logits); probs_pen = softmax(apply_repetition_penalty(logits, {0}, penalty=1.5)); assert probs_pen[0] < probs_orig[0], 'Penalty should reduce probability of generated token'"
+      ]
+    }
+  ]
+}

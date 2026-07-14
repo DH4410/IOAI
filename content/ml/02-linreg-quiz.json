@@ -1,0 +1,103 @@
+{
+  "questions": [
+    {
+      "question": "You have a linear regression model <code>y = 0.12 * sqft + 25 * bedrooms + 30</code>. According to this model, how much does adding one bedroom change the predicted price?",
+      "options": [
+        "$0.12k",
+        "$25k",
+        "$30k",
+        "Cannot determine without data"
+      ],
+      "correct": 1,
+      "explanation": "In a linear model, the coefficient for 'bedrooms' is 25. This means each additional bedroom adds $25k to the predicted price, holding all other features constant. This is the direct interpretation of a regression coefficient."
+    },
+    {
+      "question": "Why do we square the errors in Mean Squared Error instead of just taking the average of the raw errors?",
+      "options": [
+        "To make the math easier",
+        "To ensure positive and negative errors do not cancel out, and to penalize large errors more",
+        "Because MSE always gives lower values than MAE",
+        "To make the loss function non-convex"
+      ],
+      "correct": 1,
+      "explanation": "Raw errors can cancel out (a +10 and -10 average to 0, giving a false impression of no error). Squaring makes all errors positive and penalizes large errors much more than small ones (10² = 100 vs. 1² = 1)."
+    },
+    {
+      "question": "The Normal Equation is <code>w = (X^T X)^{-1} X^T y</code>. What is the main computational drawback of this approach?",
+      "options": [
+        "It requires scaling the features first",
+        "It only works for one-dimensional input",
+        "Inverting X^T X is expensive — O(p³) — making it slow for many features",
+        "It always overfits the training data"
+      ],
+      "correct": 2,
+      "explanation": "Matrix inversion has cubic time complexity O(p³) where p is the number of features. For problems with millions of features (e.g., text data), this becomes impossibly slow. Gradient descent is preferred in those cases."
+    },
+    {
+      "question": "A model has R² = 0.0 on the test set. What does this mean?",
+      "options": [
+        "The model has zero error",
+        "The model is no better than always predicting the training mean",
+        "The model has negative weights",
+        "The model perfectly fits the training data"
+      ],
+      "correct": 1,
+      "explanation": "R² = 1 - SS_res/SS_tot. When R² = 0, SS_res = SS_tot, meaning the model's errors are as large as if it simply predicted the mean every time. R² = 0 is the baseline of a trivial model."
+    },
+    {
+      "question": "You fit a StandardScaler on your training data and notice the test set has some values outside the range seen during training. What should you do?",
+      "options": [
+        "Re-fit the scaler on the test set",
+        "Re-fit the scaler on all data combined",
+        "Still use the scaler fit on the training data — do not touch the test set",
+        "Drop the out-of-range test examples"
+      ],
+      "correct": 2,
+      "explanation": "Always use the scaler fit on training data to transform test data, even if test values fall outside the training range. Re-fitting on test data or combined data would leak test-set information into your training pipeline."
+    }
+  ],
+  "exercises": [
+    {
+      "prompt": "Implement the Normal Equation from scratch using numpy. Given X (feature matrix, shape n×p) and y (labels, shape n), return the weight vector w (shape p+1, where w[0] is the bias). Test your implementation on the provided data.",
+      "starter": "import numpy as np\n\ndef normal_equation(X, y):\n    \"\"\"\n    Solve linear regression using the Normal Equation.\n    Adds a bias column automatically.\n    Returns w where w[0] is the bias.\n    \"\"\"\n    # TODO: Add column of ones to X\n    # TODO: Compute w = (X_aug^T X_aug)^{-1} X_aug^T y\n    # Hint: use np.linalg.solve instead of np.linalg.inv\n    pass\n\n# Test data\nnp.random.seed(0)\nX = np.random.randn(50, 2)\ny = 3 * X[:, 0] - 2 * X[:, 1] + 5 + np.random.randn(50) * 0.5\n\nw = normal_equation(X, y)\nprint(f'Bias (true=5): {w[0]:.3f}')\nprint(f'w1   (true=3): {w[1]:.3f}')\nprint(f'w2   (true=-2): {w[2]:.3f}')\n",
+      "solution": "import numpy as np\n\ndef normal_equation(X, y):\n    n = X.shape[0]\n    X_aug = np.column_stack([np.ones(n), X])\n    return np.linalg.solve(X_aug.T @ X_aug, X_aug.T @ y)\n\nnp.random.seed(0)\nX = np.random.randn(50, 2)\ny = 3 * X[:, 0] - 2 * X[:, 1] + 5 + np.random.randn(50) * 0.5\n\nw = normal_equation(X, y)\nprint(f'Bias (true=5): {w[0]:.3f}')\nprint(f'w1   (true=3): {w[1]:.3f}')\nprint(f'w2   (true=-2): {w[2]:.3f}')\n",
+      "hints": [
+        "Use np.column_stack([np.ones(n), X]) to add the bias column",
+        "np.linalg.solve(A, b) solves Ax = b for x — more stable than np.linalg.inv(A) @ b",
+        "The augmented matrix X_aug has shape (n, p+1)"
+      ],
+      "tests": [
+        "abs(w[0] - 5) < 0.5",
+        "abs(w[1] - 3) < 0.5",
+        "abs(w[2] - (-2)) < 0.5"
+      ]
+    },
+    {
+      "prompt": "Write a function <code>compute_residuals(y_true, y_pred)</code> that returns the residuals. Then verify that residuals from a correctly-specified linear model (linear data, no noise) sum to approximately zero.",
+      "starter": "import numpy as np\nfrom sklearn.linear_model import LinearRegression\n\ndef compute_residuals(y_true, y_pred):\n    \"\"\"Return residuals = y_true - y_pred.\"\"\"\n    # TODO\n    pass\n\n# Generate linear data with no noise\nnp.random.seed(42)\nX = np.linspace(0, 10, 50).reshape(-1, 1)\ny = 4 * X.flatten() + 2  # perfect linear relationship\n\nmodel = LinearRegression()\nmodel.fit(X, y)\ny_pred = model.predict(X)\n\nresiduals = compute_residuals(y, y_pred)\nprint(f'Sum of residuals: {residuals.sum():.6f}  (should be ~0)')\nprint(f'Max residual:     {abs(residuals).max():.8f}')\n",
+      "solution": "import numpy as np\nfrom sklearn.linear_model import LinearRegression\n\ndef compute_residuals(y_true, y_pred):\n    return y_true - y_pred\n\nnp.random.seed(42)\nX = np.linspace(0, 10, 50).reshape(-1, 1)\ny = 4 * X.flatten() + 2\n\nmodel = LinearRegression()\nmodel.fit(X, y)\ny_pred = model.predict(X)\n\nresiduals = compute_residuals(y, y_pred)\nprint(f'Sum of residuals: {residuals.sum():.6f}')\nprint(f'Max residual:     {abs(residuals).max():.8f}')\n",
+      "hints": [
+        "Residuals are simply y_true minus y_pred",
+        "For perfectly linear data with no noise, sklearn finds the exact solution so residuals are essentially zero"
+      ],
+      "tests": [
+        "abs(residuals.sum()) < 1e-6",
+        "residuals.shape == (50,)"
+      ]
+    },
+    {
+      "prompt": "Load the California Housing dataset, fit a LinearRegression model with StandardScaler, and compute the test R² score. The test set should use test_size=0.2 and random_state=42.",
+      "starter": "import numpy as np\nfrom sklearn.datasets import fetch_california_housing\nfrom sklearn.model_selection import train_test_split\nfrom sklearn.preprocessing import StandardScaler\nfrom sklearn.linear_model import LinearRegression\nfrom sklearn.metrics import r2_score\n\n# Load data\ndata = fetch_california_housing()\nX, y = data.data, data.target\n\n# TODO: Split train/test (test_size=0.2, random_state=42)\n# TODO: StandardScaler — fit on train, transform both\n# TODO: Fit LinearRegression\n# TODO: Print test R²\n",
+      "solution": "import numpy as np\nfrom sklearn.datasets import fetch_california_housing\nfrom sklearn.model_selection import train_test_split\nfrom sklearn.preprocessing import StandardScaler\nfrom sklearn.linear_model import LinearRegression\nfrom sklearn.metrics import r2_score\n\ndata = fetch_california_housing()\nX, y = data.data, data.target\n\nX_train, X_test, y_train, y_test = train_test_split(\n    X, y, test_size=0.2, random_state=42\n)\n\nscaler = StandardScaler()\nX_train_s = scaler.fit_transform(X_train)\nX_test_s  = scaler.transform(X_test)\n\nmodel = LinearRegression()\nmodel.fit(X_train_s, y_train)\n\ny_pred = model.predict(X_test_s)\nr2 = r2_score(y_test, y_pred)\nprint(f'Test R²: {r2:.4f}')\n",
+      "hints": [
+        "Use scaler.fit_transform(X_train) and scaler.transform(X_test) — never fit_transform on test data",
+        "fetch_california_housing() returns a Bunch object; use .data and .target",
+        "The expected R² is around 0.60"
+      ],
+      "tests": [
+        "r2 > 0.55",
+        "r2 < 1.0"
+      ]
+    }
+  ]
+}

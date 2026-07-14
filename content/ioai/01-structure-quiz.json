@@ -1,0 +1,88 @@
+{
+  "questions": [
+    {
+      "question": "IOAI 2024 was the first-ever IOAI. Where was it held, and how many students does each country send to the international competition?",
+      "options": [
+        "Japan; 5 students per country",
+        "Bulgaria; 4 students per country",
+        "United States; 6 students per country",
+        "Germany; 3 students per country"
+      ],
+      "correct": 1,
+      "explanation": "The first IOAI was held in Bulgaria in 2024. Each country sends a team of exactly 4 students to the international competition, accompanied by a Team Leader and optionally a Deputy Leader."
+    },
+    {
+      "question": "During the IOAI practical examination, a student wants to download a pre-trained BERT model from HuggingFace to use as a feature extractor. This is:",
+      "options": [
+        "Allowed, as long as the model is not fine-tuned during the competition",
+        "Allowed, because PyTorch and internet access are both approved",
+        "Not allowed, because internet access is restricted and external model downloads are prohibited",
+        "Allowed only if the Team Leader gives written approval"
+      ],
+      "correct": 2,
+      "explanation": "Internet access is restricted during the IOAI practical examination. Students cannot download external models, datasets, or resources. They must work with the provided data and locally-available approved libraries."
+    },
+    {
+      "question": "In IOAI's scoring system, the theoretical and practical exams are typically worth 100 points each (200 total). Medal cutoffs are determined:",
+      "options": [
+        "By fixed thresholds set before the competition (e.g., gold requires 160+)",
+        "After all scores are computed, awarding gold to approximately the top 8% of competitors",
+        "By the host country's discretion, with no standard formula",
+        "Only based on practical exam scores; the theory exam is used for tiebreaking"
+      ],
+      "correct": 1,
+      "explanation": "Like IMO and other olympiads, IOAI medal cutoffs are computed after all scores are in. Gold goes to approximately the top 8%, silver to the next 17%, and bronze to the next 25%. This ensures the distribution reflects the actual difficulty of that year's exams."
+    },
+    {
+      "question": "A student competing in IOAI submits strong predictions (best on the leaderboard) but their submitted code cannot reproduce the predictions because they forgot to set a random seed. What is the most likely consequence?",
+      "options": [
+        "No consequence — only predictions are evaluated, not code",
+        "A small point deduction for code style",
+        "Their submission may be penalized or invalidated, depending on competition rules requiring reproducibility",
+        "They receive a warning but keep their score for this edition"
+      ],
+      "correct": 2,
+      "explanation": "Many IOAI-style competitions require that submitted code must reproduce the submitted predictions. Non-reproducible results may be penalized or disqualified. This is why setting random seeds is treated as a critical practice, not an optional nicety."
+    }
+  ],
+  "exercises": [
+    {
+      "prompt": "Competition Strategy Simulation: You have 5 hours for the IOAI practical exam. Write a Python function `allocate_time(total_minutes)` that returns a dictionary with the recommended time allocation (in minutes) for each phase: 'eda', 'baseline', 'iteration', 'ensemble', 'final_submission'. The allocation should follow the competition workflow: EDA (15%), baseline (20%), iteration (45%), ensemble (15%), final submission (5%). Round all values to the nearest integer and ensure they sum to total_minutes.",
+      "starter": "def allocate_time(total_minutes):\n    \"\"\"\n    Returns recommended time allocation dict for IOAI practical exam.\n    Phases: eda, baseline, iteration, ensemble, final_submission\n    Percentages: 15%, 20%, 45%, 15%, 5%\n    \"\"\"\n    # Your code here\n    pass\n\n# Test\nresult = allocate_time(300)\nprint(result)\nprint('Sum:', sum(result.values()))",
+      "solution": "def allocate_time(total_minutes):\n    percentages = {\n        'eda': 0.15,\n        'baseline': 0.20,\n        'iteration': 0.45,\n        'ensemble': 0.15,\n        'final_submission': 0.05\n    }\n    allocation = {phase: round(pct * total_minutes) for phase, pct in percentages.items()}\n    # Adjust for rounding errors to ensure sum == total_minutes\n    diff = total_minutes - sum(allocation.values())\n    if diff != 0:\n        # Add/subtract from the largest bucket (iteration)\n        allocation['iteration'] += diff\n    return allocation\n\nresult = allocate_time(300)\nprint(result)\nprint('Sum:', sum(result.values()))",
+      "hints": [
+        "Multiply each percentage by total_minutes to get raw minutes",
+        "Use round() to get integer values, but rounding can cause the sum to differ from total_minutes",
+        "Fix the sum discrepancy by adjusting the largest bucket"
+      ],
+      "tests": [
+        "assert allocate_time(300)['eda'] == 45",
+        "assert sum(allocate_time(300).values()) == 300",
+        "assert allocate_time(480)['iteration'] > allocate_time(480)['ensemble']",
+        "assert sum(allocate_time(480).values()) == 480",
+        "assert set(allocate_time(300).keys()) == {'eda', 'baseline', 'iteration', 'ensemble', 'final_submission'}"
+      ]
+    },
+    {
+      "prompt": "Negative Marking Decision: In IOAI's theoretical exam, each question has 4 options. A correct answer is worth +3 points, a wrong answer is worth -1 point, and a blank answer is worth 0 points. Write a function `should_guess(num_eliminated)` that returns True if guessing (from the remaining options after eliminating `num_eliminated` wrong answers) has a positive expected value, and False otherwise. The function receives the number of options you have eliminated (0, 1, 2, or 3). Also write `expected_value(num_eliminated)` that returns the exact expected value (as a float) of guessing uniformly among the remaining options.",
+      "starter": "def expected_value(num_eliminated):\n    \"\"\"\n    Returns expected value of guessing uniformly among remaining options.\n    Total options = 4. Wrong answer = -1. Correct answer = +3. Blank = 0.\n    num_eliminated: number of wrong options you have ruled out (0, 1, 2, or 3)\n    \"\"\"\n    # Your code here\n    pass\n\ndef should_guess(num_eliminated):\n    \"\"\"\n    Returns True if guessing has positive expected value.\n    \"\"\"\n    # Your code here\n    pass\n\nfor k in range(4):\n    print(f'Eliminated {k}: EV={expected_value(k):.4f}, Guess={should_guess(k)}')",
+      "solution": "def expected_value(num_eliminated):\n    remaining = 4 - num_eliminated\n    p_correct = 1 / remaining\n    p_wrong = (remaining - 1) / remaining\n    ev = p_correct * 3 + p_wrong * (-1)\n    return ev\n\ndef should_guess(num_eliminated):\n    return expected_value(num_eliminated) > 0\n\nfor k in range(4):\n    print(f'Eliminated {k}: EV={expected_value(k):.4f}, Guess={should_guess(k)}')",
+      "hints": [
+        "If you eliminate k options, there are (4-k) remaining options",
+        "P(correct) = 1/(4-k), P(wrong) = (3-k)/(4-k)",
+        "EV = P(correct)*3 + P(wrong)*(-1)",
+        "With 0 eliminated: EV = (1/4)*3 + (3/4)*(-1) = 0.75 - 0.75 = 0 exactly — so guessing with no elimination is neutral"
+      ],
+      "tests": [
+        "assert abs(expected_value(0) - 0.0) < 1e-9",
+        "assert abs(expected_value(1) - (1/3*3 + 2/3*(-1))) < 1e-9",
+        "assert abs(expected_value(2) - (1/2*3 + 1/2*(-1))) < 1e-9",
+        "assert abs(expected_value(3) - 3.0) < 1e-9",
+        "assert should_guess(0) == False",
+        "assert should_guess(1) == True",
+        "assert should_guess(2) == True",
+        "assert should_guess(3) == True"
+      ]
+    }
+  ]
+}

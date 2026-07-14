@@ -1,0 +1,107 @@
+{
+  "questions": [
+    {
+      "question": "Why does the Transformer need positional encoding, and which property of self-attention makes it necessary?",
+      "options": [
+        "Self-attention is computationally expensive, and positional encoding reduces the number of operations needed",
+        "Self-attention is permutation equivariant — shuffling the input tokens produces the same outputs (shuffled), so it cannot inherently distinguish word order",
+        "Without positional encoding, the model cannot learn long-range dependencies between distant tokens",
+        "Positional encoding replaces the need for an embedding layer, reducing the total number of parameters"
+      ],
+      "correct": 1,
+      "explanation": "Self-attention computes dot-products between query-key pairs based purely on their content, not their positions. If you permute the input tokens, the output is permuted identically — no information about word order is captured. Positional encodings are added to the token embeddings before the first layer to inject sequence position information."
+    },
+    {
+      "question": "In the sinusoidal positional encoding, a specific dimension d uses sin(pos / 10000^(2i/d_model)) or cos(pos / 10000^(2i/d_model)). What does the exponent control?",
+      "options": [
+        "The maximum sequence length the encoding can represent",
+        "The frequency of the sinusoid — low i gives high frequency (changes quickly with position), high i gives low frequency (changes slowly)",
+        "The amplitude of the positional signal, preventing it from dominating the token embeddings",
+        "The number of positions that share the same encoding value"
+      ],
+      "correct": 1,
+      "explanation": "The denominator 10000^(2i/d_model) scales the frequency of the sinusoid. When i=0, the denominator is 1, so the sin/cos oscillates with a period of 2π — very high frequency. When i=d_model/2, the denominator is 10000, so the period is 10000×2π — very low frequency. Together, different dimensions provide 'clocks' at different speeds, uniquely encoding each position."
+    },
+    {
+      "question": "Which of the following correctly describes the role of the Feed-Forward Network (FFN) in a Transformer encoder block?",
+      "options": [
+        "It mixes information between different positions in the sequence to complement the attention mechanism",
+        "It applies the same two-layer MLP independently to each position, with no interaction between positions",
+        "It computes the key and value projections needed for the next attention layer",
+        "It applies layer normalization and residual connections to stabilize the attention output"
+      ],
+      "correct": 1,
+      "explanation": "The FFN is 'position-wise' — it applies identically to each position independently: FFN(x) = max(0, xW1 + b1)W2 + b2. There is no mixing between positions in the FFN. Mixing is handled by the attention sub-layer. The FFN can be thought of as a larger 'memory' that stores knowledge accessed per-token, while attention handles token-to-token relationships."
+    },
+    {
+      "question": "BERT uses Masked Language Modeling (MLM) for pre-training. When a token is 'selected for masking' (15% of tokens), what actually happens to it?",
+      "options": [
+        "It is always replaced with the special [MASK] token so the model must predict the original",
+        "It is always replaced with a random token from the vocabulary to prevent the model from memorizing positions",
+        "It is replaced with [MASK] 80% of the time, a random token 10% of the time, and kept unchanged 10% of the time",
+        "It is removed from the sequence entirely, and the model must predict what was deleted and where"
+      ],
+      "correct": 2,
+      "explanation": "The 80/10/10 split is deliberate. Always using [MASK] would cause a train/inference mismatch (the [MASK] token never appears at inference). Always masking with [MASK] also causes the model to ignore non-[MASK] tokens. The 10% random + 10% keep forces the model to build a contextual representation for EVERY token, not just the obviously masked ones."
+    },
+    {
+      "question": "How does GPT differ from BERT in a way that makes GPT naturally suitable for text generation but BERT not?",
+      "options": [
+        "GPT uses a larger vocabulary (50,257 tokens) while BERT uses a smaller one (30,522 tokens)",
+        "GPT uses causal (left-to-right) self-attention so each token only sees past tokens, making next-token prediction natural; BERT uses bidirectional attention so it sees both past and future at every layer",
+        "GPT is pre-trained on more data than BERT, giving it a broader knowledge base for generation",
+        "GPT uses an encoder-decoder architecture while BERT uses only an encoder"
+      ],
+      "correct": 1,
+      "explanation": "BERT's bidirectional attention means every token attends to all others — but this breaks the autoregressive property needed for generation (you cannot attend to tokens you haven't generated yet). GPT uses causal masking so each token only attends to previous positions, which is exactly the structure needed for left-to-right generation: predict the next token given all preceding tokens."
+    }
+  ],
+  "exercises": [
+    {
+      "prompt": "Implement sinusoidal positional encoding. Given max_len (maximum sequence length) and d_model (embedding dimension), return a matrix PE of shape (max_len, d_model) where:\n\nPE[pos, 2i]   = sin(pos / 10000^(2i/d_model))\nPE[pos, 2i+1] = cos(pos / 10000^(2i/d_model))\n\nVerify that:\n1. The shape is correct\n2. The first row (pos=0) has specific values: sin(0)=0 for all even dims, cos(0)=1 for all odd dims",
+      "starter": "import numpy as np\n\ndef sinusoidal_pe(max_len, d_model):\n    \"\"\"\n    Returns positional encoding matrix of shape (max_len, d_model).\n    \"\"\"\n    # YOUR CODE HERE\n    pass\n\n# Tests\nPE = sinusoidal_pe(max_len=50, d_model=16)\nprint('Shape:', PE.shape)               # (50, 16)\nprint('PE[0, 0::2]:', PE[0, 0::2])      # sin(0) = 0 for all even dims\nprint('PE[0, 1::2]:', PE[0, 1::2])      # cos(0) = 1 for all odd dims\nprint('PE[1, 0]:', PE[1, 0])            # sin(1/1) = sin(1) ≈ 0.841\nprint('All values in [-1, 1]:', np.all(np.abs(PE) <= 1.0 + 1e-6))",
+      "solution": "import numpy as np\n\ndef sinusoidal_pe(max_len, d_model):\n    PE = np.zeros((max_len, d_model))\n    pos = np.arange(max_len)[:, np.newaxis]       # (max_len, 1)\n    i = np.arange(d_model // 2)[np.newaxis, :]    # (1, d_model//2)\n    div_term = 10000 ** (2 * i / d_model)         # (1, d_model//2)\n    PE[:, 0::2] = np.sin(pos / div_term)\n    PE[:, 1::2] = np.cos(pos / div_term)\n    return PE\n\nPE = sinusoidal_pe(max_len=50, d_model=16)\nprint('Shape:', PE.shape)\nprint('PE[0, 0::2]:', PE[0, 0::2])\nprint('PE[0, 1::2]:', PE[0, 1::2])\nprint('PE[1, 0]:', PE[1, 0])\nprint('All values in [-1, 1]:', np.all(np.abs(PE) <= 1.0 + 1e-6))",
+      "hints": [
+        "Create a (max_len, 1) position array with np.arange(max_len)[:, np.newaxis] and a (1, d_model//2) index array",
+        "Compute div_term = 10000 ** (2 * i / d_model) — this is a (1, d_model//2) broadcast-friendly array",
+        "Assign sin to even columns: PE[:, 0::2] = np.sin(pos / div_term) and cos to odd columns: PE[:, 1::2] = np.cos(pos / div_term)"
+      ],
+      "tests": [
+        "PE = sinusoidal_pe(50, 16); assert PE.shape == (50, 16), 'Shape must be (max_len, d_model)'",
+        "PE = sinusoidal_pe(50, 16); assert np.allclose(PE[0, 0::2], 0.0, atol=1e-6), 'Even dims at pos=0 should be sin(0)=0'",
+        "PE = sinusoidal_pe(50, 16); assert np.allclose(PE[0, 1::2], 1.0, atol=1e-6), 'Odd dims at pos=0 should be cos(0)=1'",
+        "PE = sinusoidal_pe(50, 16); assert np.all(np.abs(PE) <= 1.0 + 1e-6), 'All PE values must be in [-1, 1]'"
+      ]
+    },
+    {
+      "prompt": "Implement layer normalization. LayerNorm normalizes across the feature (last) dimension for each sample independently:\n\n1. Compute mean μ and variance σ² across the last dimension\n2. Normalize: x_hat = (x - μ) / sqrt(σ² + ε)\n3. Apply learnable scale (gamma) and shift (beta): output = gamma * x_hat + beta\n\nTest your implementation on a batch of token representations x of shape (batch, seq_len, d_model) and verify the output has approximately zero mean and unit variance along the last dimension.",
+      "starter": "import numpy as np\n\ndef layer_norm(x, gamma, beta, eps=1e-6):\n    \"\"\"\n    x: (..., d_model) — arbitrary leading dimensions\n    gamma: (d_model,) — learnable scale\n    beta: (d_model,) — learnable shift\n    eps: small value for numerical stability\n    Returns: same shape as x\n    \"\"\"\n    # YOUR CODE HERE\n    pass\n\n# Test\nnp.random.seed(42)\nbatch, seq_len, d_model = 2, 5, 8\nx = np.random.randn(batch, seq_len, d_model) * 10 + 5  # non-standard scale\ngamma = np.ones(d_model)\nbeta = np.zeros(d_model)\n\nout = layer_norm(x, gamma, beta)\nprint('Output shape:', out.shape)  # (2, 5, 8)\nprint('Mean of output (should be ~0):', out.mean(axis=-1))\nprint('Std of output (should be ~1):', out.std(axis=-1))",
+      "solution": "import numpy as np\n\ndef layer_norm(x, gamma, beta, eps=1e-6):\n    mu = x.mean(axis=-1, keepdims=True)\n    var = x.var(axis=-1, keepdims=True)\n    x_hat = (x - mu) / np.sqrt(var + eps)\n    return gamma * x_hat + beta\n\nnp.random.seed(42)\nbatch, seq_len, d_model = 2, 5, 8\nx = np.random.randn(batch, seq_len, d_model) * 10 + 5\ngamma = np.ones(d_model)\nbeta = np.zeros(d_model)\n\nout = layer_norm(x, gamma, beta)\nprint('Output shape:', out.shape)\nprint('Mean of output (should be ~0):', out.mean(axis=-1))\nprint('Std of output (should be ~1):', out.std(axis=-1))",
+      "hints": [
+        "Compute mu = x.mean(axis=-1, keepdims=True) and var = x.var(axis=-1, keepdims=True) to normalize along the last dimension",
+        "Normalize: x_hat = (x - mu) / np.sqrt(var + eps) — keepdims=True allows broadcasting",
+        "Apply scale and shift: return gamma * x_hat + beta — gamma and beta broadcast over leading dimensions"
+      ],
+      "tests": [
+        "out = layer_norm(np.random.randn(3, 4, 8)*5+3, np.ones(8), np.zeros(8)); assert out.shape == (3, 4, 8)",
+        "out = layer_norm(np.random.randn(3, 4, 8)*5+3, np.ones(8), np.zeros(8)); assert np.allclose(out.mean(axis=-1), 0.0, atol=1e-5), 'Mean along last dim should be 0'",
+        "out = layer_norm(np.random.randn(3, 4, 8)*5+3, np.ones(8), np.zeros(8)); assert np.allclose(out.var(axis=-1), 1.0, atol=1e-4), 'Variance along last dim should be 1'"
+      ]
+    },
+    {
+      "prompt": "Simulate masked language modeling (MLM) data preparation. Given a list of token IDs, apply the BERT masking strategy:\n- Select 15% of tokens randomly for masking\n- Of those selected:\n  - 80% replace with mask_token_id (103)\n  - 10% replace with a random token (from 1 to vocab_size-1)\n  - 10% keep unchanged\n- Set label = original token ID at masked positions, label = -100 (ignore) elsewhere\n\nReturn: (masked_ids, labels) arrays.",
+      "starter": "import numpy as np\n\ndef apply_mlm_masking(token_ids, vocab_size, mask_token_id=103,\n                      mask_prob=0.15, seed=42):\n    \"\"\"\n    token_ids: 1D array of integer token IDs\n    vocab_size: size of vocabulary\n    mask_token_id: the [MASK] token ID\n    mask_prob: fraction of tokens to select for potential masking\n    Returns: (masked_ids, labels) both of same shape as token_ids\n    \"\"\"\n    # YOUR CODE HERE\n    pass\n\n# Test\nnp.random.seed(0)\ntoken_ids = np.array([101, 2054, 2003, 1996, 4937, 2008, 2003, 5697, 102])\n# [CLS] what   is   the   cat  that  is   black [SEP]\n\nmasked, labels = apply_mlm_masking(token_ids, vocab_size=30522, seed=7)\nprint('Original:', token_ids)\nprint('Masked:  ', masked)\nprint('Labels:  ', labels)\nprint('Num masked:', np.sum(labels != -100))",
+      "solution": "import numpy as np\n\ndef apply_mlm_masking(token_ids, vocab_size, mask_token_id=103,\n                      mask_prob=0.15, seed=42):\n    rng = np.random.RandomState(seed)\n    masked_ids = token_ids.copy()\n    labels = np.full_like(token_ids, -100)\n\n    n = len(token_ids)\n    num_to_mask = max(1, int(n * mask_prob))\n    positions = rng.choice(n, size=num_to_mask, replace=False)\n\n    for pos in positions:\n        labels[pos] = token_ids[pos]  # store original as label\n        r = rng.random()\n        if r < 0.80:\n            masked_ids[pos] = mask_token_id\n        elif r < 0.90:\n            masked_ids[pos] = rng.randint(1, vocab_size)\n        # else: keep unchanged (10%)\n\n    return masked_ids, labels\n\nnp.random.seed(0)\ntoken_ids = np.array([101, 2054, 2003, 1996, 4937, 2008, 2003, 5697, 102])\nmasked, labels = apply_mlm_masking(token_ids, vocab_size=30522, seed=7)\nprint('Original:', token_ids)\nprint('Masked:  ', masked)\nprint('Labels:  ', labels)\nprint('Num masked:', np.sum(labels != -100))",
+      "hints": [
+        "Start by copying token_ids and creating a labels array initialized to -100 (the ignore index)",
+        "Use np.random.RandomState(seed).choice(n, size=num_to_mask, replace=False) to select positions to mask",
+        "For each selected position: store the original token in labels, then decide between [MASK] (80%), random token (10%), or keep (10%) using rng.random()"
+      ],
+      "tests": [
+        "masked, labels = apply_mlm_masking(np.arange(1, 21), vocab_size=1000, seed=42); assert masked.shape == labels.shape == (20,)",
+        "masked, labels = apply_mlm_masking(np.arange(1, 21), vocab_size=1000, seed=42); assert np.sum(labels != -100) >= 1, 'At least one position should be masked'",
+        "masked, labels = apply_mlm_masking(np.arange(1, 21), vocab_size=1000, seed=42); masked_positions = np.where(labels != -100)[0]; assert np.all(labels[masked_positions] == np.arange(1, 21)[masked_positions]), 'Labels at masked positions should contain original token IDs'"
+      ]
+    }
+  ]
+}

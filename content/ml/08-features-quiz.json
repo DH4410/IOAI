@@ -1,0 +1,103 @@
+{
+  "questions": [
+    {
+      "question": "A dataset has a feature 'annual_salary' with values ranging from $20,000 to $500,000 and one extreme outlier at $10,000,000. Which preprocessing choice is most robust, and why?",
+      "options": [
+        "Min-Max scaling (MinMaxScaler): it compresses all values to [0, 1] so the outlier has no effect",
+        "StandardScaler: transforming to zero mean and unit variance completely removes the influence of outliers",
+        "RobustScaler: it uses median and IQR instead of mean and standard deviation, so extreme outliers have far less distortion",
+        "No scaling is needed; tree-based models are invariant to monotone transformations of features"
+      ],
+      "correct": 2,
+      "explanation": "RobustScaler subtracts the median and divides by the IQR, making it resistant to extreme outliers since these statistics are not swayed by a single value. MinMaxScaler (option A) is maximally sensitive to outliers — the $10M outlier would compress all other values near 0. StandardScaler (option B) still uses the mean and std, both pulled by the outlier. Option D is true for the specific case of trees but is not a preprocessing decision."
+    },
+    {
+      "question": "Principal Component Analysis (PCA) finds a new orthogonal basis for the data. What quantity does each principal component maximise (subject to orthogonality with previous components)?",
+      "options": [
+        "The variance of the projected data along that direction",
+        "The correlation between the projected data and the original feature with highest variance",
+        "The reconstruction error of the original data from the projection",
+        "The mutual information between the projection and the target variable y"
+      ],
+      "correct": 0,
+      "explanation": "PCA finds the directions (eigenvectors of the covariance matrix) along which the projected data has maximum variance. Each subsequent PC maximises remaining variance subject to orthogonality. Option B is wrong — PCA ignores per-feature correlations with other PCs. Option C is minimised, not maximised, as a side effect of maximising variance. Option D describes a supervised dimensionality reduction method (e.g., LDA or mutual-information feature selection), not PCA, which is unsupervised."
+    },
+    {
+      "question": "You one-hot encode a categorical feature with k distinct values and include all k binary columns in a linear regression model. What problem does this introduce?",
+      "options": [
+        "The model has too few parameters and will underfit the data",
+        "Perfect multicollinearity: the k columns always sum to 1, making the design matrix rank-deficient and the OLS estimator undefined",
+        "One-hot encoding always increases test error because it creates spurious correlations",
+        "The model assigns equal weight to all categories, preventing it from learning meaningful differences"
+      ],
+      "correct": 1,
+      "explanation": "With all k indicator columns, any one column is a linear combination of the remaining k−1 (they sum to 1 for every sample). This is the 'dummy variable trap': perfect multicollinearity makes X'X singular, so (X'X)⁻¹ does not exist and OLS is undefined. The fix is to drop one category (k−1 encoding). Option A is wrong — more columns give more parameters. Options C and D are false."
+    },
+    {
+      "question": "Mutual information (MI) between feature X and target Y is defined as I(X;Y) = H(Y) − H(Y|X). Which property makes MI more suitable than Pearson correlation for feature selection in general ML tasks?",
+      "options": [
+        "MI is always faster to compute than Pearson correlation for large datasets",
+        "MI captures any statistical dependency (linear or non-linear), whereas Pearson correlation measures only linear association",
+        "MI is bounded between 0 and 1, making it easier to compare across features with different scales",
+        "MI automatically adjusts for class imbalance, while Pearson correlation does not"
+      ],
+      "correct": 1,
+      "explanation": "Pearson correlation r measures the strength of a linear relationship. A feature can have r ≈ 0 yet be highly predictive (e.g., Y = X²). MI measures the reduction in uncertainty about Y given X, capturing all statistical dependencies. Option A is false — MI estimation can be expensive (especially for continuous variables). Option C is false — MI is unbounded above (it grows with the entropy of the variables). Option D is false."
+    },
+    {
+      "question": "When should you use KNN imputation instead of mean imputation for handling missing values?",
+      "options": [
+        "When the proportion of missing values exceeds 50%, because KNN can reconstruct entire rows",
+        "When the missing values occur completely at random (MCAR) and the dataset is very large",
+        "When features are correlated and the data has local structure, so similar samples provide better estimates than the global mean",
+        "When computational efficiency is the primary constraint, because KNN is faster than mean imputation"
+      ],
+      "correct": 2,
+      "explanation": "KNN imputation finds the k nearest complete samples and uses their values (or a weighted average) to fill in the missing entry, exploiting local structure and feature correlations. If a missing 'age' value occurs in a record that is otherwise similar to 25-year-olds, KNN will impute ~25 rather than the global mean of, say, 45. Option A is wrong — KNN struggles with many missing values. Option B is wrong — MCAR makes simple imputation defensible. Option D is wrong — KNN imputation is significantly more expensive than mean imputation."
+    }
+  ],
+  "exercises": [
+    {
+      "prompt": "Implement StandardScaler from scratch: compute the per-feature mean and standard deviation (population std, ddof=0), then transform the data. Store the mean in feat_mean, std in feat_std, and the scaled matrix in X_scaled. Each column of X_scaled should have mean ≈ 0 and std ≈ 1.",
+      "starter": "import numpy as np\n\nX = np.array([\n    [1.0, 200.0],\n    [2.0, 150.0],\n    [3.0, 300.0],\n    [4.0, 250.0],\n    [5.0, 100.0]\n])\n\n# TODO: Compute per-feature (column-wise) mean and std (ddof=0)\n# Then standardize: X_scaled = (X - mean) / std\nfeat_mean = None\nfeat_std  = None\nX_scaled  = None",
+      "solution": "import numpy as np\n\nX = np.array([\n    [1.0, 200.0],\n    [2.0, 150.0],\n    [3.0, 300.0],\n    [4.0, 250.0],\n    [5.0, 100.0]\n])\n\nfeat_mean = np.mean(X, axis=0)\nfeat_std  = np.std(X, axis=0, ddof=0)\nX_scaled  = (X - feat_mean) / feat_std",
+      "hints": [
+        "Use axis=0 in np.mean and np.std to compute statistics per column (per feature).",
+        "StandardScaler (sklearn) uses population std (ddof=0). Pass ddof=0 to np.std.",
+        "Broadcasting handles the subtraction and division: (X - feat_mean) broadcasts feat_mean (shape (2,)) across all rows."
+      ],
+      "tests": [
+        "np.max(np.abs(np.mean(X_scaled, axis=0))) < 1e-10",
+        "np.max(np.abs(np.std(X_scaled, axis=0) - 1.0)) < 1e-10"
+      ]
+    },
+    {
+      "prompt": "Implement one-hot encoding using only numpy (no pandas or sklearn). Given an integer category array and the number of categories, produce a 2D binary matrix of shape (n_samples, n_categories). Store the result in one_hot.",
+      "starter": "import numpy as np\n\ncategories   = np.array([0, 2, 1, 3, 0, 1, 2, 3, 1, 0])\nn_categories = 4\n\n# TODO: Build a one-hot matrix of shape (len(categories), n_categories)\n# one_hot[i, categories[i]] = 1, all other entries = 0\none_hot = None",
+      "solution": "import numpy as np\n\ncategories   = np.array([0, 2, 1, 3, 0, 1, 2, 3, 1, 0])\nn_categories = 4\n\nn_samples = len(categories)\none_hot = np.zeros((n_samples, n_categories), dtype=int)\none_hot[np.arange(n_samples), categories] = 1",
+      "hints": [
+        "Start with a zero matrix of shape (n_samples, n_categories) using np.zeros.",
+        "Use advanced (fancy) indexing: one_hot[row_indices, col_indices] = 1 where row_indices = np.arange(n_samples) and col_indices = categories.",
+        "Each row should have exactly one 1. Verify with one_hot.sum(axis=1)."
+      ],
+      "tests": [
+        "one_hot.shape == (10, 4)",
+        "np.all(one_hot.sum(axis=1) == 1)"
+      ]
+    },
+    {
+      "prompt": "Implement PCA from scratch to project a 5-dimensional dataset down to 2 dimensions. Steps: center the data, compute the covariance matrix, eigen-decompose it, sort eigenvectors by descending eigenvalue, then project. Store the 2D result in X_pca.",
+      "starter": "import numpy as np\n\nnp.random.seed(42)\nX = np.random.randn(100, 5)\nX[:, 2] = 0.8 * X[:, 0] + 0.6 * X[:, 1]  # feature 2 is a linear combo of 0 and 1\n\n# TODO: PCA from scratch\n# 1. Center X (subtract column means)\n# 2. Compute covariance matrix (use np.cov with rowvar=False)\n# 3. Eigen-decompose with np.linalg.eigh (returns ascending eigenvalues)\n# 4. Sort eigenvectors by descending eigenvalue\n# 5. Project centered X onto top 2 eigenvectors\nX_centered  = None\ncov_matrix  = None\neigenvalues = None   # sorted descending\nX_pca       = None   # shape (100, 2)",
+      "solution": "import numpy as np\n\nnp.random.seed(42)\nX = np.random.randn(100, 5)\nX[:, 2] = 0.8 * X[:, 0] + 0.6 * X[:, 1]\n\nX_centered = X - np.mean(X, axis=0)\ncov_matrix = np.cov(X_centered, rowvar=False)\n\neigenvalues_raw, eigenvectors_raw = np.linalg.eigh(cov_matrix)\n\n# Sort descending\nidx = np.argsort(eigenvalues_raw)[::-1]\neigenvalues  = eigenvalues_raw[idx]\neigenvectors = eigenvectors_raw[:, idx]\n\n# Project onto top 2 principal components\nX_pca = X_centered @ eigenvectors[:, :2]",
+      "hints": [
+        "Center the data: X_centered = X - np.mean(X, axis=0). This is required before covariance computation.",
+        "np.linalg.eigh (for symmetric matrices) returns eigenvalues in ascending order. Use np.argsort(eigenvalues)[::-1] to get a descending index.",
+        "Project by matrix multiplication: X_pca = X_centered @ eigenvectors[:, :2], where eigenvectors[:, :2] are the top-2 eigenvectors (shape 5×2)."
+      ],
+      "tests": [
+        "X_pca.shape == (100, 2)",
+        "eigenvalues[0] >= eigenvalues[1]"
+      ]
+    }
+  ]
+}

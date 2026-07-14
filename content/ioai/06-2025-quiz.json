@@ -1,0 +1,100 @@
+{
+  "questions": [
+    {
+      "question": "In the attention mechanism Attention(Q, K, V) = softmax(QK^T / sqrt(d_k)) * V, what is the purpose of dividing by sqrt(d_k)?",
+      "options": [
+        "To normalize the output values to the range [0, 1]",
+        "To prevent the dot products from becoming too large, which would push softmax into saturation and cause vanishing gradients",
+        "To scale the value matrix V before the weighted sum",
+        "To ensure the query and key matrices have the same dimensionality"
+      ],
+      "correct": 1,
+      "explanation": "When d_k is large, the dot products QK^T tend to grow large in magnitude, pushing softmax into regions with very small gradients (saturation). Dividing by sqrt(d_k) keeps the dot products in a reasonable range so gradients can flow effectively during training."
+    },
+    {
+      "question": "You are working on a text classification problem and your TF-IDF + LogisticRegression model achieves 82% F1-macro on your validation set. The organizers have also provided 768-dimensional sentence embeddings from a pretrained model. What is the most principled next step?",
+      "options": [
+        "Discard TF-IDF entirely and only use the sentence embeddings",
+        "Retrain the sentence embedding model on your data from scratch",
+        "Train a Logistic Regression on the embeddings alone, compare CV scores, and then try combining TF-IDF features with embeddings using scipy.sparse.hstack",
+        "Use KMeans clustering on the embeddings to create new labels and retrain"
+      ],
+      "correct": 2,
+      "explanation": "The principled approach is to evaluate each representation independently with CV, then try combining them. TF-IDF captures lexical patterns (exact word matches, n-grams) while sentence embeddings capture semantic meaning — they are complementary and combining them often outperforms either alone. Compare CV scores before deciding what to use."
+    },
+    {
+      "question": "Why can AUC-ROC be misleading on highly imbalanced classification datasets (e.g., 1% positive class), while Precision-Recall AUC (PR-AUC) remains informative?",
+      "options": [
+        "AUC-ROC requires equal class sizes to compute correctly; PR-AUC does not have this constraint",
+        "The ROC curve's False Positive Rate is dominated by the large number of true negatives, making even weak models appear good; PR-AUC focuses entirely on the positive class performance",
+        "AUC-ROC only works for binary classification; PR-AUC supports multi-class tasks",
+        "PR-AUC is always numerically higher than AUC-ROC, making it easier to interpret"
+      ],
+      "correct": 1,
+      "explanation": "On imbalanced data, the FPR = FP / (FP + TN) stays low even when many positives are missed, because TN is huge. This makes the ROC curve look favorable for weak models. PR-AUC uses precision and recall, both of which directly measure performance on the positive class, so it cannot be inflated by abundant true negatives."
+    },
+    {
+      "question": "A participant in IOAI 2025 notices their model achieves 91% F1 on the public leaderboard (scored on 30% of test data) but drops to 78% on the private leaderboard (remaining 70%). What most likely caused this?",
+      "options": [
+        "The participant used too few cross-validation folds during development",
+        "The participant's model overfit to the public leaderboard subset by making too many submission-guided adjustments, rather than trusting their local CV score",
+        "The model was not calibrated using CalibratedClassifierCV before submission",
+        "The participant used Gradient Boosting instead of a neural network, causing domain mismatch"
+      ],
+      "correct": 1,
+      "explanation": "This is a classic public leaderboard overfitting scenario. By adjusting model choices or features based on public score feedback, the participant effectively used the public test set as a validation set, finding configurations that happen to work well on that 30% slice. The private leaderboard reveals the true generalization gap. The solution is to trust a well-constructed local CV score."
+    },
+    {
+      "question": "When applying pseudo-labeling in a competition, at what confidence threshold should you include test predictions as pseudo-labels, and what risk must you manage?",
+      "options": [
+        "Always use 50% threshold; any model prediction is better than no label",
+        "Use 99% threshold always; lower thresholds introduce too many errors regardless of model quality",
+        "Use a high threshold (typically 85-95%) to select only confident predictions; the risk is that a weak base model produces noisy pseudo-labels that degrade performance",
+        "Pseudo-labeling should only be applied to the training set, not the test set"
+      ],
+      "correct": 2,
+      "explanation": "Pseudo-labeling selects high-confidence test predictions and adds them to training data. A high confidence threshold (85-95% depending on the problem) ensures that only likely-correct predictions are included. The key risk is circular reasoning: if your base model is weak, even 'high-confidence' predictions may be wrong, and retraining on them amplifies errors. Always verify that retraining improves your CV score."
+    }
+  ],
+  "exercises": [
+    {
+      "prompt": "Build a TF-IDF + Logistic Regression text classification pipeline.\n\nGiven:\n  - texts_train: list of strings\n  - labels_train: list of integer labels\n  - texts_test: list of strings\n\nReturn a tuple (cv_f1_macro, test_predictions) where:\n  - cv_f1_macro is the mean 5-fold stratified CV F1-macro score\n  - test_predictions is a numpy array of predicted class labels\n\nUse TfidfVectorizer(max_features=5000, ngram_range=(1,2), sublinear_tf=True) and LogisticRegression(C=1.0, max_iter=1000).",
+      "starter": "import numpy as np\nfrom sklearn.feature_extraction.text import TfidfVectorizer\nfrom sklearn.linear_model import LogisticRegression\nfrom sklearn.pipeline import Pipeline\nfrom sklearn.model_selection import StratifiedKFold, cross_val_score\n\ndef text_classify(texts_train, labels_train, texts_test):\n    # TODO: build TF-IDF + LR pipeline\n    # TODO: compute 5-fold stratified CV f1_macro\n    # TODO: fit on full train, predict test\n    # Return (cv_f1_macro, test_predictions)\n    pass\n",
+      "solution": "import numpy as np\nfrom sklearn.feature_extraction.text import TfidfVectorizer\nfrom sklearn.linear_model import LogisticRegression\nfrom sklearn.pipeline import Pipeline\nfrom sklearn.model_selection import StratifiedKFold, cross_val_score\n\ndef text_classify(texts_train, labels_train, texts_test):\n    pipeline = Pipeline([\n        ('tfidf', TfidfVectorizer(max_features=5000, ngram_range=(1, 2), sublinear_tf=True)),\n        ('model', LogisticRegression(C=1.0, max_iter=1000)),\n    ])\n    cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)\n    scores = cross_val_score(pipeline, texts_train, labels_train,\n                             cv=cv, scoring='f1_macro')\n    cv_f1 = scores.mean()\n    pipeline.fit(texts_train, labels_train)\n    test_predictions = pipeline.predict(texts_test)\n    return (cv_f1, test_predictions)\n",
+      "hints": [
+        "Build a Pipeline with steps: ('tfidf', TfidfVectorizer(...)) and ('model', LogisticRegression(...))",
+        "TfidfVectorizer accepts a list of strings directly — no need to manually vectorize before cross_val_score",
+        "After CV, call pipeline.fit(texts_train, labels_train) then pipeline.predict(texts_test) for final predictions"
+      ],
+      "tests": [
+        "import numpy as np; texts_train = ['I love machine learning', 'Deep learning is amazing', 'I hate bugs', 'Python is fun', 'Data science rocks', 'AI is the future', 'Statistics matter', 'Neural networks are powerful', 'Linear models are interpretable', 'Ensemble methods win competitions'] * 5; labels_train = ([0, 0, 1, 0, 0, 0, 1, 0, 1, 0] * 5); texts_test = ['Machine learning is great', 'I dislike errors', 'Gradient boosting']; result = text_classify(texts_train, labels_train, texts_test); assert isinstance(result, tuple) and len(result) == 2; assert 0.0 <= result[0] <= 1.0, f'CV F1 out of range: {result[0]}'; assert len(result[1]) == 3, 'Should predict 3 test samples'"
+      ]
+    },
+    {
+      "prompt": "Implement out-of-fold (OOF) stacking for two models.\n\nGiven X (numpy array), y (numpy array of integer labels), two classifiers clf1 and clf2:\n  1. For each of 5 stratified folds, fit both classifiers on the training fold and predict probabilities on the validation fold\n  2. Collect OOF predictions into arrays of shape (n_samples, n_classes)\n  3. Horizontally stack the OOF predictions: meta_features shape = (n_samples, 2 * n_classes)\n  4. Return meta_features\n\nFunction signature:\n  def make_oof_features(X, y, clf1, clf2):\n      # return meta_features array of shape (len(X), 2 * n_classes)",
+      "starter": "import numpy as np\nfrom sklearn.model_selection import StratifiedKFold\n\ndef make_oof_features(X, y, clf1, clf2):\n    n_classes = len(np.unique(y))\n    n_samples = len(X)\n    # TODO: create OOF arrays for clf1 and clf2\n    # TODO: loop over 5 folds, fit on train fold, predict proba on val fold\n    # TODO: stack horizontally and return\n    pass\n",
+      "solution": "import numpy as np\nfrom sklearn.model_selection import StratifiedKFold\nfrom sklearn.base import clone\n\ndef make_oof_features(X, y, clf1, clf2):\n    n_classes = len(np.unique(y))\n    n_samples = len(X)\n    oof1 = np.zeros((n_samples, n_classes))\n    oof2 = np.zeros((n_samples, n_classes))\n    cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)\n    for train_idx, val_idx in cv.split(X, y):\n        X_tr, X_val = X[train_idx], X[val_idx]\n        y_tr = y[train_idx]\n        m1 = clone(clf1)\n        m2 = clone(clf2)\n        m1.fit(X_tr, y_tr)\n        m2.fit(X_tr, y_tr)\n        oof1[val_idx] = m1.predict_proba(X_val)\n        oof2[val_idx] = m2.predict_proba(X_val)\n    meta_features = np.hstack([oof1, oof2])\n    return meta_features\n",
+      "hints": [
+        "Initialize oof1 and oof2 as np.zeros((n_samples, n_classes)) before the loop",
+        "Use sklearn.base.clone(clf1) inside the loop to get a fresh unfitted copy for each fold, then fit and predict_proba",
+        "After the loop, stack with np.hstack([oof1, oof2]) to get shape (n_samples, 2*n_classes)"
+      ],
+      "tests": [
+        "import numpy as np; from sklearn.linear_model import LogisticRegression; from sklearn.ensemble import RandomForestClassifier; from sklearn.datasets import make_classification; X, y = make_classification(n_samples=100, n_features=6, n_classes=3, n_informative=4, random_state=7); clf1 = LogisticRegression(max_iter=500); clf2 = RandomForestClassifier(n_estimators=10, random_state=7); result = make_oof_features(X, y, clf1, clf2); assert result.shape == (100, 6), f'Expected (100, 6), got {result.shape}'; assert np.all(result >= 0) and np.all(result <= 1), 'All values should be probabilities in [0, 1]'"
+      ]
+    },
+    {
+      "prompt": "Implement a custom evaluation function that computes weighted F1-score where each class has a user-specified weight.\n\nGiven:\n  - y_true: numpy array of true integer labels\n  - y_pred: numpy array of predicted integer labels  \n  - class_weights: dict mapping class integer -> weight\n\nReturn the weighted F1 score: sum(f1_per_class * weight) / sum(weights)\n\nUse sklearn.metrics.f1_score with average=None to get per-class F1 scores.\n\nFunction signature:\n  def custom_weighted_f1(y_true, y_pred, class_weights):",
+      "starter": "import numpy as np\nfrom sklearn.metrics import f1_score\n\ndef custom_weighted_f1(y_true, y_pred, class_weights):\n    # TODO: compute per-class F1 using f1_score with average=None\n    # TODO: apply class_weights to get weighted average\n    # Return scalar weighted F1 score\n    pass\n",
+      "solution": "import numpy as np\nfrom sklearn.metrics import f1_score\n\ndef custom_weighted_f1(y_true, y_pred, class_weights):\n    classes = sorted(class_weights.keys())\n    f1_per_class = f1_score(y_true, y_pred, labels=classes, average=None,\n                            zero_division=0)\n    weights = np.array([class_weights[c] for c in classes], dtype=float)\n    weighted_f1 = np.sum(f1_per_class * weights) / np.sum(weights)\n    return float(weighted_f1)\n",
+      "hints": [
+        "Use f1_score(y_true, y_pred, labels=sorted_classes, average=None) to get a per-class F1 array",
+        "Build a weights array in the same order as sorted(class_weights.keys())",
+        "Compute np.sum(f1_per_class * weights) / np.sum(weights) for the final score"
+      ],
+      "tests": [
+        "import numpy as np; y_true = np.array([0, 0, 1, 1, 2, 2, 0, 1, 2, 0]); y_pred = np.array([0, 0, 1, 0, 2, 2, 0, 1, 1, 1]); cw = {0: 1.0, 1: 2.0, 2: 3.0}; result = custom_weighted_f1(y_true, y_pred, cw); assert isinstance(result, float), f'Expected float, got {type(result)}'; assert 0.0 <= result <= 1.0, f'Score {result} out of range'; equal_weights = {0: 1.0, 1: 1.0, 2: 1.0}; from sklearn.metrics import f1_score; expected = f1_score(y_true, y_pred, average='macro', zero_division=0); result_eq = custom_weighted_f1(y_true, y_pred, equal_weights); assert abs(result_eq - expected) < 1e-9, f'With equal weights should match macro F1: {result_eq} vs {expected}'"
+      ]
+    }
+  ]
+}

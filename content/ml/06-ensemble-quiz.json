@@ -1,0 +1,105 @@
+{
+  "questions": [
+    {
+      "question": "A bootstrap sample of size n is drawn from n training examples with replacement. On average, what fraction of the original examples appear in the bootstrap sample?",
+      "options": [
+        "50%",
+        "63.2%",
+        "80%",
+        "100%"
+      ],
+      "correct": 1,
+      "explanation": "The probability that any single example is NOT selected in n draws is (1 - 1/n)^n, which converges to 1/e ≈ 0.368 as n→∞. So about 1 - 0.368 = 63.2% of unique examples appear in each bootstrap sample."
+    },
+    {
+      "question": "Why does a Random Forest use only a random subset of features at each split, rather than all features?",
+      "options": [
+        "To speed up training by computing fewer splits",
+        "To reduce the correlation between trees, which improves the ensemble's variance reduction",
+        "Because decision trees cannot handle many features",
+        "To ensure the forest uses each feature at least once"
+      ],
+      "correct": 1,
+      "explanation": "If all trees see the same strong features at each split, they will make similar splits and be highly correlated. Correlated trees reduce variance less when averaged. Random feature subsets force trees to find different patterns, reducing inter-tree correlation and improving ensemble performance."
+    },
+    {
+      "question": "In gradient boosting, you set learning_rate=0.01 (very small). What consequence does this have, and how do you compensate?",
+      "options": [
+        "The model underfits — reduce max_depth instead",
+        "Each tree's contribution is small; you need more trees (larger n_estimators) to compensate",
+        "The model trains faster",
+        "It automatically switches to bagging"
+      ],
+      "correct": 1,
+      "explanation": "A smaller learning rate shrinks each tree's contribution, requiring more trees to reach the same training loss. This is actually desirable — small learning rate with many trees often generalizes better. Common practice: lr=0.05 with n_estimators=500-1000, then use early stopping."
+    },
+    {
+      "question": "What is the Out-of-Bag (OOB) score in a Random Forest?",
+      "options": [
+        "The training accuracy on the bootstrap sample",
+        "The accuracy computed on examples not selected in each tree's bootstrap sample — a free validation estimate",
+        "The worst-performing tree in the forest",
+        "The test accuracy on a held-out set"
+      ],
+      "correct": 1,
+      "explanation": "For each training example, only the trees that did NOT include it in their bootstrap sample predict on it (OOB prediction). Aggregating these OOB predictions gives a nearly unbiased validation estimate, without needing a separate validation set."
+    },
+    {
+      "question": "You are comparing Bagging (Random Forest) and Boosting (GBM) on a dataset with significant label noise. Which approach is likely more robust?",
+      "options": [
+        "Gradient Boosting — because it corrects residuals",
+        "Bagging (Random Forest) — because it averages over independent models and is less sensitive to individual noisy labels",
+        "Both are equally affected",
+        "Neither; noisy data cannot be handled by ensemble methods"
+      ],
+      "correct": 1,
+      "explanation": "Boosting iteratively focuses on hard examples, including mislabeled ones. This can cause it to overfit noise. Bagging averages over many independent models, which smooths out the effect of noisy labels. Random Forests are generally more robust to noise in labels than boosting methods."
+    }
+  ],
+  "exercises": [
+    {
+      "prompt": "Implement a function that creates a bootstrap sample and identifies the out-of-bag (OOB) indices.",
+      "starter": "import numpy as np\n\ndef bootstrap_sample(n, random_state=None):\n    \"\"\"\n    Create bootstrap sample of indices from range(n).\n    Returns:\n        in_bag: array of selected indices (with repetition)\n        oob: array of unique indices NOT selected\n    \"\"\"\n    rng = np.random.RandomState(random_state)\n    # TODO\n    pass\n\nn = 20\nin_bag, oob = bootstrap_sample(n, random_state=42)\nprint(f'Total draws: {len(in_bag)} (should be {n})')\nprint(f'Unique in-bag: {len(np.unique(in_bag))}')\nprint(f'OOB indices: {oob}')\nprint(f'OOB fraction: {len(oob)/n:.3f} (expect ~0.368)')\n\n# Verify: in_bag + oob should cover all n indices\nall_covered = set(in_bag) | set(oob) == set(range(n))\nprint(f'All indices covered: {all_covered}')\n",
+      "solution": "import numpy as np\n\ndef bootstrap_sample(n, random_state=None):\n    rng = np.random.RandomState(random_state)\n    in_bag = rng.randint(0, n, size=n)\n    oob    = np.array(sorted(set(range(n)) - set(in_bag)))\n    return in_bag, oob\n\nn = 20\nin_bag, oob = bootstrap_sample(n, random_state=42)\nprint(f'Total draws: {len(in_bag)}')\nprint(f'Unique in-bag: {len(np.unique(in_bag))}')\nprint(f'OOB indices: {oob}')\nprint(f'OOB fraction: {len(oob)/n:.3f}')\nall_covered = set(in_bag) | set(oob) == set(range(n))\nprint(f'All indices covered: {all_covered}')\n",
+      "hints": [
+        "Use rng.randint(0, n, size=n) for in-bag indices (with replacement)",
+        "OOB = set(range(n)) - set(in_bag)",
+        "Convert OOB to sorted numpy array"
+      ],
+      "tests": [
+        "len(in_bag) == n",
+        "all_covered == True",
+        "len(oob) > 0"
+      ]
+    },
+    {
+      "prompt": "Train a Random Forest and compare its test accuracy against a single Decision Tree on the same data. Use n_estimators=100 and the wine dataset.",
+      "starter": "import numpy as np\nfrom sklearn.datasets import load_wine\nfrom sklearn.model_selection import train_test_split\nfrom sklearn.tree import DecisionTreeClassifier\nfrom sklearn.ensemble import RandomForestClassifier\n\ndata = load_wine()\nX, y = data.data, data.target\n\nX_train, X_test, y_train, y_test = train_test_split(\n    X, y, test_size=0.2, random_state=42\n)\n\n# TODO: Train DecisionTreeClassifier(random_state=42)\n# TODO: Train RandomForestClassifier(n_estimators=100, random_state=42)\n# TODO: Print both test accuracies\n",
+      "solution": "import numpy as np\nfrom sklearn.datasets import load_wine\nfrom sklearn.model_selection import train_test_split\nfrom sklearn.tree import DecisionTreeClassifier\nfrom sklearn.ensemble import RandomForestClassifier\n\ndata = load_wine()\nX, y = data.data, data.target\nX_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)\n\ntree = DecisionTreeClassifier(random_state=42)\ntree.fit(X_train, y_train)\ntree_acc = tree.score(X_test, y_test)\n\nrf = RandomForestClassifier(n_estimators=100, random_state=42)\nrf.fit(X_train, y_train)\nrf_acc = rf.score(X_test, y_test)\n\nprint(f'Single Decision Tree: {tree_acc:.4f}')\nprint(f'Random Forest (100):  {rf_acc:.4f}')\nprint(f'Improvement: +{rf_acc - tree_acc:.4f}')\n",
+      "hints": [
+        "RandomForestClassifier(n_estimators=100, random_state=42)",
+        "The Random Forest should have higher accuracy than the single tree",
+        "Use model.score(X_test, y_test) for accuracy"
+      ],
+      "tests": [
+        "rf_acc >= tree_acc",
+        "rf_acc > 0.9"
+      ]
+    },
+    {
+      "prompt": "Implement a simple gradient boosting loop that fits 50 regression trees sequentially to the residuals. Use max_depth=2 and learning_rate=0.1.",
+      "starter": "import numpy as np\nfrom sklearn.tree import DecisionTreeRegressor\nfrom sklearn.metrics import r2_score\n\nnp.random.seed(42)\nX = np.random.randn(200, 3)\ny = 2*X[:,0]**2 + X[:,1] - X[:,2] + np.random.randn(200)*0.5  # nonlinear!\n\n# Initial prediction: the mean\nF = np.full(len(y), y.mean())\ntrees = []\n\nlearning_rate = 0.1\nn_trees = 50\n\nfor i in range(n_trees):\n    # TODO: compute residuals = y - F\n    # TODO: fit a DecisionTreeRegressor(max_depth=2) to residuals\n    # TODO: update F += learning_rate * tree.predict(X)\n    pass\n\nprint(f'Initial R²: {r2_score(y, np.full(len(y), y.mean())):.4f}')\nprint(f'After {n_trees} trees R²: {r2_score(y, F):.4f}')\n",
+      "solution": "import numpy as np\nfrom sklearn.tree import DecisionTreeRegressor\nfrom sklearn.metrics import r2_score\n\nnp.random.seed(42)\nX = np.random.randn(200, 3)\ny = 2*X[:,0]**2 + X[:,1] - X[:,2] + np.random.randn(200)*0.5\n\nF = np.full(len(y), y.mean())\ntrees = []\nlearning_rate = 0.1\nn_trees = 50\n\nfor i in range(n_trees):\n    residuals = y - F\n    tree = DecisionTreeRegressor(max_depth=2)\n    tree.fit(X, residuals)\n    trees.append(tree)\n    F += learning_rate * tree.predict(X)\n\nprint(f'Initial R²: {r2_score(y, np.full(len(y), y.mean())):.4f}')\nprint(f'After {n_trees} trees R²: {r2_score(y, F):.4f}')\n",
+      "hints": [
+        "residuals = y - F where F is the current prediction",
+        "Fit tree to residuals (not to y!)",
+        "F += learning_rate * tree.predict(X) updates the ensemble"
+      ],
+      "tests": [
+        "r2_score(y, F) > 0.7",
+        "len(trees) == n_trees",
+        "r2_score(y, F) > r2_score(y, np.full(len(y), y.mean()))"
+      ]
+    }
+  ]
+}

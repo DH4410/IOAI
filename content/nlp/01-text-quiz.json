@@ -1,0 +1,110 @@
+{
+  "questions": [
+    {
+      "question": "What does TF-IDF do to words that appear in almost every document in the corpus?",
+      "options": [
+        "Assigns them a very high score because they are common",
+        "Assigns them a very low score because their IDF is near zero",
+        "Removes them from the vocabulary entirely",
+        "Doubles their term frequency to compensate"
+      ],
+      "correct": 1,
+      "explanation": "IDF = log(N / df(t)) + 1. When a term appears in almost all N documents, df(t) ≈ N, so IDF ≈ log(1) + 1 = 1, which is the minimum possible value. The resulting TF-IDF score will be very low regardless of term frequency, effectively downweighting common words like 'the' and 'is'."
+    },
+    {
+      "question": "Which of these is a key disadvantage of Bag of Words compared to word embeddings?",
+      "options": [
+        "Bag of Words requires training on large datasets",
+        "Bag of Words cannot handle documents of different lengths",
+        "Bag of Words treats synonyms as completely unrelated words",
+        "Bag of Words always produces very large dense matrices"
+      ],
+      "correct": 2,
+      "explanation": "In BoW, every word is a dimension in a high-dimensional space, and all dimensions are orthogonal. 'Happy' and 'joyful' would have zero cosine similarity even though they are synonyms. Word embeddings, by contrast, place semantically similar words close together in vector space."
+    },
+    {
+      "question": "A text cleaning pipeline removes the word 'not' as a stopword. What problem could this cause?",
+      "options": [
+        "The vocabulary size would become too small",
+        "The model might confuse 'not good' with 'good' in sentiment analysis",
+        "TF-IDF scores would become negative",
+        "Tokenization would fail on contractions"
+      ],
+      "correct": 1,
+      "explanation": "Negation words like 'not', 'never', 'no' are critical for sentiment analysis. If 'not' is removed as a stopword, then 'I did not like this movie' becomes equivalent to 'I did like this movie' in the BoW representation. This is a well-known failure mode of naive stopword removal."
+    },
+    {
+      "question": "What is the key difference between stemming and lemmatization?",
+      "options": [
+        "Stemming uses a dictionary lookup while lemmatization uses rules",
+        "Stemming is always more accurate than lemmatization",
+        "Stemming uses rules to chop suffixes and may produce non-words; lemmatization produces valid dictionary words",
+        "Lemmatization only works on verbs while stemming works on any word"
+      ],
+      "correct": 2,
+      "explanation": "Stemming applies heuristic rules to strip suffixes — for example, Porter stemmer maps 'argue' to 'argu', which is not a real word. Lemmatization uses a vocabulary and morphological analysis to return the canonical form (lemma) — 'argue' stays 'argue', 'ran' maps to 'run'. Lemmatization is slower but always produces valid words."
+    },
+    {
+      "question": "You are classifying medical research papers by topic. Which representation is likely MOST useful?",
+      "options": [
+        "Character n-grams only",
+        "TF-IDF on unigrams and bigrams, after removing medical stopwords",
+        "Raw word counts without any weighting",
+        "Removing all words that appear in fewer than 50% of documents"
+      ],
+      "correct": 1,
+      "explanation": "TF-IDF helps because medical papers share many common words ('patient', 'study', 'results') that would dominate raw counts. Bigrams capture important terms like 'heart failure' or 'blood pressure'. Removing domain-specific stopwords (like 'study', 'patient' if they appear everywhere) further helps distinguish papers by topic. Removing words appearing in fewer than 50% of documents would eliminate most meaningful domain vocabulary."
+    }
+  ],
+  "exercises": [
+    {
+      "prompt": "Write a function `build_bow_matrix(corpus)` that takes a list of strings and returns: (1) a 2D numpy array where each row is a BoW vector for a document, (2) a list of vocabulary words in sorted order. Use only Python's built-in string operations and numpy. Do NOT use sklearn.",
+      "starter": "import numpy as np\nfrom collections import Counter\n\ndef build_bow_matrix(corpus):\n    \"\"\"\n    Args:\n        corpus: list of strings, e.g. ['the cat sat', 'the dog ran']\n    Returns:\n        matrix: np.ndarray of shape (n_docs, vocab_size), dtype int\n        vocab:  list of strings, vocabulary in sorted order\n    \"\"\"\n    # Step 1: Tokenize all documents and build vocabulary\n    # Step 2: Create the matrix\n    # Step 3: Fill in word counts\n    pass\n\n# Test your function:\ncorpus = [\n    'the cat sat on the mat',\n    'the dog sat on the log',\n    'a cat and a dog are friends',\n]\nmatrix, vocab = build_bow_matrix(corpus)\nprint('Vocab:', vocab)\nprint('Matrix shape:', matrix.shape)\nprint('Matrix:')\nprint(matrix)",
+      "solution": "import numpy as np\nfrom collections import Counter\n\ndef build_bow_matrix(corpus):\n    # Step 1: Tokenize and build vocabulary\n    all_tokens = []\n    tokenized_docs = []\n    for doc in corpus:\n        tokens = doc.lower().split()\n        tokenized_docs.append(tokens)\n        all_tokens.extend(tokens)\n    \n    vocab = sorted(set(all_tokens))\n    word_to_idx = {word: i for i, word in enumerate(vocab)}\n    \n    # Step 2 & 3: Build matrix\n    matrix = np.zeros((len(corpus), len(vocab)), dtype=int)\n    for doc_idx, tokens in enumerate(tokenized_docs):\n        for token in tokens:\n            if token in word_to_idx:\n                matrix[doc_idx, word_to_idx[token]] += 1\n    \n    return matrix, vocab\n\ncorpus = [\n    'the cat sat on the mat',\n    'the dog sat on the log',\n    'a cat and a dog are friends',\n]\nmatrix, vocab = build_bow_matrix(corpus)\nprint('Vocab:', vocab)\nprint('Matrix shape:', matrix.shape)\nprint('Matrix:')\nprint(matrix)",
+      "hints": [
+        "Use a set comprehension to collect all unique words, then sort() to make the vocabulary deterministic.",
+        "Create a dictionary mapping each word to its column index: {word: i for i, word in enumerate(vocab)}.",
+        "Use np.zeros((n_docs, vocab_size), dtype=int) to create the matrix, then increment matrix[doc_idx][word_idx] for each word in each document."
+      ],
+      "tests": [
+        "assert matrix.shape == (3, len(vocab)), 'Wrong matrix shape'",
+        "assert vocab == sorted(vocab), 'Vocab must be sorted'",
+        "assert matrix[0, vocab.index('cat')] == 1, 'cat appears once in doc 0'",
+        "assert matrix[0, vocab.index('the')] == 2, 'the appears twice in doc 0'",
+        "assert matrix[2, vocab.index('a')] == 2, 'a appears twice in doc 2'"
+      ]
+    },
+    {
+      "prompt": "Implement `compute_tfidf(corpus)` from scratch without sklearn. Your function should return a 2D numpy array of TF-IDF values. Use the formula: TF(t,d) = count(t in d) / len(d), IDF(t) = log(N / df(t)) + 1 where log is natural log. The final matrix has shape (n_docs, vocab_size).",
+      "starter": "import numpy as np\nimport math\nfrom collections import Counter\n\ndef compute_tfidf(corpus):\n    \"\"\"\n    Args:\n        corpus: list of strings\n    Returns:\n        matrix: np.ndarray of shape (n_docs, vocab_size) with TF-IDF values\n        vocab:  list of vocabulary words in sorted order\n    \"\"\"\n    N = len(corpus)\n    # Step 1: Tokenize\n    # Step 2: Build vocabulary\n    # Step 3: Compute IDF for each word\n    # Step 4: Compute TF-IDF matrix\n    pass\n\n# Test:\ncorpus = [\n    'machine learning is great',\n    'deep learning is a subset of machine learning',\n    'cats and dogs are great animals',\n]\nmatrix, vocab = compute_tfidf(corpus)\n\n# 'learning' appears in 2 of 3 docs, so IDF = log(3/2) + 1 ≈ 1.405\n# In doc 0: TF of 'learning' = 1/4 = 0.25, so TF-IDF ≈ 0.351\nlearning_idx = vocab.index('learning')\nprint(f'TF-IDF of learning in doc 0: {matrix[0, learning_idx]:.3f}')  # ~0.351\nprint(f'TF-IDF of learning in doc 1: {matrix[1, learning_idx]:.3f}')  # different (appears 2x in 7 words)\nprint(f'TF-IDF of great in doc 0: {matrix[0, vocab.index(\"great\")]:.3f}')",
+      "solution": "import numpy as np\nimport math\nfrom collections import Counter\n\ndef compute_tfidf(corpus):\n    N = len(corpus)\n    \n    # Step 1: Tokenize\n    tokenized = [doc.lower().split() for doc in corpus]\n    \n    # Step 2: Build vocabulary\n    all_words = set(word for doc in tokenized for word in doc)\n    vocab = sorted(all_words)\n    word_to_idx = {word: i for i, word in enumerate(vocab)}\n    \n    # Step 3: Compute IDF\n    idf = np.zeros(len(vocab))\n    for j, word in enumerate(vocab):\n        df = sum(1 for doc in tokenized if word in set(doc))\n        idf[j] = math.log(N / df) + 1\n    \n    # Step 4: TF-IDF matrix\n    matrix = np.zeros((N, len(vocab)))\n    for i, tokens in enumerate(tokenized):\n        if len(tokens) == 0:\n            continue\n        counts = Counter(tokens)\n        for word, count in counts.items():\n            if word in word_to_idx:\n                j = word_to_idx[word]\n                tf = count / len(tokens)\n                matrix[i, j] = tf * idf[j]\n    \n    return matrix, vocab\n\ncorpus = [\n    'machine learning is great',\n    'deep learning is a subset of machine learning',\n    'cats and dogs are great animals',\n]\nmatrix, vocab = compute_tfidf(corpus)\nlearning_idx = vocab.index('learning')\nprint(f'TF-IDF of learning in doc 0: {matrix[0, learning_idx]:.3f}')\nprint(f'TF-IDF of learning in doc 1: {matrix[1, learning_idx]:.3f}')\nprint(f'TF-IDF of great in doc 0: {matrix[0, vocab.index(\"great\")]:.3f}')",
+      "hints": [
+        "For IDF: count how many documents contain each word with `sum(1 for doc in tokenized if word in set(doc))`. Using set() makes the lookup O(1).",
+        "For TF: count occurrences of each word in the document, then divide by the document's total word count.",
+        "Use Counter(tokens) to efficiently count word occurrences in each document. Then iterate over the counter to fill in the matrix."
+      ],
+      "tests": [
+        "assert matrix.shape == (3, len(vocab)), 'Wrong shape'",
+        "learning_idx = vocab.index('learning'); assert abs(matrix[0, learning_idx] - 0.25 * (math.log(3/2) + 1)) < 0.001, 'TF-IDF of learning in doc 0 is wrong'",
+        "assert all(matrix[i].sum() > 0 for i in range(3)), 'Each document must have non-zero TF-IDF values'",
+        "# Words unique to one doc should have higher IDF than shared words\nunique_word_score = matrix[2, vocab.index('cats')]\nshared_word_score = matrix[0, vocab.index('is')]\nassert unique_word_score > shared_word_score, 'Unique words should have higher TF-IDF than common shared words'"
+      ]
+    },
+    {
+      "prompt": "Write a text preprocessing pipeline function `preprocess(text)` that: (1) lowercases the text, (2) expands common contractions (don't→do not, can't→cannot, won't→will not, it's→it is, I'm→I am), (3) removes characters that are not letters or spaces, (4) removes stopwords from a provided set, (5) returns a list of tokens. Then use it to preprocess a mini dataset and measure how vocabulary size changes before and after preprocessing.",
+      "starter": "import re\nfrom collections import Counter\n\nCONTRACTIONS = {\n    \"don't\": \"do not\",\n    \"can't\": \"cannot\",\n    \"won't\": \"will not\",\n    \"it's\": \"it is\",\n    \"i'm\": \"i am\",\n    \"i've\": \"i have\",\n    \"i'll\": \"i will\",\n    \"we're\": \"we are\",\n    \"they're\": \"they are\",\n    \"you're\": \"you are\",\n}\n\nSTOPWORDS = {\n    'a', 'an', 'the', 'is', 'are', 'was', 'were', 'am', 'be', 'been', 'being',\n    'do', 'does', 'did', 'have', 'has', 'had', 'will', 'would', 'shall',\n    'should', 'may', 'might', 'must', 'can', 'could', 'to', 'of', 'in',\n    'for', 'on', 'with', 'at', 'by', 'from', 'as', 'it', 'this', 'that',\n    'and', 'or', 'but', 'not', 'i', 'we', 'you', 'he', 'she', 'they',\n}\n\ndef preprocess(text):\n    \"\"\"\n    Returns a list of clean tokens.\n    \"\"\"\n    # Your implementation here\n    pass\n\n# Test\ncorpus = [\n    \"I can't believe it's already Monday!\",\n    \"We're going to the park, but it won't be sunny.\",\n    \"Machine learning is amazing, don't you think?\",\n    \"They're studying natural language processing.\",\n    \"I've been working on text classification models.\",\n]\n\nprint('=== Before preprocessing ===')\nall_raw_tokens = [token for text in corpus for token in text.lower().split()]\nraw_vocab = set(all_raw_tokens)\nprint(f'Total tokens: {len(all_raw_tokens)}, Unique: {len(raw_vocab)}')\nprint(f'Sample raw tokens: {sorted(raw_vocab)[:10]}')\n\nprint('\\n=== After preprocessing ===')\nall_clean_tokens = [token for text in corpus for token in preprocess(text)]\nclean_vocab = set(all_clean_tokens)\nprint(f'Total tokens: {len(all_clean_tokens)}, Unique: {len(clean_vocab)}')\nprint(f'Sample clean tokens: {sorted(clean_vocab)[:10]}')\n\nprint('\\n=== Preprocessed corpus ===')\nfor text in corpus:\n    print(f'  Input:  \"{text}\"')\n    print(f'  Output: {preprocess(text)}')",
+      "solution": "import re\nfrom collections import Counter\n\nCONTRACTIONS = {\n    \"don't\": \"do not\",\n    \"can't\": \"cannot\",\n    \"won't\": \"will not\",\n    \"it's\": \"it is\",\n    \"i'm\": \"i am\",\n    \"i've\": \"i have\",\n    \"i'll\": \"i will\",\n    \"we're\": \"we are\",\n    \"they're\": \"they are\",\n    \"you're\": \"you are\",\n}\n\nSTOPWORDS = {\n    'a', 'an', 'the', 'is', 'are', 'was', 'were', 'am', 'be', 'been', 'being',\n    'do', 'does', 'did', 'have', 'has', 'had', 'will', 'would', 'shall',\n    'should', 'may', 'might', 'must', 'can', 'could', 'to', 'of', 'in',\n    'for', 'on', 'with', 'at', 'by', 'from', 'as', 'it', 'this', 'that',\n    'and', 'or', 'but', 'not', 'i', 'we', 'you', 'he', 'she', 'they',\n}\n\ndef preprocess(text):\n    # Step 1: Lowercase\n    text = text.lower()\n    # Step 2: Expand contractions\n    for contraction, expansion in CONTRACTIONS.items():\n        text = text.replace(contraction, expansion)\n    # Step 3: Remove non-letter characters\n    text = re.sub(r'[^a-z\\s]', '', text)\n    # Step 4: Tokenize and remove stopwords\n    tokens = text.split()\n    tokens = [t for t in tokens if t not in STOPWORDS and len(t) > 0]\n    return tokens\n\ncorpus = [\n    \"I can't believe it's already Monday!\",\n    \"We're going to the park, but it won't be sunny.\",\n    \"Machine learning is amazing, don't you think?\",\n    \"They're studying natural language processing.\",\n    \"I've been working on text classification models.\",\n]\n\nprint('=== Before preprocessing ===')\nall_raw_tokens = [token for text in corpus for token in text.lower().split()]\nraw_vocab = set(all_raw_tokens)\nprint(f'Total tokens: {len(all_raw_tokens)}, Unique: {len(raw_vocab)}')\n\nprint('\\n=== After preprocessing ===')\nall_clean_tokens = [token for text in corpus for token in preprocess(text)]\nclean_vocab = set(all_clean_tokens)\nprint(f'Total tokens: {len(all_clean_tokens)}, Unique: {len(clean_vocab)}')\n\nprint('\\n=== Preprocessed corpus ===')\nfor text in corpus:\n    print(f'  Input:  \"{text}\"')\n    print(f'  Output: {preprocess(text)}')",
+      "hints": [
+        "Apply contraction expansion AFTER lowercasing, so you can match 'don't' (lowercase) consistently.",
+        "Use re.sub(r'[^a-z\\s]', '', text) to remove anything that is not a lowercase letter or whitespace.",
+        "List comprehension for stopword removal: [t for t in tokens if t not in STOPWORDS]. Also filter out empty strings with 'and len(t) > 0' in case double spaces occur."
+      ],
+      "tests": [
+        "assert preprocess(\"I can't do it!\") == ['do', 'not'], 'Contraction expansion failed'",
+        "assert 'the' not in preprocess('the cat sat on the mat'), 'Stopword removal failed'",
+        "assert all(t.islower() for tokens in [preprocess(c) for c in corpus] for t in tokens), 'All tokens must be lowercase'",
+        "assert all(t.isalpha() for tokens in [preprocess(c) for c in corpus] for t in tokens), 'Tokens must contain only letters'"
+      ]
+    }
+  ]
+}

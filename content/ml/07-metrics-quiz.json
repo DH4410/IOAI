@@ -1,0 +1,103 @@
+{
+  "questions": [
+    {
+      "question": "A binary classifier produces confusion matrix values: TP = 80, FP = 20, FN = 10, TN = 90. Compute the F1 score (rounded to two decimal places).",
+      "options": [
+        "0.80",
+        "0.84",
+        "0.89",
+        "0.76"
+      ],
+      "correct": 1,
+      "explanation": "Precision = TP/(TP+FP) = 80/100 = 0.80. Recall = TP/(TP+FN) = 80/90 ≈ 0.8889. F1 = 2·P·R/(P+R) = 2·0.80·0.8889/(0.80+0.8889) = 1.4222/1.6889 ≈ 0.842. Option A is precision alone; option C is recall alone; option D is a distractor."
+    },
+    {
+      "question": "The AUC-ROC has a well-known probabilistic interpretation. Which statement correctly characterises it?",
+      "options": [
+        "AUC-ROC equals the probability that a randomly chosen positive instance receives a higher model score than a randomly chosen negative instance",
+        "AUC-ROC equals the fraction of all predictions that are correctly classified",
+        "AUC-ROC equals the harmonic mean of sensitivity and specificity at the optimal threshold",
+        "AUC-ROC equals the area under the precision-recall curve"
+      ],
+      "correct": 0,
+      "explanation": "AUC-ROC = P(score(positive) > score(negative)) for a randomly drawn positive-negative pair — this is the Wilcoxon-Mann-Whitney statistic. It is threshold-independent and measures ranking quality. Option B describes accuracy; option C describes the F1 of sensitivity and specificity (not AUC); option D confuses AUC-ROC with AUC-PR, which is a separate and usually harder metric on imbalanced datasets."
+    },
+    {
+      "question": "A hospital deploys a cancer screening model. Missing a true cancer case (false negative) carries far greater cost than a false alarm. Which primary metric should be maximised?",
+      "options": [
+        "Precision — to minimise the number of false positives sent to follow-up",
+        "Accuracy — because it reflects overall correct predictions",
+        "Recall (sensitivity) — to minimise the fraction of actual positives that are missed",
+        "Specificity — to ensure healthy patients are correctly cleared"
+      ],
+      "correct": 2,
+      "explanation": "Recall = TP/(TP+FN) directly measures the fraction of true positives that the model catches. Maximising recall minimises false negatives, which is critical when missing a positive is costly. High precision (option A) reduces unnecessary follow-ups but at the cost of missing real cases. Accuracy (option B) is misleading with imbalanced data. Specificity (option D) focuses on true negatives, not positive identification."
+    },
+    {
+      "question": "In multi-class classification with imbalanced classes, which averaging strategy computes the metric per class and then takes an average weighted by each class's number of true instances (support)?",
+      "options": [
+        "Macro averaging",
+        "Micro averaging",
+        "Weighted averaging",
+        "One-vs-rest averaging"
+      ],
+      "correct": 2,
+      "explanation": "Weighted averaging computes the metric for each class independently, then weights each class's score by its support (number of true instances), giving majority classes more influence. Macro averaging (option A) gives each class equal weight regardless of size — better for balanced evaluation of rare classes. Micro averaging (option B) pools all TP/FP/FN counts globally before computing the metric, heavily favouring majority classes. Option D is not a standard sklearn averaging mode."
+    },
+    {
+      "question": "You evaluate two models on a dataset where 99% of samples are negative (class 0). Model A achieves 99% accuracy by predicting all negatives; Model B achieves 90% accuracy but has AUC-PR of 0.72. Which conclusion is best supported?",
+      "options": [
+        "Model A is better because 99% accuracy exceeds 90%",
+        "Accuracy is an appropriate metric here; both models should be compared by accuracy alone",
+        "Model B is likely more useful — accuracy is misleading on severely imbalanced data, and AUC-PR directly evaluates performance on the minority class",
+        "Neither model is valid without knowing the F1 score at threshold 0.5"
+      ],
+      "correct": 2,
+      "explanation": "With 99% class imbalance, a trivial all-negative classifier achieves 99% accuracy while detecting zero positives (AUC-PR → 0). AUC-PR summarises precision-recall tradeoffs across all thresholds and is far more informative than accuracy for imbalanced settings. Model B with AUC-PR = 0.72 is meaningfully identifying positive cases. Options A and B fail to account for the class imbalance. Option D is overly conservative — threshold-independent metrics (AUC) are preferable to threshold-specific ones here."
+    }
+  ],
+  "exercises": [
+    {
+      "prompt": "Given arrays of true labels and predictions, compute TP, FP, FN, TN, then compute precision, recall, and F1 from scratch (no sklearn). Store results in tp, fp, fn, tn, precision, recall, f1.",
+      "starter": "import numpy as np\n\ny_true = np.array([1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 0])\ny_pred = np.array([1, 0, 1, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0, 1, 1])\n\n# TODO: Compute confusion matrix components and metrics\ntp = None\nfp = None\nfn = None\ntn = None\nprecision = None\nrecall = None\nf1 = None",
+      "solution": "import numpy as np\n\ny_true = np.array([1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 0])\ny_pred = np.array([1, 0, 1, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0, 1, 1])\n\ntp = int(np.sum((y_true == 1) & (y_pred == 1)))\nfp = int(np.sum((y_true == 0) & (y_pred == 1)))\nfn = int(np.sum((y_true == 1) & (y_pred == 0)))\ntn = int(np.sum((y_true == 0) & (y_pred == 0)))\nprecision = tp / (tp + fp)\nrecall = tp / (tp + fn)\nf1 = 2 * precision * recall / (precision + recall)",
+      "hints": [
+        "TP: both y_true and y_pred equal 1. Use boolean arrays: (y_true == 1) & (y_pred == 1).",
+        "FP: y_true is 0 but y_pred is 1 (false alarm). FN: y_true is 1 but y_pred is 0 (missed detection).",
+        "Precision = TP/(TP+FP); Recall = TP/(TP+FN); F1 = 2·P·R/(P+R)."
+      ],
+      "tests": [
+        "tp == 6 and fp == 2 and fn == 2 and tn == 5",
+        "abs(f1 - 0.75) < 1e-6"
+      ]
+    },
+    {
+      "prompt": "Compute the AUC-ROC manually using the trapezoidal rule (np.trapz). Use sklearn's roc_curve to get the FPR/TPR points, then integrate. Store the result in auc_manual and verify it matches auc_ref.",
+      "starter": "import numpy as np\nfrom sklearn.metrics import roc_auc_score, roc_curve\n\ny_true = np.array([0, 0, 1, 1, 0, 1, 0, 1, 1, 0])\ny_scores = np.array([0.1, 0.4, 0.35, 0.8, 0.2, 0.9, 0.3, 0.75, 0.6, 0.05])\n\n# Get ROC curve points from sklearn\nfpr, tpr, thresholds = roc_curve(y_true, y_scores)\n\n# TODO: Compute AUC by integrating TPR over FPR using np.trapz\nauc_manual = None\nauc_ref = roc_auc_score(y_true, y_scores)",
+      "solution": "import numpy as np\nfrom sklearn.metrics import roc_auc_score, roc_curve\n\ny_true = np.array([0, 0, 1, 1, 0, 1, 0, 1, 1, 0])\ny_scores = np.array([0.1, 0.4, 0.35, 0.8, 0.2, 0.9, 0.3, 0.75, 0.6, 0.05])\n\nfpr, tpr, thresholds = roc_curve(y_true, y_scores)\nauc_manual = np.trapz(tpr, fpr)\nauc_ref = roc_auc_score(y_true, y_scores)",
+      "hints": [
+        "roc_curve returns fpr and tpr arrays where fpr increases from 0 toward 1 as the threshold decreases.",
+        "np.trapz(y, x) computes ∫y dx using the trapezoidal rule. Here y=tpr and x=fpr.",
+        "The result should equal auc_ref from roc_auc_score because sklearn uses the same trapezoidal integration."
+      ],
+      "tests": [
+        "abs(auc_manual - auc_ref) < 1e-6",
+        "auc_manual > 0.8"
+      ]
+    },
+    {
+      "prompt": "Compare RMSE and MAE on a dataset with an outlier, then compute binary cross-entropy (log loss) for a classification task. Store rmse, mae, and log_loss_val. Observe that RMSE penalises the outlier much more heavily than MAE.",
+      "starter": "import numpy as np\n\n# Regression with one large outlier\ny_true_reg = np.array([1.0, 2.0, 3.0, 4.0, 5.0, 100.0])\ny_pred_reg = np.array([1.1, 2.1, 2.9, 4.1, 5.1,   5.0])  # misses the outlier\n\n# TODO: Compute RMSE and MAE\nrmse = None\nmae = None\n\n# Binary classification — log loss\ny_true_cls = np.array([1, 0, 1, 1, 0, 1])\ny_prob     = np.array([0.9, 0.1, 0.8, 0.7, 0.2, 0.95])\n\n# TODO: Compute log loss = -mean(y*log(p) + (1-y)*log(1-p))\n# Clip probabilities to [1e-15, 1-1e-15] to avoid log(0)\nlog_loss_val = None",
+      "solution": "import numpy as np\n\ny_true_reg = np.array([1.0, 2.0, 3.0, 4.0, 5.0, 100.0])\ny_pred_reg = np.array([1.1, 2.1, 2.9, 4.1, 5.1,   5.0])\n\nrmse = np.sqrt(np.mean((y_true_reg - y_pred_reg) ** 2))\nmae = np.mean(np.abs(y_true_reg - y_pred_reg))\n\ny_true_cls = np.array([1, 0, 1, 1, 0, 1])\ny_prob     = np.array([0.9, 0.1, 0.8, 0.7, 0.2, 0.95])\n\neps = 1e-15\np = np.clip(y_prob, eps, 1 - eps)\nlog_loss_val = -np.mean(y_true_cls * np.log(p) + (1 - y_true_cls) * np.log(1 - p))",
+      "hints": [
+        "RMSE = sqrt(mean((y_true - y_pred)²)); MAE = mean(|y_true - y_pred|). Squaring amplifies the large outlier error in RMSE.",
+        "Log loss formula: −(1/n)·Σ[yᵢ·log(pᵢ) + (1−yᵢ)·log(1−pᵢ)]. Always clip probabilities away from 0 and 1 to avoid log(0).",
+        "Use np.clip(y_prob, 1e-15, 1-1e-15) before taking the log."
+      ],
+      "tests": [
+        "rmse > mae",
+        "log_loss_val < 0.2"
+      ]
+    }
+  ]
+}

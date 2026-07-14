@@ -1,0 +1,103 @@
+{
+  "questions": [
+    {
+      "question": "CLIP is trained with a contrastive objective on a batch of N image-text pairs. What is the shape of the similarity matrix, and what should be high along the diagonal?",
+      "options": [
+        "Shape (N, D) where D is embedding dimension; each row should sum to 1.0",
+        "Shape (N, N); the diagonal entries S[i,i] should be high because image_i matches text_i, while off-diagonal entries should be low",
+        "Shape (1, N); there is only one similarity per image since we compare to all texts at once",
+        "Shape (N, 2); one column for image similarity and one for text similarity"
+      ],
+      "correct": 1,
+      "explanation": "In a CLIP training batch with N image-text pairs, we compute all N×N pairwise similarities: S[i,j] = cosine_similarity(image_i, text_j). Since image_i was paired with text_i in the original dataset, the matching pairs form the diagonal. The contrastive loss pushes S[i,i] (matching) high and S[i,j] (i≠j, non-matching) low. This is a symmetric objective: images should match their texts AND texts should match their images."
+    },
+    {
+      "question": "What does it mean for image and text embeddings to be 'aligned' in CLIP's shared embedding space?",
+      "options": [
+        "Both embeddings have the same numerical values",
+        "The embeddings have the same shape and can be concatenated without reshaping",
+        "A semantically related image and text will have high cosine similarity (their embeddings point in similar directions in the shared space)",
+        "The embeddings are stored in the same memory location for efficiency"
+      ],
+      "correct": 2,
+      "explanation": "Alignment in the CLIP embedding space means that semantically related images and texts are geometrically close — they point in similar directions when treated as vectors. Since embeddings are L2-normalised, 'similarity' is measured by the angle between vectors (cosine similarity). An image of a dog and the text 'a golden retriever' will have high cosine similarity (~0.9), while an image of a dog and the text 'a space shuttle' will have low cosine similarity (~0.1). This alignment enables zero-shot tasks."
+    },
+    {
+      "question": "For zero-shot classification with CLIP, you have a test image and 5 candidate class names. How do you obtain the final class prediction?",
+      "options": [
+        "Feed the image and all 5 class names simultaneously into a CLIP classifier head that was trained on these exact 5 classes",
+        "Encode the image to get an image embedding, encode each class name as text to get 5 text embeddings, compute cosine similarity between the image embedding and each text embedding, then pick the class with highest similarity",
+        "Generate 5 candidate images (one per class) using a generative model and find which generated image is closest to the test image",
+        "Run the CLIP image encoder 5 times, once per class, and pick the run that gives the highest confidence score"
+      ],
+      "correct": 1,
+      "explanation": "Zero-shot CLIP classification: (1) encode the test image → image_embedding (512-dim L2-normalised vector). (2) For each class name, create a text prompt like 'a photo of a {class}' and encode it → text_embeddings (5 × 512). (3) Compute cosine similarities: image_embedding @ text_embeddings.T → (5,) scores. (4) Apply softmax to get probabilities, pick the argmax. No task-specific training is needed; the shared embedding space does all the work."
+    },
+    {
+      "question": "Why does using multiple text templates for each class (e.g., 'a photo of a cat', 'a picture of a cat', 'a cat in the wild') improve CLIP's zero-shot accuracy?",
+      "options": [
+        "It increases the batch size during inference, which improves GPU utilisation",
+        "Averaging embeddings over multiple templates reduces variance and creates a more robust class representation that covers different phrasings the model might have seen",
+        "The model runs all templates in parallel, so it's faster",
+        "Different templates activate different neurons in the vision encoder"
+      ],
+      "correct": 1,
+      "explanation": "CLIP was trained on 400M diverse internet text captions, so the same concept appears in many different phrasings. A single template like 'a photo of a {class}' might not be the perfect match for how a given test image would have been captioned. By computing embeddings for multiple templates and averaging them (then renormalising), you get a centroid in the embedding space that is robust to phrasing variation. This ensemble of prompts consistently improves CLIP zero-shot accuracy by 3-5% on standard benchmarks."
+    },
+    {
+      "question": "What is the correct mathematical relationship between cosine similarity and dot product for L2-normalised vectors?",
+      "options": [
+        "cosine_similarity(a, b) = dot(a, b) / (||a||² × ||b||²)",
+        "cosine_similarity(a, b) = dot(a, b) when both a and b have unit norm (||a|| = ||b|| = 1)",
+        "cosine_similarity(a, b) = ||a - b|| — the Euclidean distance between the vectors",
+        "cosine_similarity(a, b) = exp(-||a - b||²) — the Gaussian kernel"
+      ],
+      "correct": 1,
+      "explanation": "Cosine similarity is defined as: cos_sim(a, b) = dot(a, b) / (||a|| × ||b||). When both vectors are L2-normalised (i.e., ||a|| = ||b|| = 1, which CLIP enforces), the denominator becomes 1×1=1, so cos_sim(a,b) = dot(a,b). This is why CLIP code does: emb = emb / emb.norm(dim=-1, keepdim=True) and then computes similarity as image_emb @ text_emb.T — the matrix multiply gives all dot products at once, which equal cosine similarities since everything is normalised."
+    }
+  ],
+  "exercises": [
+    {
+      "prompt": "Implement cosine similarity from scratch and verify its properties.\n\nGiven 3 vectors a, b, c:\n- a = [1, 0, 0]\n- b = [1, 1, 0]  (not normalised)\n- c = [-1, 0, 0]\n\nCompute:\n1. The L2 norm of each vector: norm_a, norm_b, norm_c\n2. L2-normalised versions: a_norm, b_norm, c_norm\n3. Cosine similarity between (a, b): sim_ab  [expected: cos(45°) = ~0.707]\n4. Cosine similarity between (a, c): sim_ac  [expected: -1.0, opposite directions]\n5. Cosine similarity between (a, a): sim_aa  [expected: 1.0, same direction]\n\nUse only numpy. Cosine similarity formula: dot(u, v) / (||u|| * ||v||)",
+      "starter": "import numpy as np\n\na = np.array([1.0, 0.0, 0.0])\nb = np.array([1.0, 1.0, 0.0])   # not unit length\nc = np.array([-1.0, 0.0, 0.0])\n\n# 1. L2 norms\nnorm_a = None  # YOUR CODE: scalar\nnorm_b = None  # YOUR CODE\nnorm_c = None  # YOUR CODE\n\n# 2. Normalised vectors (divide each by its norm)\na_norm = None  # YOUR CODE: shape (3,)\nb_norm = None  # YOUR CODE\nc_norm = None  # YOUR CODE\n\n# 3. Cosine similarity: dot(u, v) / (||u|| * ||v||)\n#    OR equivalently: dot(u_norm, v_norm)  if already normalised\nsim_ab = None  # YOUR CODE\nsim_ac = None  # YOUR CODE\nsim_aa = None  # YOUR CODE\n\nprint(f'Norms: a={norm_a:.4f}, b={norm_b:.4f}, c={norm_c:.4f}')\nprint(f'sim(a,b) = {sim_ab:.4f}  (expected ~0.7071)')\nprint(f'sim(a,c) = {sim_ac:.4f}  (expected -1.0000)')\nprint(f'sim(a,a) = {sim_aa:.4f}  (expected  1.0000)')",
+      "solution": "import numpy as np\n\na = np.array([1.0, 0.0, 0.0])\nb = np.array([1.0, 1.0, 0.0])\nc = np.array([-1.0, 0.0, 0.0])\n\n# 1. L2 norms\nnorm_a = np.linalg.norm(a)   # 1.0\nnorm_b = np.linalg.norm(b)   # sqrt(2) ≈ 1.4142\nnorm_c = np.linalg.norm(c)   # 1.0\n\n# 2. Normalised vectors\na_norm = a / norm_a\nb_norm = b / norm_b\nc_norm = c / norm_c\n\n# 3. Cosine similarity using the formula\nsim_ab = np.dot(a, b) / (norm_a * norm_b)   # 1 / sqrt(2) ≈ 0.7071\nsim_ac = np.dot(a, c) / (norm_a * norm_c)   # -1 / 1 = -1.0\nsim_aa = np.dot(a, a) / (norm_a * norm_a)   # 1 / 1 = 1.0\n\n# Alternative using normalised vectors (equivalent):\n# sim_ab = np.dot(a_norm, b_norm)\n\nprint(f'Norms: a={norm_a:.4f}, b={norm_b:.4f}, c={norm_c:.4f}')\nprint(f'sim(a,b) = {sim_ab:.4f}  (expected ~0.7071)')\nprint(f'sim(a,c) = {sim_ac:.4f}  (expected -1.0000)')\nprint(f'sim(a,a) = {sim_aa:.4f}  (expected  1.0000)')",
+      "hints": [
+        "np.linalg.norm(vector) computes the L2 norm (square root of sum of squares)",
+        "To normalise: a_norm = a / np.linalg.norm(a)",
+        "Cosine similarity: np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))",
+        "If both vectors are already normalised: cos_sim = np.dot(a_norm, b_norm)",
+        "The dot product of a with itself = sum of squares = norm^2, so sim(a,a) = norm^2 / norm^2 = 1"
+      ],
+      "tests": [
+        "import numpy as np; assert abs(norm_a - 1.0) < 1e-6, f'norm_a should be 1.0, got {norm_a}'",
+        "import numpy as np; assert abs(norm_b - np.sqrt(2)) < 1e-6, f'norm_b should be sqrt(2), got {norm_b}'",
+        "import numpy as np; assert abs(sim_ab - 1/np.sqrt(2)) < 1e-6, f'sim_ab should be ~0.7071, got {sim_ab}'",
+        "import numpy as np; assert abs(sim_ac - (-1.0)) < 1e-6, f'sim_ac should be -1.0, got {sim_ac}'",
+        "import numpy as np; assert abs(sim_aa - 1.0) < 1e-6, f'sim_aa should be 1.0, got {sim_aa}'",
+        "import numpy as np; assert abs(np.linalg.norm(a_norm) - 1.0) < 1e-6, 'a_norm should be unit length'",
+        "import numpy as np; assert abs(np.linalg.norm(b_norm) - 1.0) < 1e-6, 'b_norm should be unit length'"
+      ]
+    },
+    {
+      "prompt": "Implement CLIP-style image-text ranking.\n\nYou have:\n- 1 query image embedding (already normalised)\n- 6 text embeddings (already normalised) with their descriptions\n\nTask:\n1. Compute cosine similarity between the query image and each text\n2. Rank the texts from most to least similar (return sorted indices)\n3. Report the top-3 texts by similarity\n4. Compute the 'retrieval rank' of the true match (0-indexed: rank 0 = top result)\n\nStore: similarities (array of 6 floats), ranked_indices (sorted desc), top3_indices, true_match_rank (int)",
+      "starter": "import numpy as np\n\n# Query: embedding of an image of a golden retriever\nquery_image = np.array([0.8, 0.5, 0.1, -0.2, 0.0, 0.3, -0.1, 0.2])\nquery_image = query_image / np.linalg.norm(query_image)  # normalise\n\n# Text embeddings with their descriptions\ntexts = [\n    \"a photo of a cat sitting on a chair\",\n    \"a golden retriever running on the beach\",   # ← true match (index 1)\n    \"a red sports car on a highway\",\n    \"a dog playing fetch in a park\",\n    \"a bowl of pasta with tomato sauce\",\n    \"a yellow labrador swimming in a lake\",\n]\n\n# Simulated text embeddings (already normalised)\nnp.random.seed(7)\ntext_embeddings = np.array([\n    [-0.3,  0.2, -0.1,  0.7,  0.3, -0.4,  0.2,  0.1],  # cat\n    [ 0.7,  0.5,  0.2, -0.1,  0.1,  0.3, -0.1,  0.1],  # golden retriever ← true\n    [-0.5, -0.3,  0.6,  0.1, -0.4,  0.1,  0.3, -0.2],  # sports car\n    [ 0.6,  0.4,  0.0, -0.3,  0.2,  0.4, -0.2,  0.2],  # dog playing fetch\n    [-0.2, -0.5, -0.3,  0.4, -0.3, -0.2,  0.5, -0.1],  # pasta\n    [ 0.5,  0.5,  0.1, -0.2,  0.0,  0.3, -0.1,  0.2],  # yellow labrador\n], dtype=float)\ntext_embeddings = text_embeddings / np.linalg.norm(text_embeddings, axis=1, keepdims=True)\n\ntrue_match_index = 1  # \"a golden retriever running on the beach\"\n\n# 1. Cosine similarities (query_image is already normalised, text_embeddings are normalised)\nsimilarities = None  # YOUR CODE: shape (6,)\n\n# 2. Ranked indices (descending by similarity)\nranked_indices = None  # YOUR CODE: shape (6,), most similar first\n\n# 3. Top-3 indices\ntop3_indices = None  # YOUR CODE: first 3 of ranked_indices\n\n# 4. Rank of true match (0-indexed: 0 = best result)\ntrue_match_rank = None  # YOUR CODE: where does true_match_index appear in ranked_indices?\n\nprint('Similarities:')\nfor i, (sim, text) in enumerate(zip(similarities, texts)):\n    print(f'  [{i}] {sim:.4f}  {text}')\nprint(f'\\nRanked order: {ranked_indices}')\nprint(f'Top 3 texts: {top3_indices}')\nprint(f'True match rank: {true_match_rank} (0 = first place)')",
+      "solution": "import numpy as np\n\nquery_image = np.array([0.8, 0.5, 0.1, -0.2, 0.0, 0.3, -0.1, 0.2])\nquery_image = query_image / np.linalg.norm(query_image)\n\ntexts = [\n    \"a photo of a cat sitting on a chair\",\n    \"a golden retriever running on the beach\",\n    \"a red sports car on a highway\",\n    \"a dog playing fetch in a park\",\n    \"a bowl of pasta with tomato sauce\",\n    \"a yellow labrador swimming in a lake\",\n]\n\nnp.random.seed(7)\ntext_embeddings = np.array([\n    [-0.3,  0.2, -0.1,  0.7,  0.3, -0.4,  0.2,  0.1],\n    [ 0.7,  0.5,  0.2, -0.1,  0.1,  0.3, -0.1,  0.1],\n    [-0.5, -0.3,  0.6,  0.1, -0.4,  0.1,  0.3, -0.2],\n    [ 0.6,  0.4,  0.0, -0.3,  0.2,  0.4, -0.2,  0.2],\n    [-0.2, -0.5, -0.3,  0.4, -0.3, -0.2,  0.5, -0.1],\n    [ 0.5,  0.5,  0.1, -0.2,  0.0,  0.3, -0.1,  0.2],\n], dtype=float)\ntext_embeddings = text_embeddings / np.linalg.norm(text_embeddings, axis=1, keepdims=True)\n\ntrue_match_index = 1\n\n# 1. Cosine similarities (dot product of normalised vectors)\nsimilarities = text_embeddings @ query_image   # (6,)\n\n# 2. Ranked indices: argsort gives ascending, [::-1] reverses to descending\nranked_indices = np.argsort(similarities)[::-1]   # (6,)\n\n# 3. Top 3\ntop3_indices = ranked_indices[:3]\n\n# 4. Rank of true match\ntrue_match_rank = int(np.where(ranked_indices == true_match_index)[0][0])\n\nprint('Similarities:')\nfor i, (sim, text) in enumerate(zip(similarities, texts)):\n    print(f'  [{i}] {sim:.4f}  {text}')\nprint(f'\\nRanked order: {ranked_indices}')\nprint(f'Top 3 texts: {top3_indices}')\nprint(f'True match rank: {true_match_rank} (0 = first place)')",
+      "hints": [
+        "Since both vectors are normalised, cosine similarity = dot product",
+        "To compute all 6 similarities at once: text_embeddings @ query_image gives a (6,) array",
+        "To sort descending: np.argsort(similarities)[::-1] — argsort gives ascending indices, [::-1] reverses",
+        "top3_indices = ranked_indices[:3]",
+        "To find where true_match_index appears in ranked_indices: np.where(ranked_indices == true_match_index)[0][0]"
+      ],
+      "tests": [
+        "import numpy as np; assert similarities.shape == (6,), f'similarities shape should be (6,), got {similarities.shape}'",
+        "import numpy as np; assert np.all(similarities <= 1.0 + 1e-6) and np.all(similarities >= -1.0 - 1e-6), 'Cosine similarities must be in [-1, 1]'",
+        "import numpy as np; assert ranked_indices.shape == (6,), f'ranked_indices shape should be (6,)'",
+        "import numpy as np; assert similarities[ranked_indices[0]] >= similarities[ranked_indices[1]], 'ranked_indices should be in descending similarity order'",
+        "import numpy as np; assert top3_indices.shape == (3,) or len(top3_indices) == 3, 'top3_indices should have 3 elements'",
+        "import numpy as np; assert isinstance(true_match_rank, (int, np.integer)), 'true_match_rank should be an integer'",
+        "import numpy as np; assert true_match_rank <= 2, f'Golden retriever text should rank in top-3 (similar vectors), got rank {true_match_rank}'"
+      ]
+    }
+  ]
+}

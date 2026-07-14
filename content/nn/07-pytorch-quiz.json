@@ -1,0 +1,121 @@
+{
+  "questions": [
+    {
+      "question": "In PyTorch, what must you do BEFORE calling loss.backward() in each training step?",
+      "options": [
+        "Call model.eval() to switch to evaluation mode",
+        "Call optimizer.zero_grad() to clear accumulated gradients",
+        "Call torch.no_grad() to disable gradient tracking",
+        "Call optimizer.step() to update the parameters first"
+      ],
+      "correct": 1,
+      "explanation": "Gradients accumulate by default in PyTorch. If you don't call optimizer.zero_grad() before each backward pass, the gradients from previous iterations add to the current ones, giving wrong gradient values and broken training. Always: zero_grad → forward → loss → backward → step."
+    },
+    {
+      "question": "You are doing multi-class classification with 10 classes. Your model's last layer is nn.Linear(64, 10). Which loss function should you use?",
+      "options": [
+        "nn.BCEWithLogitsLoss, because you have multiple outputs",
+        "nn.MSELoss, because you want to minimize the squared error between class scores",
+        "nn.CrossEntropyLoss, because it expects raw logits and integer class targets",
+        "nn.BCELoss after applying nn.Softmax, because softmax gives probabilities"
+      ],
+      "correct": 2,
+      "explanation": "nn.CrossEntropyLoss is designed for multi-class classification. It expects raw logits (no softmax) from the model and integer class indices as targets. It internally applies log_softmax for numerical stability. Never apply softmax before CrossEntropyLoss — that creates a double-softmax bug."
+    },
+    {
+      "question": "What does requires_grad=True on a tensor tell PyTorch?",
+      "options": [
+        "That the tensor should be stored on the GPU",
+        "That PyTorch should track all operations on this tensor so gradients can be computed via .backward()",
+        "That the tensor values will not be modified during training",
+        "That the tensor's gradient should be reset to zero after each backward pass"
+      ],
+      "correct": 1,
+      "explanation": "Setting requires_grad=True tells PyTorch to record all operations performed on that tensor in a computation graph. When you later call .backward() on the final loss, PyTorch walks this graph backwards using the chain rule to compute dL/d(tensor) for every tensor where requires_grad=True. Model parameters always have requires_grad=True by default."
+    },
+    {
+      "question": "You call model.eval() before your validation loop. What does this actually change?",
+      "options": [
+        "It stops the model from computing gradients, saving memory",
+        "It freezes all model weights so they cannot be updated",
+        "It switches Dropout layers to pass-through mode and BatchNorm layers to use their accumulated running statistics instead of batch statistics",
+        "It converts the model to run on the CPU for evaluation"
+      ],
+      "correct": 2,
+      "explanation": "model.eval() changes the behavior of Dropout (disables it entirely, so all neurons are active) and BatchNorm (uses running mean/variance accumulated during training instead of the current batch's statistics). It does NOT disable gradient computation — for that you also need torch.no_grad(). model.train() switches these layers back to training behavior."
+    },
+    {
+      "question": "What is the advantage of torch.optim.Adam over plain SGD?",
+      "options": [
+        "Adam always converges to a better solution than SGD",
+        "Adam adapts the learning rate for each parameter individually based on its gradient history, making it less sensitive to the initial learning rate choice",
+        "Adam uses less memory than SGD because it doesn't store gradient history",
+        "Adam is faster per iteration because it skips the backward pass"
+      ],
+      "correct": 1,
+      "explanation": "Adam (Adaptive Moment Estimation) maintains a per-parameter adaptive learning rate using the first moment (mean of gradients) and second moment (mean of squared gradients). Parameters with consistently large gradients get smaller effective learning rates; sparse parameters get larger ones. This makes Adam robust to the initial LR choice. Adam doesn't 'always find a better solution' — SGD with good tuning can match or exceed Adam, especially in computer vision. Adam does use more memory because it stores two additional tensors per parameter."
+    }
+  ],
+  "exercises": [
+    {
+      "prompt": "Implement a manual forward pass and gradient computation for a single linear neuron WITHOUT using PyTorch. Given weight w=0.5, bias b=0.1, input x=2.0, and true label y=1.0, compute:\n1. The prediction: pred = w * x + b\n2. The MSE loss: loss = (pred - y) ** 2\n3. The gradient of loss with respect to w: dL/dw\n4. The gradient of loss with respect to b: dL/db\n5. Updated w and b using learning rate lr=0.1\n\nStore results in variables: pred, loss, dL_dw, dL_db, w_new, b_new",
+      "starter": "import numpy as np\n\n# Parameters\nw = 0.5\nb = 0.1\nx = 2.0\ny = 1.0\nlr = 0.1\n\n# 1. Forward pass: pred = w * x + b\npred = None  # YOUR CODE HERE\n\n# 2. MSE loss: loss = (pred - y) ** 2\nloss = None  # YOUR CODE HERE\n\n# 3. Gradient of loss w.r.t. pred: dL/d(pred) = 2*(pred - y)\n# Then by chain rule: dL/dw = dL/d(pred) * d(pred)/dw = 2*(pred-y) * x\ndL_dw = None  # YOUR CODE HERE\n\n# 4. Gradient of loss w.r.t. b: dL/db = 2*(pred - y) * 1\ndL_db = None  # YOUR CODE HERE\n\n# 5. Gradient descent update\nw_new = None  # YOUR CODE HERE\nb_new = None  # YOUR CODE HERE\n\nprint(f'pred={pred:.4f}, loss={loss:.4f}')\nprint(f'dL/dw={dL_dw:.4f}, dL/db={dL_db:.4f}')\nprint(f'w_new={w_new:.4f}, b_new={b_new:.4f}')",
+      "solution": "import numpy as np\n\n# Parameters\nw = 0.5\nb = 0.1\nx = 2.0\ny = 1.0\nlr = 0.1\n\n# 1. Forward pass\npred = w * x + b       # 0.5*2.0 + 0.1 = 1.1\n\n# 2. MSE loss\nloss = (pred - y) ** 2  # (1.1 - 1.0)^2 = 0.01\n\n# 3. dL/dw = 2*(pred - y) * x\ndL_dw = 2 * (pred - y) * x   # 2 * 0.1 * 2.0 = 0.4\n\n# 4. dL/db = 2*(pred - y)\ndL_db = 2 * (pred - y)        # 2 * 0.1 = 0.2\n\n# 5. Update\nw_new = w - lr * dL_dw   # 0.5 - 0.1 * 0.4 = 0.46\nb_new = b - lr * dL_db   # 0.1 - 0.1 * 0.2 = 0.08\n\nprint(f'pred={pred:.4f}, loss={loss:.4f}')\nprint(f'dL/dw={dL_dw:.4f}, dL/db={dL_db:.4f}')\nprint(f'w_new={w_new:.4f}, b_new={b_new:.4f}')",
+      "hints": [
+        "The forward pass is just pred = w*x + b",
+        "MSE loss is (prediction - true_value) squared",
+        "For dL/dw, use the chain rule: dL/d(pred) * d(pred)/dw. Since pred=w*x+b, d(pred)/dw = x",
+        "For dL/db, d(pred)/db = 1, so dL/db = dL/d(pred) * 1 = 2*(pred-y)",
+        "The gradient descent update is: parameter = parameter - learning_rate * gradient"
+      ],
+      "tests": [
+        "import numpy as np; assert abs(pred - 1.1) < 1e-6, f'pred should be 1.1, got {pred}'",
+        "import numpy as np; assert abs(loss - 0.01) < 1e-6, f'loss should be 0.01, got {loss}'",
+        "import numpy as np; assert abs(dL_dw - 0.4) < 1e-6, f'dL/dw should be 0.4, got {dL_dw}'",
+        "import numpy as np; assert abs(dL_db - 0.2) < 1e-6, f'dL/db should be 0.2, got {dL_db}'",
+        "import numpy as np; assert abs(w_new - 0.46) < 1e-6, f'w_new should be 0.46, got {w_new}'",
+        "import numpy as np; assert abs(b_new - 0.08) < 1e-6, f'b_new should be 0.08, got {b_new}'"
+      ]
+    },
+    {
+      "prompt": "Implement a 2-step manual training loop for a linear neuron (no bias for simplicity). Train on 4 samples for 2 gradient descent steps.\n\nInputs X = [1, 2, 3, 4], targets y = [2, 4, 6, 8] (y = 2*x)\nStart with w = 0.0, lr = 0.01\n\nFor each step:\n1. Compute predictions: pred = w * X\n2. Compute MSE loss: mean of (pred - y)^2\n3. Compute gradient: dL/dw = mean of 2*(pred - y) * X\n4. Update w\n\nStore: w after step 1 as w1, w after step 2 as w2, final predictions as final_preds",
+      "starter": "import numpy as np\n\nX = np.array([1.0, 2.0, 3.0, 4.0])\ny = np.array([2.0, 4.0, 6.0, 8.0])\nw = 0.0\nlr = 0.01\n\n# Step 1\npred1 = None  # YOUR CODE: w * X\nloss1 = None  # YOUR CODE: mean of (pred1 - y)^2\ngrad1 = None  # YOUR CODE: mean of 2*(pred1 - y) * X\nw1    = None  # YOUR CODE: w - lr * grad1\n\n# Step 2 (use w1)\npred2 = None  # YOUR CODE\nloss2 = None  # YOUR CODE\ngrad2 = None  # YOUR CODE\nw2    = None  # YOUR CODE\n\nfinal_preds = w2 * X\n\nprint(f'w1={w1:.6f}, w2={w2:.6f}')\nprint(f'loss1={loss1:.4f}, loss2={loss2:.4f}')\nprint(f'final_preds={final_preds}')",
+      "solution": "import numpy as np\n\nX = np.array([1.0, 2.0, 3.0, 4.0])\ny = np.array([2.0, 4.0, 6.0, 8.0])\nw = 0.0\nlr = 0.01\n\n# Step 1\npred1 = w * X                          # [0, 0, 0, 0]\nloss1 = np.mean((pred1 - y) ** 2)     # 30.0\ngrad1 = np.mean(2 * (pred1 - y) * X)  # -20.0\nw1    = w - lr * grad1                 # 0 - 0.01*(-20) = 0.2\n\n# Step 2\npred2 = w1 * X                         # [0.2, 0.4, 0.6, 0.8]\nloss2 = np.mean((pred2 - y) ** 2)     # should be less than loss1\ngrad2 = np.mean(2 * (pred2 - y) * X)  # still negative, w too small\nw2    = w1 - lr * grad2\n\nfinal_preds = w2 * X\n\nprint(f'w1={w1:.6f}, w2={w2:.6f}')\nprint(f'loss1={loss1:.4f}, loss2={loss2:.4f}')\nprint(f'final_preds={final_preds}')",
+      "hints": [
+        "pred1 = w * X  (element-wise multiplication since X is an array)",
+        "MSE loss = np.mean((pred - y)**2)",
+        "Gradient = np.mean(2 * (pred - y) * X)  — average over all samples",
+        "Update rule: w_new = w_old - lr * gradient",
+        "For step 2, start from w1, not the original w=0"
+      ],
+      "tests": [
+        "import numpy as np; assert abs(w1 - 0.2) < 1e-6, f'w1 should be 0.2, got {w1}'",
+        "import numpy as np; assert loss2 < loss1, f'loss should decrease: loss1={loss1}, loss2={loss2}'",
+        "import numpy as np; assert w2 > w1, f'w should keep increasing toward 2.0: w1={w1}, w2={w2}'",
+        "import numpy as np; assert w2 < 2.0, f'w should not overshoot 2.0 after 2 steps: w2={w2}'"
+      ]
+    },
+    {
+      "prompt": "Implement a mini training loop for a 2-layer network (numpy only, mimicking PyTorch). The network has:\n- Layer 1: W1 shape (2, 3), b1 shape (3,)   [2 inputs -> 3 hidden]\n- Layer 2: W2 shape (3, 1), b2 shape (1,)   [3 hidden -> 1 output]\n- Activation: ReLU between layers\n- Loss: MSE\n\nGiven fixed weights (do not randomize), run ONE forward pass and compute the loss.\nThen run ONE backward pass (compute gradients for W2 and b2 only — the output layer).\n\nData: X = [[0,0],[0,1],[1,0],[1,1]] (XOR inputs), y = [[0],[1],[1],[0]]\nWeights provided below. Store: h (hidden layer output after ReLU), output, loss, dL_dW2, dL_db2",
+      "starter": "import numpy as np\n\nnp.random.seed(0)\n\nX = np.array([[0,0],[0,1],[1,0],[1,1]], dtype=float)  # (4, 2)\ny = np.array([[0],[1],[1],[0]], dtype=float)           # (4, 1)\n\n# Fixed weights\nW1 = np.array([[ 0.5, -0.3,  0.8],\n               [-0.4,  0.7, -0.2]])   # (2, 3)\nb1 = np.array([0.1, -0.1, 0.0])       # (3,)\n\nW2 = np.array([[ 0.6],\n               [-0.5],\n               [ 0.4]])               # (3, 1)\nb2 = np.array([0.0])                  # (1,)\n\n# Forward pass\nz1 = None   # YOUR CODE: X @ W1 + b1   shape: (4, 3)\nh  = None   # YOUR CODE: ReLU(z1)      shape: (4, 3)\nz2 = None   # YOUR CODE: h @ W2 + b2   shape: (4, 1)\noutput = z2  # Linear output (no activation for regression)\n\nloss = None  # YOUR CODE: MSE = mean((output - y)**2)\n\n# Backward pass (output layer only)\n# dL/d(output) = 2*(output - y) / N\ndL_dout = None    # YOUR CODE: shape (4, 1)\n\n# dL/dW2 = h.T @ dL_dout  (then divide by N or it's included)\n# dL/db2 = mean of dL_dout over samples\ndL_dW2 = None    # YOUR CODE: shape (3, 1)\ndL_db2 = None    # YOUR CODE: shape (1,)\n\nprint(f'h shape: {h.shape}')\nprint(f'output shape: {output.shape}')\nprint(f'loss: {loss:.6f}')\nprint(f'dL_dW2:\\n{dL_dW2}')\nprint(f'dL_db2: {dL_db2}')",
+      "solution": "import numpy as np\n\nX = np.array([[0,0],[0,1],[1,0],[1,1]], dtype=float)\ny = np.array([[0],[1],[1],[0]], dtype=float)\n\nW1 = np.array([[ 0.5, -0.3,  0.8],\n               [-0.4,  0.7, -0.2]])\nb1 = np.array([0.1, -0.1, 0.0])\n\nW2 = np.array([[ 0.6], [-0.5], [ 0.4]])\nb2 = np.array([0.0])\n\nN = X.shape[0]  # 4 samples\n\n# Forward pass\nz1 = X @ W1 + b1                # (4, 3)\nh  = np.maximum(0, z1)           # ReLU: (4, 3)\nz2 = h @ W2 + b2                # (4, 1)\noutput = z2\n\nloss = np.mean((output - y) ** 2)\n\n# Backward pass\ndL_dout = 2 * (output - y) / N  # (4, 1)\ndL_dW2  = h.T @ dL_dout         # (3, 1)\ndL_db2  = np.mean(dL_dout, axis=0)  # (1,)\n\nprint(f'h shape: {h.shape}')\nprint(f'output shape: {output.shape}')\nprint(f'loss: {loss:.6f}')\nprint(f'dL_dW2:\\n{dL_dW2}')\nprint(f'dL_db2: {dL_db2}')",
+      "hints": [
+        "z1 = X @ W1 + b1  — matrix multiply X (4x2) by W1 (2x3) to get (4x3), then add bias",
+        "ReLU: np.maximum(0, z1) — zero out negative values",
+        "z2 = h @ W2 + b2 — multiply h (4x3) by W2 (3x1) to get (4x1)",
+        "MSE loss: np.mean((output - y)**2)",
+        "dL/dout = 2*(output - y)/N where N is number of samples",
+        "dL/dW2 = h.T @ dL_dout — this is the chain rule for a linear layer"
+      ],
+      "tests": [
+        "import numpy as np; assert h.shape == (4, 3), f'h shape should be (4,3), got {h.shape}'",
+        "import numpy as np; assert output.shape == (4, 1), f'output shape should be (4,1), got {output.shape}'",
+        "import numpy as np; assert loss > 0, 'loss should be positive'",
+        "import numpy as np; assert loss < 2.0, f'loss seems too high: {loss}'",
+        "import numpy as np; assert dL_dW2.shape == (3, 1), f'dL_dW2 shape should be (3,1), got {dL_dW2.shape}'",
+        "import numpy as np; assert dL_db2.shape == (1,), f'dL_db2 shape should be (1,), got {dL_db2.shape}'",
+        "import numpy as np; assert np.all(h >= 0), 'ReLU output should have no negative values'"
+      ]
+    }
+  ]
+}

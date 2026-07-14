@@ -1,0 +1,114 @@
+{
+  "questions": [
+    {
+      "question": "A binary classifier on a highly imbalanced dataset (90% class 0, 10% class 1) achieves AUC-ROC = 0.95, but when you inspect the predictions, you notice they are poorly calibrated: the model outputs probabilities in the range [0.40, 0.60] for nearly all samples. Which metric would most clearly reveal this calibration problem?",
+      "options": [
+        "AUC-ROC — since it already shows 0.95, the model is performing well",
+        "Log Loss — because it penalizes predictions that are not well-calibrated to the true probabilities",
+        "Accuracy — because accuracy always reveals calibration issues",
+        "Macro F1 — because it handles class imbalance and calibration simultaneously"
+      ],
+      "correct": 1,
+      "explanation": "AUC-ROC is threshold-independent and measures ranking quality. A model that correctly ranks positive examples above negative ones can achieve high AUC even with poor calibration. Log Loss directly penalizes miscalibration: a model that outputs 0.5 for most samples will have high log loss even if its rankings are correct, because log loss rewards confident correct predictions and punishes confident wrong ones."
+    },
+    {
+      "question": "For a regression task, your model achieves RMSE = 1200 and MAE = 800 on a validation set. The target variable (house prices in thousands of dollars) has several extreme outliers in the $5M+ range. What does the large gap between RMSE and MAE indicate?",
+      "options": [
+        "The model is perfectly calibrated — large gaps are normal",
+        "The metric formulas were applied incorrectly — RMSE should always be less than MAE",
+        "There are significant outlier errors: the few very large prediction errors on the $5M+ houses are disproportionately inflating RMSE (due to squaring) relative to MAE",
+        "The model is underfitting — both metrics should be equal for a good model"
+      ],
+      "correct": 2,
+      "explanation": "RMSE squares errors before averaging (then takes the square root), making it very sensitive to large individual errors. MAE averages absolute errors, treating all errors proportionally. When RMSE >> MAE, it signals that there are a few very large errors (outliers) dominating the squared error sum. For the $5M+ houses, a $500k prediction error contributes 500²=250,000 to MSE but only 500 to MAE."
+    },
+    {
+      "question": "You are working on a 5-class classification problem where classes A, B, C each have 1,000 samples and classes D, E each have 50 samples. The competition metric is macro F1. Your model achieves F1 of 0.90 for classes A, B, C and 0.30 for classes D, E. What is the macro F1 score?",
+      "options": [
+        "0.84 — weighted by class frequency",
+        "0.66 — simple average across all 5 classes",
+        "0.90 — dominated by the large classes",
+        "0.72 — based on micro-averaging"
+      ],
+      "correct": 1,
+      "explanation": "Macro F1 is the unweighted average of F1 scores across all classes: (0.90 + 0.90 + 0.90 + 0.30 + 0.30) / 5 = 3.30 / 5 = 0.66. The macro average treats all 5 classes equally regardless of sample count, so the two small classes D and E (with F1=0.30) drag the average down significantly. This is why macro F1 is used in competitions where small classes matter: it heavily penalizes ignoring them."
+    },
+    {
+      "question": "The RMSLE metric formula involves log(1 + ŷ_i). Why is the +1 inside the logarithm necessary, and what preprocessing step does this suggest for your training procedure?",
+      "options": [
+        "The +1 prevents log(0) errors when predictions are 0; this suggests clipping all predictions to be at least 1 before computing RMSLE",
+        "The +1 is mathematically equivalent to log(ŷ_i) for large values and has no practical implication",
+        "The +1 prevents log(0) errors for zero-valued predictions/targets; this suggests log1p-transforming the target before training (equivalent to optimizing RMSE in log space) and using expm1 on predictions",
+        "The +1 makes RMSLE equivalent to RMSE for all practical purposes"
+      ],
+      "correct": 2,
+      "explanation": "log(0) is undefined (-infinity), so predictions or targets of exactly 0 would break the metric without the +1. The correct training strategy for RMSLE: apply y_log = np.log1p(y_train) before training, optimize standard RMSE on y_log, then apply preds_original = np.expm1(model.predict(X_test)) to recover original-scale predictions. This works because minimizing RMSE(log1p(ŷ), log1p(y)) is equivalent to minimizing RMSLE."
+    },
+    {
+      "question": "You find the optimal decision threshold for F1 by sweeping thresholds on your validation set and find threshold=0.35 gives the best validation F1. You apply this threshold to the test set and submit. Which statement about this procedure is correct?",
+      "options": [
+        "This is data leakage — you should always use threshold=0.5",
+        "This is valid — fitting the threshold on validation data is not leakage, as long as validation data was held out from training",
+        "This is valid only if the validation set has the same class distribution as the test set",
+        "This is leakage because the threshold was fit on 'data' (even though it was validation data)"
+      ],
+      "correct": 1,
+      "explanation": "Tuning the decision threshold on held-out validation data (data the model was not trained on) is completely valid and is standard practice in competition data science. Leakage occurs when information from the test set influences the model or its hyperparameters. The validation set is explicitly held out for this kind of optimization. This is analogous to tuning any other hyperparameter on a validation set."
+    }
+  ],
+  "exercises": [
+    {
+      "prompt": "Implement the following classification metrics from scratch using only NumPy (no sklearn). Given binary arrays y_true (0/1) and y_pred (0/1 — not probabilities), compute: precision, recall, F1, MCC, and balanced accuracy. Return a dict with these 5 values rounded to 6 decimal places. Handle edge cases where precision or recall denominators are 0 (return 0.0 for those metrics). Also implement a `roc_auc_from_probs(y_true, y_probs)` function that computes AUC-ROC from scratch without sklearn by computing the area under the ROC curve using the trapezoidal rule.",
+      "starter": "import numpy as np\n\ndef classification_metrics(y_true, y_pred):\n    \"\"\"\n    Compute precision, recall, F1, MCC, balanced_accuracy.\n    y_true, y_pred: binary numpy arrays (0s and 1s)\n    Returns dict with all 5 metrics, rounded to 6 decimal places.\n    \"\"\"\n    # Your code here\n    pass\n\ndef roc_auc_from_probs(y_true, y_probs):\n    \"\"\"\n    Compute AUC-ROC from predicted probabilities.\n    Sort by probability descending, compute TPR/FPR at each threshold,\n    then use trapezoidal integration.\n    \"\"\"\n    # Your code here\n    pass\n\n# Test\ny_true = np.array([1, 1, 0, 1, 0, 1, 0, 0, 1, 0])\ny_pred = np.array([1, 0, 1, 1, 0, 1, 0, 1, 0, 0])\ny_prob = np.array([0.9, 0.6, 0.4, 0.8, 0.3, 0.95, 0.2, 0.7, 0.45, 0.1])\n\nprint(classification_metrics(y_true, y_pred))\nprint('AUC:', roc_auc_from_probs(y_true, y_prob))",
+      "solution": "import numpy as np\n\ndef classification_metrics(y_true, y_pred):\n    tp = int(np.sum((y_true == 1) & (y_pred == 1)))\n    tn = int(np.sum((y_true == 0) & (y_pred == 0)))\n    fp = int(np.sum((y_true == 0) & (y_pred == 1)))\n    fn = int(np.sum((y_true == 1) & (y_pred == 0)))\n    \n    precision = tp / (tp + fp) if (tp + fp) > 0 else 0.0\n    recall    = tp / (tp + fn) if (tp + fn) > 0 else 0.0\n    f1 = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0.0\n    \n    mcc_denom = np.sqrt((tp+fp)*(tp+fn)*(tn+fp)*(tn+fn))\n    mcc = (tp*tn - fp*fn) / mcc_denom if mcc_denom > 0 else 0.0\n    \n    tpr = recall  # = TP/(TP+FN)\n    tnr = tn / (tn + fp) if (tn + fp) > 0 else 0.0\n    balanced_acc = (tpr + tnr) / 2\n    \n    return {\n        'precision': round(precision, 6),\n        'recall': round(recall, 6),\n        'f1': round(f1, 6),\n        'mcc': round(mcc, 6),\n        'balanced_accuracy': round(balanced_acc, 6)\n    }\n\ndef roc_auc_from_probs(y_true, y_probs):\n    # Sort by probability descending\n    sorted_indices = np.argsort(-y_probs)\n    y_sorted = y_true[sorted_indices]\n    \n    total_pos = np.sum(y_true == 1)\n    total_neg = np.sum(y_true == 0)\n    \n    tprs = [0.0]\n    fprs = [0.0]\n    \n    tp, fp = 0, 0\n    for label in y_sorted:\n        if label == 1:\n            tp += 1\n        else:\n            fp += 1\n        tprs.append(tp / total_pos)\n        fprs.append(fp / total_neg)\n    \n    tprs.append(1.0)\n    fprs.append(1.0)\n    \n    # Trapezoidal rule\n    auc = np.trapz(tprs, fprs)\n    return float(auc)\n\ny_true = np.array([1, 1, 0, 1, 0, 1, 0, 0, 1, 0])\ny_pred = np.array([1, 0, 1, 1, 0, 1, 0, 1, 0, 0])\ny_prob = np.array([0.9, 0.6, 0.4, 0.8, 0.3, 0.95, 0.2, 0.7, 0.45, 0.1])\n\nprint(classification_metrics(y_true, y_pred))\nprint('AUC:', roc_auc_from_probs(y_true, y_prob))",
+      "hints": [
+        "TP = sum where y_true==1 AND y_pred==1",
+        "MCC denominator = sqrt((TP+FP)(TP+FN)(TN+FP)(TN+FN))",
+        "For AUC: sort by probability descending, walk through and accumulate TP/FP",
+        "Use np.trapz for trapezoidal integration"
+      ],
+      "tests": [
+        "import numpy as np; yt=np.array([1,0,1,0]); yp=np.array([1,0,1,0]); r=classification_metrics(yt,yp); assert r['f1']==1.0",
+        "import numpy as np; yt=np.array([1,0,1,0]); yp=np.array([0,1,0,1]); r=classification_metrics(yt,yp); assert r['precision']==0.0",
+        "import numpy as np; yt=np.array([1,1,0,0]); yp=np.array([1,0,0,0]); r=classification_metrics(yt,yp); assert abs(r['recall']-0.5)<1e-6",
+        "import numpy as np; yt=np.array([1,0]); yprob=np.array([0.9,0.1]); auc=roc_auc_from_probs(yt,yprob); assert abs(auc-1.0)<0.01",
+        "import numpy as np; yt=np.array([1,0]); yprob=np.array([0.1,0.9]); auc=roc_auc_from_probs(yt,yprob); assert abs(auc-0.0)<0.01"
+      ]
+    },
+    {
+      "prompt": "Implement regression metrics from scratch. Write a function `regression_metrics(y_true, y_pred)` that computes and returns a dict with: 'mae', 'mse', 'rmse', 'rmsle', 'r2', 'mape'. For RMSLE, clip predictions to be non-negative before computing (clip to 0). For MAPE, handle zero values in y_true by skipping those samples (return nan if all y_true are zero). Return all values as floats rounded to 6 decimal places.",
+      "starter": "import numpy as np\n\ndef regression_metrics(y_true, y_pred):\n    \"\"\"\n    Compute MAE, MSE, RMSE, RMSLE, R2, MAPE from numpy arrays.\n    Handle edge cases: RMSLE clips predictions to 0, MAPE skips zero y_true.\n    \"\"\"\n    # Your code here\n    pass\n\n# Test\ny_true = np.array([3.0, 5.0, 4.0, 7.0, 2.0, 8.0])\ny_pred = np.array([2.5, 5.5, 4.0, 6.0, 3.0, 9.0])\n\nresult = regression_metrics(y_true, y_pred)\nprint(result)",
+      "solution": "import numpy as np\n\ndef regression_metrics(y_true, y_pred):\n    y_true = np.array(y_true, dtype=float)\n    y_pred = np.array(y_pred, dtype=float)\n    \n    n = len(y_true)\n    residuals = y_true - y_pred\n    \n    mae = float(np.mean(np.abs(residuals)))\n    mse = float(np.mean(residuals ** 2))\n    rmse = float(np.sqrt(mse))\n    \n    # RMSLE: clip predictions to 0\n    y_pred_clipped = np.maximum(0, y_pred)\n    rmsle = float(np.sqrt(np.mean((np.log1p(y_pred_clipped) - np.log1p(np.maximum(0, y_true))) ** 2)))\n    \n    # R2\n    ss_res = np.sum(residuals ** 2)\n    ss_tot = np.sum((y_true - np.mean(y_true)) ** 2)\n    r2 = float(1 - ss_res / ss_tot) if ss_tot > 0 else 0.0\n    \n    # MAPE: skip zero y_true\n    nonzero_mask = y_true != 0\n    if nonzero_mask.sum() > 0:\n        mape = float(np.mean(np.abs(residuals[nonzero_mask] / y_true[nonzero_mask])) * 100)\n    else:\n        mape = float('nan')\n    \n    return {\n        'mae': round(mae, 6),\n        'mse': round(mse, 6),\n        'rmse': round(rmse, 6),\n        'rmsle': round(rmsle, 6),\n        'r2': round(r2, 6),\n        'mape': round(mape, 6) if not np.isnan(mape) else float('nan')\n    }\n\ny_true = np.array([3.0, 5.0, 4.0, 7.0, 2.0, 8.0])\ny_pred = np.array([2.5, 5.5, 4.0, 6.0, 3.0, 9.0])\nresult = regression_metrics(y_true, y_pred)\nprint(result)",
+      "hints": [
+        "MAE = mean(|y_true - y_pred|)",
+        "RMSE = sqrt(mean((y_true - y_pred)^2))",
+        "R2 = 1 - SS_res/SS_tot where SS_tot = sum((y_true - mean(y_true))^2)",
+        "MAPE = mean(|error|/|y_true|) * 100, skip where y_true == 0"
+      ],
+      "tests": [
+        "import numpy as np; r=regression_metrics(np.array([1.,2.,3.]),np.array([1.,2.,3.])); assert r['mae']==0.0",
+        "import numpy as np; r=regression_metrics(np.array([1.,2.,3.]),np.array([1.,2.,3.])); assert r['r2']==1.0",
+        "import numpy as np; r=regression_metrics(np.array([1.,2.,3.]),np.array([2.,3.,4.])); assert abs(r['mae']-1.0)<1e-6",
+        "import numpy as np; r=regression_metrics(np.array([0.,1.,2.]),np.array([0.,2.,4.])); assert not np.isnan(r['mape'])",
+        "import numpy as np; r=regression_metrics(np.array([1.,4.]),np.array([1.,4.])); assert abs(r['rmse']-0.0)<1e-6"
+      ]
+    },
+    {
+      "prompt": "Implement probability calibration analysis. Write `calibration_analysis(y_true, y_probs, n_bins=10)` that divides the predicted probability range [0,1] into n_bins equal-width bins, and for each bin computes the mean predicted probability and the actual positive fraction (empirical probability). Return a dict with 'bin_midpoints', 'mean_predicted_prob', 'actual_fraction', and 'calibration_error' (mean absolute difference between mean predicted probability and actual fraction across non-empty bins). A perfectly calibrated model would have mean_predicted_prob ≈ actual_fraction in every bin.",
+      "starter": "import numpy as np\n\ndef calibration_analysis(y_true, y_probs, n_bins=10):\n    \"\"\"\n    Analyze probability calibration.\n    Returns dict with bin analysis and calibration error.\n    Only include non-empty bins in the output.\n    \"\"\"\n    # Your code here\n    pass\n\n# Test with synthetic data\nnp.random.seed(42)\ny_true = np.random.randint(0, 2, 1000)\n# Slightly overconfident model\ny_probs = np.clip(y_true * 0.6 + (1 - y_true) * 0.1 + np.random.normal(0, 0.1, 1000), 0.01, 0.99)\n\nresult = calibration_analysis(y_true, y_probs)\nprint('Calibration error:', result['calibration_error'])\nprint('Bins:', list(zip(result['mean_predicted_prob'][:5], result['actual_fraction'][:5])))",
+      "solution": "import numpy as np\n\ndef calibration_analysis(y_true, y_probs, n_bins=10):\n    y_true = np.array(y_true)\n    y_probs = np.array(y_probs)\n    \n    bin_edges = np.linspace(0, 1, n_bins + 1)\n    bin_midpoints = []\n    mean_predicted_prob = []\n    actual_fraction = []\n    \n    for i in range(n_bins):\n        low, high = bin_edges[i], bin_edges[i+1]\n        if i == n_bins - 1:\n            mask = (y_probs >= low) & (y_probs <= high)\n        else:\n            mask = (y_probs >= low) & (y_probs < high)\n        \n        if mask.sum() == 0:\n            continue\n        \n        bin_midpoints.append((low + high) / 2)\n        mean_predicted_prob.append(float(y_probs[mask].mean()))\n        actual_fraction.append(float(y_true[mask].mean()))\n    \n    mean_predicted_prob_arr = np.array(mean_predicted_prob)\n    actual_fraction_arr = np.array(actual_fraction)\n    calibration_error = float(np.mean(np.abs(mean_predicted_prob_arr - actual_fraction_arr)))\n    \n    return {\n        'bin_midpoints': bin_midpoints,\n        'mean_predicted_prob': mean_predicted_prob,\n        'actual_fraction': actual_fraction,\n        'calibration_error': calibration_error\n    }\n\nnp.random.seed(42)\ny_true = np.random.randint(0, 2, 1000)\ny_probs = np.clip(y_true * 0.6 + (1 - y_true) * 0.1 + np.random.normal(0, 0.1, 1000), 0.01, 0.99)\nresult = calibration_analysis(y_true, y_probs)\nprint('Calibration error:', result['calibration_error'])\nprint('Bins:', list(zip(result['mean_predicted_prob'][:5], result['actual_fraction'][:5])))",
+      "hints": [
+        "Use np.linspace(0, 1, n_bins+1) to get bin edges",
+        "For each bin, select samples where low <= prob < high (use <= for the last bin)",
+        "Skip empty bins (mask.sum() == 0)",
+        "Calibration error = mean(|mean_predicted - actual_fraction|) across non-empty bins"
+      ],
+      "tests": [
+        "import numpy as np; yt=np.array([1,1,0,0]); yp=np.array([0.9,0.8,0.2,0.1]); r=calibration_analysis(yt,yp,n_bins=2); assert 'calibration_error' in r",
+        "import numpy as np; yt=np.array([1,0]*50); yp=np.array([0.5]*100); r=calibration_analysis(yt,yp,n_bins=5); assert r['calibration_error'] < 0.1",
+        "import numpy as np; yt=np.ones(50); yp=np.linspace(0.5,1.0,50); r=calibration_analysis(yt,yp); assert len(r['bin_midpoints']) > 0",
+        "import numpy as np; yt=np.array([1,0]*100); yp=np.concatenate([np.ones(100)*0.9, np.zeros(100)]); yp=np.clip(yp,0.01,0.99); r=calibration_analysis(yt,yp); assert r['calibration_error'] > 0.1"
+      ]
+    }
+  ]
+}

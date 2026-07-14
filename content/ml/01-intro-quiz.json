@@ -1,0 +1,78 @@
+{
+  "questions": [
+    {
+      "question": "A model is trained on customer data to predict whether a new customer will churn (leave) or stay. Which type of machine learning is this?",
+      "options": [
+        "Supervised learning — classification",
+        "Supervised learning — regression",
+        "Unsupervised learning — clustering",
+        "Reinforcement learning"
+      ],
+      "correct": 0,
+      "explanation": "Churn prediction has labeled training examples (customers who did or did not churn) and the output is a discrete category (churn vs. stay), making it supervised classification."
+    },
+    {
+      "question": "You have a dataset of 1000 examples. You split it 70/15/15 into train/validation/test. You notice your model performs perfectly on the training set but poorly on the validation set. What is this called?",
+      "options": [
+        "Underfitting",
+        "Overfitting",
+        "Data leakage",
+        "Class imbalance"
+      ],
+      "correct": 1,
+      "explanation": "Overfitting is when a model memorizes the training data so well that it fails to generalize to new (unseen) data. Perfect training performance with poor validation performance is the classic sign."
+    },
+    {
+      "question": "Why should you <code>fit</code> a scaler only on the training set, then <code>transform</code> both train and test sets?",
+      "options": [
+        "Because scalers are computationally expensive to run twice",
+        "To prevent information from the test set leaking into training",
+        "Because sklearn scalers only accept 2D arrays",
+        "It does not matter — fitting on all data gives the same result"
+      ],
+      "correct": 1,
+      "explanation": "Fitting the scaler on the entire dataset (including the test set) would use test-set statistics during training, a form of data leakage. The test set must remain completely unseen to get an honest performance estimate."
+    },
+    {
+      "question": "Which of the following is a regression problem?",
+      "options": [
+        "Classifying X-ray images as 'fracture' or 'no fracture'",
+        "Grouping customers into market segments",
+        "Predicting the number of units a store will sell next week",
+        "Teaching a robot to walk using rewards"
+      ],
+      "correct": 2,
+      "explanation": "Predicting the number of units sold is a continuous numeric output, making it a regression problem. Classification predicts categories, clustering is unsupervised, and the robot is reinforcement learning."
+    }
+  ],
+  "exercises": [
+    {
+      "prompt": "Create a dataset of 50 samples where the feature X is random integers from 1 to 100 and the label y = 3*X + 10 plus some Gaussian noise with standard deviation 5. Then split it 80/20 into train and test sets using sklearn. Print the sizes of each split.",
+      "starter": "import numpy as np\nfrom sklearn.model_selection import train_test_split\n\nnp.random.seed(0)\n\n# TODO: Create X (shape: 50x1) with random integers 1-100\n# TODO: Create y = 3*X.flatten() + 10 + noise\n# TODO: Split into train/test (80/20, random_state=0)\n# TODO: Print sizes\n",
+      "solution": "import numpy as np\nfrom sklearn.model_selection import train_test_split\n\nnp.random.seed(0)\n\nX = np.random.randint(1, 101, size=(50, 1)).astype(float)\ny = 3 * X.flatten() + 10 + np.random.randn(50) * 5\n\nX_train, X_test, y_train, y_test = train_test_split(\n    X, y, test_size=0.2, random_state=0\n)\n\nprint(f'Train size: {len(X_train)}')\nprint(f'Test size:  {len(X_test)}')\n",
+      "hints": [
+        "Use np.random.randint(1, 101, size=(50, 1)) to get a 2D array suitable for sklearn",
+        "Flatten X with .flatten() before computing y",
+        "train_test_split takes test_size=0.2 for an 80/20 split"
+      ],
+      "tests": [
+        "len(X_train) == 40",
+        "len(X_test) == 10",
+        "X_train.shape[1] == 1"
+      ]
+    },
+    {
+      "prompt": "Using the dataset below, train a LinearRegression model and print the predicted price for a house with sqft=1600, bedrooms=3, age=15. Round to 1 decimal place.",
+      "starter": "import numpy as np\nfrom sklearn.linear_model import LinearRegression\n\nX = np.array([\n    [800,  2, 30],\n    [1200, 3, 20],\n    [1500, 3, 10],\n    [1800, 4, 5],\n    [2200, 5, 2],\n])\ny = np.array([130, 180, 220, 270, 340])\n\n# TODO: Train a LinearRegression model on all data\n# TODO: Predict price for [1600, 3, 15]\n# TODO: Print the result rounded to 1 decimal\n",
+      "solution": "import numpy as np\nfrom sklearn.linear_model import LinearRegression\n\nX = np.array([\n    [800,  2, 30],\n    [1200, 3, 20],\n    [1500, 3, 10],\n    [1800, 4, 5],\n    [2200, 5, 2],\n])\ny = np.array([130, 180, 220, 270, 340])\n\nmodel = LinearRegression()\nmodel.fit(X, y)\n\nnew_house = np.array([[1600, 3, 15]])\nprediction = model.predict(new_house)[0]\nprint(f'Predicted price: ${prediction:.1f}k')\n",
+      "hints": [
+        "model.fit(X, y) trains the model",
+        "model.predict() expects a 2D array, so wrap your single example in double brackets: [[1600, 3, 15]]",
+        "Index the result with [0] to get the scalar value"
+      ],
+      "tests": [
+        "abs(model.predict([[1600, 3, 15]])[0] - 230) < 20"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,104 @@
+{
+  "questions": [
+    {
+      "question": "A student runs cross-validation on the combined train+test dataset (using the target labels from train) to estimate model performance. This technique is known as:",
+      "options": [
+        "Transfer learning — using all available data improves generalization",
+        "Data leakage — the test set's feature distribution influences training, producing optimistically biased estimates",
+        "Semi-supervised learning — a legitimate technique for using unlabeled data",
+        "Feature augmentation — a standard preprocessing technique"
+      ],
+      "correct": 1,
+      "explanation": "Running cross-validation on combined train+test data (even without using test labels) introduces data leakage through feature distribution: when you compute statistics like mean/std on combined data and use them during training, test set information affects training. More directly, if you accidentally include test labels, the model sees future data. Always split first, then preprocess within each fold."
+    },
+    {
+      "question": "In the context of LightGBM's `num_leaves` hyperparameter, which statement is most accurate?",
+      "options": [
+        "Increasing num_leaves always improves model performance on both training and test data",
+        "num_leaves controls the maximum number of leaves in one tree; higher values increase model complexity and can cause overfitting",
+        "num_leaves has no effect on regularization — use only max_depth for that purpose",
+        "num_leaves should always be set to the number of training samples divided by 10"
+      ],
+      "correct": 1,
+      "explanation": "In LightGBM, `num_leaves` is the primary complexity parameter for leaf-wise tree growth. More leaves = more complex tree = higher capacity = risk of overfitting. The default of 31 is a reasonable starting point. Increasing it (e.g., to 63, 127) can improve training accuracy but requires careful regularization (min_child_samples, subsample) to maintain generalization."
+    },
+    {
+      "question": "You are building a baseline for a regression task where the target variable has a skewness of 3.2 (heavily right-skewed). What is the recommended approach?",
+      "options": [
+        "Use RMSE as the loss function and train without any target transformation",
+        "Apply a log1p transformation to the target before training, train, then apply expm1 to predictions",
+        "Clip the target at the 95th percentile to remove outliers before training",
+        "Use Mean Absolute Error (MAE) loss instead of RMSE to handle the skewness"
+      ],
+      "correct": 1,
+      "explanation": "When the regression target is heavily right-skewed (skewness > 1), log-transforming the target (log1p is safe even with zeros) compresses the distribution toward normality. This means the model optimizes errors in log-space, giving more balanced treatment to small and large values. You must apply expm1 (inverse of log1p) to predictions before evaluation or submission."
+    },
+    {
+      "question": "During the baseline phase, you decide to use StratifiedKFold with n_splits=5 for a classification task. The training dataset has 10,000 samples. Approximately how many samples are in each validation fold?",
+      "options": [
+        "500 samples",
+        "1,000 samples",
+        "2,000 samples",
+        "5,000 samples"
+      ],
+      "correct": 2,
+      "explanation": "StratifiedKFold with n_splits=5 divides the data into 5 approximately equal folds. Each fold contains 10,000 / 5 = 2,000 samples. In each iteration, 4 folds (8,000 samples) are used for training and 1 fold (2,000 samples) for validation. The 'stratified' part ensures each fold has the same class distribution as the full dataset."
+    }
+  ],
+  "exercises": [
+    {
+      "prompt": "Implement a complete EDA summary function. Write `eda_summary(df, target_col)` that takes a pandas DataFrame and the name of the target column, and returns a dict with the following keys:\n- 'shape': tuple (rows, cols)\n- 'dtypes': dict of dtype_name -> count (e.g., {'float64': 5, 'object': 3})\n- 'missing_cols': dict of col_name -> missing_count for columns with any missing values\n- 'target_distribution': dict of class -> proportion (for classification) or dict with 'mean', 'std', 'skew' (for regression, when target is numeric with more than 10 unique values)\n- 'num_cols': list of numerical column names (excluding target)\n- 'cat_cols': list of categorical column names (excluding target)",
+      "starter": "import numpy as np\nimport pandas as pd\n\ndef eda_summary(df, target_col):\n    \"\"\"\n    Returns a comprehensive EDA summary dict.\n    For target: if >10 unique values and numeric -> regression summary\n                else -> classification (value_counts proportions)\n    \"\"\"\n    # Your code here\n    pass\n\n# Test with synthetic data\nnp.random.seed(42)\ndf = pd.DataFrame({\n    'age': np.random.randint(20, 60, 100).astype(float),\n    'income': np.random.exponential(50000, 100),\n    'city': np.random.choice(['NYC', 'LA', 'CHI', None], 100),\n    'score': np.random.normal(0.5, 0.2, 100),\n    'target': np.random.randint(0, 2, 100)\n})\ndf.loc[::10, 'age'] = np.nan  # Add some missing values\n\nresult = eda_summary(df, 'target')\nprint(result)",
+      "solution": "import numpy as np\nimport pandas as pd\nfrom scipy.stats import skew\n\ndef eda_summary(df, target_col):\n    result = {}\n    \n    # Shape\n    result['shape'] = df.shape\n    \n    # Dtypes\n    dtype_counts = {}\n    for dtype in df.dtypes:\n        name = str(dtype)\n        dtype_counts[name] = dtype_counts.get(name, 0) + 1\n    result['dtypes'] = dtype_counts\n    \n    # Missing values\n    missing = df.isnull().sum()\n    result['missing_cols'] = {col: int(cnt) for col, cnt in missing.items() if cnt > 0}\n    \n    # Target distribution\n    target = df[target_col].dropna()\n    n_unique = target.nunique()\n    is_regression = pd.api.types.is_numeric_dtype(target) and n_unique > 10\n    \n    if is_regression:\n        result['target_distribution'] = {\n            'mean': float(target.mean()),\n            'std': float(target.std()),\n            'skew': float(target.skew())\n        }\n    else:\n        result['target_distribution'] = {\n            str(k): float(v) for k, v in target.value_counts(normalize=True).items()\n        }\n    \n    # Column lists\n    result['num_cols'] = [\n        col for col in df.select_dtypes(include='number').columns\n        if col != target_col\n    ]\n    result['cat_cols'] = [\n        col for col in df.select_dtypes(include='object').columns\n        if col != target_col\n    ]\n    \n    return result\n\n# Test\nnp.random.seed(42)\ndf = pd.DataFrame({\n    'age': np.random.randint(20, 60, 100).astype(float),\n    'income': np.random.exponential(50000, 100),\n    'city': np.random.choice(['NYC', 'LA', 'CHI', None], 100),\n    'score': np.random.normal(0.5, 0.2, 100),\n    'target': np.random.randint(0, 2, 100)\n})\ndf.loc[::10, 'age'] = np.nan\n\nresult = eda_summary(df, 'target')\nprint(result)",
+      "hints": [
+        "Use df.dtypes to get dtype of each column, then count them",
+        "df.isnull().sum() gives missing count per column",
+        "target.nunique() > 10 and numeric dtype -> regression",
+        "df.select_dtypes(include='number') gets numerical columns"
+      ],
+      "tests": [
+        "import numpy as np, pandas as pd; np.random.seed(0); df = pd.DataFrame({'a': np.random.randn(50), 'b': ['x','y']*25, 'target': np.random.randint(0,2,50)}); r = eda_summary(df, 'target'); assert r['shape'] == (50, 3)",
+        "import numpy as np, pandas as pd; np.random.seed(0); df = pd.DataFrame({'a': np.random.randn(50), 'b': ['x','y']*25, 'target': np.random.randint(0,2,50)}); r = eda_summary(df, 'target'); assert 'a' in r['num_cols']",
+        "import numpy as np, pandas as pd; np.random.seed(0); df = pd.DataFrame({'a': np.random.randn(50), 'b': ['x','y']*25, 'target': np.random.randint(0,2,50)}); r = eda_summary(df, 'target'); assert 'b' in r['cat_cols']",
+        "import numpy as np, pandas as pd; np.random.seed(0); df = pd.DataFrame({'a': np.random.randn(50), 'b': ['x','y']*25, 'target': np.random.randint(0,2,50)}); df.loc[0,'a'] = np.nan; r = eda_summary(df, 'target'); assert 'a' in r['missing_cols']",
+        "import numpy as np, pandas as pd; np.random.seed(0); df = pd.DataFrame({'a': np.random.randn(50), 'b': ['x','y']*25, 'target': np.random.randint(0,2,50)}); r = eda_summary(df, 'target'); assert 'target' not in r['num_cols']"
+      ]
+    },
+    {
+      "prompt": "Implement Out-of-Fold (OOF) training for a binary classification problem using numpy arrays. Write `oof_train_predict(X_train, y_train, X_test, n_splits=5, seed=42)` that performs stratified k-fold cross-validation using logistic regression (implement a simplified logistic regression using only numpy — sigmoid function, gradient descent). For simplicity, implement 10 steps of gradient descent with learning rate 0.1. Return a tuple (oof_predictions, test_predictions) where both are 1D numpy arrays of probabilities. Note: This exercise tests your understanding of the OOF pattern — use sklearn LogisticRegression for the actual model.",
+      "starter": "import numpy as np\nfrom sklearn.linear_model import LogisticRegression\nfrom sklearn.model_selection import StratifiedKFold\n\ndef oof_train_predict(X_train, y_train, X_test, n_splits=5, seed=42):\n    \"\"\"\n    Trains logistic regression with OOF cross-validation.\n    Returns: (oof_preds, test_preds) both 1D arrays of predicted probabilities.\n    oof_preds[i] = probability for training sample i, predicted when i was in validation fold.\n    test_preds = average of predictions across all folds.\n    \"\"\"\n    # Your code here\n    pass\n\n# Test\nnp.random.seed(42)\nX = np.random.randn(200, 5)\ny = (X[:, 0] + X[:, 1] + np.random.randn(200) * 0.5 > 0).astype(int)\nX_test = np.random.randn(50, 5)\n\noof, test = oof_train_predict(X, y, X_test)\nprint(f'OOF preds shape: {oof.shape}, range: [{oof.min():.3f}, {oof.max():.3f}]')\nprint(f'Test preds shape: {test.shape}, range: [{test.min():.3f}, {test.max():.3f}]')",
+      "solution": "import numpy as np\nfrom sklearn.linear_model import LogisticRegression\nfrom sklearn.model_selection import StratifiedKFold\n\ndef oof_train_predict(X_train, y_train, X_test, n_splits=5, seed=42):\n    oof_preds = np.zeros(len(X_train))\n    test_preds = np.zeros(len(X_test))\n    \n    skf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=seed)\n    \n    for fold, (tr_idx, val_idx) in enumerate(skf.split(X_train, y_train)):\n        X_tr, X_val = X_train[tr_idx], X_train[val_idx]\n        y_tr = y_train[tr_idx]\n        \n        model = LogisticRegression(random_state=seed, max_iter=1000)\n        model.fit(X_tr, y_tr)\n        \n        oof_preds[val_idx] = model.predict_proba(X_val)[:, 1]\n        test_preds += model.predict_proba(X_test)[:, 1] / n_splits\n    \n    return oof_preds, test_preds\n\nnp.random.seed(42)\nX = np.random.randn(200, 5)\ny = (X[:, 0] + X[:, 1] + np.random.randn(200) * 0.5 > 0).astype(int)\nX_test = np.random.randn(50, 5)\n\noof, test = oof_train_predict(X, y, X_test)\nprint(f'OOF preds shape: {oof.shape}, range: [{oof.min():.3f}, {oof.max():.3f}]')\nprint(f'Test preds shape: {test.shape}, range: [{test.min():.3f}, {test.max():.3f}]')",
+      "hints": [
+        "Initialize oof_preds = np.zeros(len(X_train)) and test_preds = np.zeros(len(X_test))",
+        "Use StratifiedKFold to get fold indices",
+        "For each fold: fit model on tr_idx, predict on val_idx for OOF, predict on X_test and accumulate",
+        "Divide test_preds by n_splits at the end (or divide each fold's contribution by n_splits)"
+      ],
+      "tests": [
+        "import numpy as np; np.random.seed(42); X = np.random.randn(100,3); y = (X[:,0]>0).astype(int); Xt = np.random.randn(20,3); oof, test = oof_train_predict(X,y,Xt,n_splits=5); assert oof.shape == (100,)",
+        "import numpy as np; np.random.seed(42); X = np.random.randn(100,3); y = (X[:,0]>0).astype(int); Xt = np.random.randn(20,3); oof, test = oof_train_predict(X,y,Xt,n_splits=5); assert test.shape == (20,)",
+        "import numpy as np; np.random.seed(42); X = np.random.randn(100,3); y = (X[:,0]>0).astype(int); Xt = np.random.randn(20,3); oof, test = oof_train_predict(X,y,Xt,n_splits=5); assert oof.min() >= 0 and oof.max() <= 1",
+        "import numpy as np; np.random.seed(42); X = np.random.randn(100,3); y = (X[:,0]>0).astype(int); Xt = np.random.randn(20,3); oof, test = oof_train_predict(X,y,Xt,n_splits=5); assert test.min() >= 0 and test.max() <= 1",
+        "import numpy as np; np.random.seed(42); X = np.random.randn(100,3); y = (X[:,0]>0).astype(int); Xt = np.random.randn(20,3); oof, _ = oof_train_predict(X,y,Xt,n_splits=5); assert not np.any(oof == 0)  # All OOF positions should be filled"
+      ]
+    },
+    {
+      "prompt": "Missing Value Analysis: Write a function `missing_analysis(df)` that returns a DataFrame with columns ['column', 'missing_count', 'missing_pct', 'recommendation'] for each column that has missing values. The recommendation should be: 'drop_column' if missing_pct > 0.8, 'create_indicator' if 0.3 < missing_pct <= 0.8, 'impute_median' if the column is numeric and missing_pct <= 0.3, 'impute_mode' if the column is categorical and missing_pct <= 0.3. Return the result sorted by missing_pct descending. Only include columns with at least 1 missing value.",
+      "starter": "import numpy as np\nimport pandas as pd\n\ndef missing_analysis(df):\n    \"\"\"\n    Returns DataFrame with missing value analysis and imputation recommendations.\n    Columns: ['column', 'missing_count', 'missing_pct', 'recommendation']\n    \"\"\"\n    # Your code here\n    pass\n\n# Test\nnp.random.seed(42)\ndf = pd.DataFrame({\n    'a': [1.0, 2.0, np.nan, 4.0, 5.0],          # 20% missing, numeric\n    'b': ['x', None, None, 'y', 'z'],              # 40% missing, object\n    'c': [np.nan]*4 + [1.0],                        # 80% missing -> create_indicator\n    'd': [np.nan]*5,                               # 100% missing -> drop\n    'e': [1, 2, 3, 4, 5]                          # no missing\n})\n\nresult = missing_analysis(df)\nprint(result)",
+      "solution": "import numpy as np\nimport pandas as pd\n\ndef missing_analysis(df):\n    rows = []\n    n = len(df)\n    \n    for col in df.columns:\n        missing_count = df[col].isnull().sum()\n        if missing_count == 0:\n            continue\n        \n        missing_pct = missing_count / n\n        is_numeric = pd.api.types.is_numeric_dtype(df[col])\n        \n        if missing_pct > 0.8:\n            rec = 'drop_column'\n        elif missing_pct > 0.3:\n            rec = 'create_indicator'\n        elif is_numeric:\n            rec = 'impute_median'\n        else:\n            rec = 'impute_mode'\n        \n        rows.append({\n            'column': col,\n            'missing_count': missing_count,\n            'missing_pct': missing_pct,\n            'recommendation': rec\n        })\n    \n    result = pd.DataFrame(rows, columns=['column', 'missing_count', 'missing_pct', 'recommendation'])\n    result = result.sort_values('missing_pct', ascending=False).reset_index(drop=True)\n    return result\n\nnp.random.seed(42)\ndf = pd.DataFrame({\n    'a': [1.0, 2.0, np.nan, 4.0, 5.0],\n    'b': ['x', None, None, 'y', 'z'],\n    'c': [np.nan]*4 + [1.0],\n    'd': [np.nan]*5,\n    'e': [1, 2, 3, 4, 5]\n})\n\nresult = missing_analysis(df)\nprint(result)",
+      "hints": [
+        "df[col].isnull().sum() gives the missing count for a column",
+        "pd.api.types.is_numeric_dtype(df[col]) checks if a column is numeric",
+        "Build a list of dicts, then pd.DataFrame(rows)",
+        "Filter columns with missing_count == 0 using continue"
+      ],
+      "tests": [
+        "import numpy as np, pandas as pd; df = pd.DataFrame({'a':[1,np.nan,3],'b':['x',None,'z'],'c':[1,2,3]}); r = missing_analysis(df); assert len(r) == 2",
+        "import numpy as np, pandas as pd; df = pd.DataFrame({'a':[1,np.nan,3],'b':['x',None,'z'],'c':[1,2,3]}); r = missing_analysis(df); assert set(r.columns) == {'column','missing_count','missing_pct','recommendation'}",
+        "import numpy as np, pandas as pd; df = pd.DataFrame({'a':[np.nan]*9+[1.0]}); r = missing_analysis(df); assert r.loc[0,'recommendation'] == 'create_indicator'",
+        "import numpy as np, pandas as pd; df = pd.DataFrame({'a':[np.nan]*5}); r = missing_analysis(df); assert r.loc[0,'recommendation'] == 'drop_column'",
+        "import numpy as np, pandas as pd; df = pd.DataFrame({'a':[1,np.nan,3,4,5],'c':[1,2,3,4,5]}); r = missing_analysis(df); assert r.loc[0,'recommendation'] == 'impute_median'"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,103 @@
+{
+  "questions": [
+    {
+      "question": "The maximum likelihood estimator for the variance of a normal distribution is σ²_MLE = (1/n) Σ(xᵢ − x̄)². Why is this estimator biased?",
+      "options": [
+        "It overestimates the true variance because dividing by n inflates the estimate relative to the true spread",
+        "It underestimates the true variance because E[Σ(xᵢ − x̄)²] = (n−1)σ², so E[σ²_MLE] = ((n−1)/n)σ² < σ²",
+        "It is unbiased for large n only when the population is exactly normally distributed",
+        "It is biased because the population mean μ is substituted with the sample mean x̄, which has higher variance"
+      ],
+      "correct": 1,
+      "explanation": "Using the sample mean x̄ instead of the true μ to compute deviations 'uses up' one degree of freedom. Formally, E[Σ(xᵢ − x̄)²] = (n−1)σ², so dividing by n gives E[σ²_MLE] = ((n−1)/n)σ² < σ². The unbiased estimator (Bessel's correction) divides by (n−1). Options A, C, and D mischaracterize the direction or cause of the bias."
+    },
+    {
+      "question": "The Central Limit Theorem (CLT) applies to the sampling distribution of the mean. Which statement is most precisely correct?",
+      "options": [
+        "For any distribution with finite mean μ, the distribution of X̄ is exactly N(μ, σ²/n) for all n",
+        "For i.i.d. random variables with finite mean μ and variance σ², the standardized quantity √n(X̄ − μ)/σ converges in distribution to N(0, 1) as n → ∞",
+        "The CLT requires the population to be symmetric and unimodal",
+        "The CLT implies that individual observations Xᵢ become normally distributed as n grows"
+      ],
+      "correct": 1,
+      "explanation": "The CLT states that √n(X̄ − μ)/σ →_d N(0, 1) as n → ∞ for i.i.d. data with finite μ and σ². Option A is wrong — the normal approximation is asymptotic, not exact for finite n (except when the population is itself normal). Option C is wrong — the CLT applies to any distribution with finite mean and variance, including skewed ones. Option D confuses the distribution of the mean with the distribution of individual observations."
+    },
+    {
+      "question": "You conduct a two-sample t-test comparing treatment and control groups, obtaining p = 0.03 with α = 0.05. A colleague claims 'there is a 3% chance the null hypothesis is true.' Which response is correct?",
+      "options": [
+        "The colleague is correct — the p-value measures the posterior probability of H₀",
+        "The p-value is P(observing data at least this extreme | H₀ true); it does not represent the probability that H₀ is true, which requires a Bayesian framework",
+        "The p-value represents the probability of a Type II error (false negative)",
+        "The colleague is correct because 1 − p = 0.97 gives the confidence in H₁"
+      ],
+      "correct": 1,
+      "explanation": "The p-value is a frequentist construct: P(T ≥ t_obs | H₀). It answers 'How surprising is this data if H₀ were true?' — not 'How likely is H₀?' Converting p into P(H₀ | data) requires Bayes' theorem with a prior on H₀ (option A's mistake). Option C confuses p-value with β (Type II error rate). Option D is the base rate fallacy."
+    },
+    {
+      "question": "A 95% confidence interval for a population mean yields [42.1, 47.9]. Which interpretation is statistically valid?",
+      "options": [
+        "There is a 95% probability that the true population mean lies in [42.1, 47.9]",
+        "95% of individual population values fall between 42.1 and 47.9",
+        "If the experiment were repeated many times, approximately 95% of the computed intervals would contain the true population mean",
+        "The sample mean equals 45.0 with 95% certainty"
+      ],
+      "correct": 2,
+      "explanation": "Once [42.1, 47.9] is observed, the true mean either is or is not in it — probability 0 or 1 (option A is the most common misinterpretation). Option B describes a 95% prediction interval, not a confidence interval. Option D conflates confidence level with probability about a fixed parameter. Option C correctly captures the frequentist meaning: 95% refers to the long-run coverage rate of the procedure, not any single interval."
+    },
+    {
+      "question": "In the bias-variance decomposition, the expected test MSE at point x₀ decomposes as E[(f̂(x₀) − y)²] = ?",
+      "options": [
+        "[Bias(f̂(x₀))]² + Var(f̂(x₀))",
+        "Bias(f̂(x₀)) + Var(f̂(x₀)) + σ²_ε",
+        "[Bias(f̂(x₀))]² + Var(f̂(x₀)) + σ²_ε",
+        "[Bias(f̂(x₀)) + Var(f̂(x₀))]² + σ²_ε"
+      ],
+      "correct": 2,
+      "explanation": "The complete decomposition is MSE = Bias² + Variance + Irreducible Error (σ²_ε). Omitting σ²_ε (option A) yields an optimistic lower bound. Taking Bias without squaring (option B) is algebraically incorrect — bias is E[f̂(x₀)] − f(x₀), which can be negative; its contribution to MSE enters as the square. Option D incorrectly sums bias and variance before squaring, conflating the two terms. This decomposition drives the fundamental tradeoff: complex models reduce bias but raise variance."
+    }
+  ],
+  "exercises": [
+    {
+      "prompt": "Compute the MLE estimates for the mean (mu_mle) and variance (sigma2_mle) of a Gaussian distribution from the given dataset. The MLE variance divides by n, not (n−1). Store results in mu_mle and sigma2_mle.",
+      "starter": "import numpy as np\n\n# Observations from a Gaussian distribution\ndata = np.array([2.1, 3.5, 2.8, 4.2, 3.1, 2.9, 3.8, 4.0, 2.5, 3.3])\n\n# TODO: Compute MLE estimates\n# MLE mean  = arithmetic average\n# MLE variance = (1/n) * sum of squared deviations from mu_mle  (biased — divides by n)\nmu_mle = None\nsigma2_mle = None",
+      "solution": "import numpy as np\n\ndata = np.array([2.1, 3.5, 2.8, 4.2, 3.1, 2.9, 3.8, 4.0, 2.5, 3.3])\n\nn = len(data)\nmu_mle = np.sum(data) / n\nsigma2_mle = np.sum((data - mu_mle) ** 2) / n",
+      "hints": [
+        "The MLE mean is simply the arithmetic average: sum all values and divide by n.",
+        "For MLE variance, first compute each squared deviation (xᵢ − mu_mle)², then average them by dividing by n (not n−1).",
+        "Verify: np.var(data) uses ddof=0 by default, which produces the same biased MLE estimate."
+      ],
+      "tests": [
+        "abs(mu_mle - np.mean(data)) < 1e-10",
+        "abs(sigma2_mle - np.var(data)) < 1e-10"
+      ]
+    },
+    {
+      "prompt": "Implement a one-sample t-test from scratch. Given a sample, test H₀: μ = null_mean against H₁: μ ≠ null_mean. Compute t_stat (the t-statistic) and p_value (two-tailed) using the t-distribution. Your answers must match scipy's ttest_1samp.",
+      "starter": "import numpy as np\nfrom scipy import stats\n\nnp.random.seed(0)\nsample = np.random.normal(loc=3.5, scale=1.0, size=30)\nnull_mean = 3.0\n\n# TODO: Compute t-statistic: t = (x_bar - null_mean) / (s / sqrt(n))\n# where s is the sample standard deviation with ddof=1\n# Then compute the two-tailed p-value using the t-distribution with n-1 degrees of freedom\nt_stat = None\np_value = None\n\n# Reference\nt_ref, p_ref = stats.ttest_1samp(sample, null_mean)",
+      "solution": "import numpy as np\nfrom scipy import stats\n\nnp.random.seed(0)\nsample = np.random.normal(loc=3.5, scale=1.0, size=30)\nnull_mean = 3.0\n\nn = len(sample)\nx_bar = np.mean(sample)\ns = np.std(sample, ddof=1)\nt_stat = (x_bar - null_mean) / (s / np.sqrt(n))\np_value = 2 * (1 - stats.t.cdf(abs(t_stat), df=n - 1))\n\nt_ref, p_ref = stats.ttest_1samp(sample, null_mean)",
+      "hints": [
+        "Compute the sample mean (x_bar) and sample standard deviation with ddof=1 to get the unbiased estimate.",
+        "t_stat = (x_bar - null_mean) / (s / sqrt(n)). This measures how many standard errors the sample mean is from the null.",
+        "For a two-tailed p-value: p = 2 * P(T > |t_stat|) = 2 * (1 - stats.t.cdf(abs(t_stat), df=n-1))."
+      ],
+      "tests": [
+        "abs(t_stat - t_ref) < 1e-6",
+        "abs(p_value - p_ref) < 1e-6"
+      ]
+    },
+    {
+      "prompt": "Compute the Pearson correlation coefficient r between arrays x and y from scratch — without using np.corrcoef or scipy. Store the result in r. The formula is r = Σ[(xᵢ−x̄)(yᵢ−ȳ)] / (‖x−x̄‖₂ · ‖y−ȳ‖₂).",
+      "starter": "import numpy as np\n\nnp.random.seed(7)\nx = np.random.randn(100)\ny = 2 * x + np.random.randn(100) * 0.5\n\n# TODO: Compute the Pearson correlation coefficient r\n# Steps:\n#   1. Center x and y (subtract their means)\n#   2. Numerator = sum of element-wise products of centered arrays\n#   3. Denominator = product of L2 norms of centered arrays\nr = None",
+      "solution": "import numpy as np\n\nnp.random.seed(7)\nx = np.random.randn(100)\ny = 2 * x + np.random.randn(100) * 0.5\n\nx_c = x - np.mean(x)\ny_c = y - np.mean(y)\nr = np.sum(x_c * y_c) / (np.sqrt(np.sum(x_c ** 2)) * np.sqrt(np.sum(y_c ** 2)))",
+      "hints": [
+        "Center both arrays: x_c = x - np.mean(x), y_c = y - np.mean(y).",
+        "The numerator is np.sum(x_c * y_c) — the sum of element-wise products.",
+        "The denominator is the product of the Euclidean norms: sqrt(sum(x_c²)) * sqrt(sum(y_c²))."
+      ],
+      "tests": [
+        "abs(r - np.corrcoef(x, y)[0, 1]) < 1e-10",
+        "r > 0.9"
+      ]
+    }
+  ]
+}

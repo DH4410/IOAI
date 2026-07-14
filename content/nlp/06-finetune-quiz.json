@@ -1,0 +1,108 @@
+{
+  "questions": [
+    {
+      "question": "What is the main argument for using transfer learning (fine-tuning a pre-trained model) rather than training a task-specific model from scratch?",
+      "options": [
+        "Pre-trained models always achieve lower loss on the task-specific validation set, regardless of dataset size",
+        "Pre-trained models have learned general language representations from massive unlabeled data, allowing effective adaptation with far less labeled task-specific data",
+        "Fine-tuning is always faster and cheaper than training from scratch because fewer gradient updates are needed",
+        "Pre-trained models already know the correct answer to most NLP tasks and only need minimal correction"
+      ],
+      "correct": 1,
+      "explanation": "The transfer learning hypothesis: representations learned during pre-training on billions of tokens encode syntactic structure, semantic relationships, and world knowledge. When you fine-tune, the model starts with this rich initialization instead of random weights. Empirically, this means you need 10-100x fewer labeled examples to achieve the same performance as training from scratch."
+    },
+    {
+      "question": "In LoRA (Low-Rank Adaptation), how are the adapter matrices A and B initialized, and why?",
+      "options": [
+        "Both A and B are initialized with Xavier/Glorot initialization to match the pre-trained weight scale",
+        "A is initialized with random Gaussian values and B is initialized to zeros, so that ΔW = BA = 0 at initialization",
+        "Both A and B are initialized to zero so that training starts from the pre-trained model's exact behavior",
+        "A is initialized to the left singular vectors and B to the right singular vectors of the pre-trained weight matrix W₀"
+      ],
+      "correct": 1,
+      "explanation": "B is initialized to zeros so that ΔW = BA = 0 at the start of training — the LoRA modification starts as a perfect no-op. This means training begins exactly from the pre-trained model, which is a good starting point. If both A and B were zero, gradients through B·A would also be zero (dead initialization). Initializing A with random values gives B nonzero gradients from the first step."
+    },
+    {
+      "question": "You are fine-tuning BERT-Base (110M parameters) for a binary text classification task with only 800 labeled training examples. Which approach is most likely to prevent overfitting while still achieving good performance?",
+      "options": [
+        "Full fine-tuning with a high learning rate (1e-3) for 20 epochs to ensure convergence",
+        "Feature extraction: freeze BERT, train only a linear classification head on top",
+        "Train only the last 2 BERT layers while freezing the remaining 10 layers",
+        "Full fine-tuning with learning rate 2e-5 for 50 epochs with no regularization"
+      ],
+      "correct": 1,
+      "explanation": "With only 800 examples and 110M parameters, full fine-tuning almost certainly overfits. Feature extraction — freezing BERT and training only the linear head (~768×2 = 1,536 parameters) — severely limits model capacity and prevents overfitting. LoRA (not listed) would be another excellent option. High learning rates and many epochs with full fine-tuning would severely overfit to 800 examples."
+    },
+    {
+      "question": "What is catastrophic forgetting in the context of fine-tuning language models, and which approach most directly prevents it?",
+      "options": [
+        "The model forgets how to tokenize rare words after fine-tuning; prevented by retraining the tokenizer alongside the model",
+        "The model's performance on the original pre-training task drops after fine-tuning on a new task; most directly prevented by parameter-efficient methods (e.g., LoRA) that keep the base weights frozen",
+        "The model forgets the task-specific labels if fine-tuning is interrupted; prevented by saving checkpoints frequently",
+        "The learning rate decays to zero during fine-tuning; prevented by using a warmup schedule"
+      ],
+      "correct": 1,
+      "explanation": "Catastrophic forgetting: when updating all weights for a new task, the gradient updates overwrite representations useful for previously learned tasks or for general language understanding. LoRA directly prevents this because W₀ is never modified — only the small ΔW = BA matrices are updated. Other mitigations include small learning rates, L2 regularization toward pre-trained weights, and multi-task training."
+    },
+    {
+      "question": "For named entity recognition (NER) fine-tuning with BERT, a word 'Washington' is tokenized into two subword tokens ['Wash', '##ington']. How are labels assigned to these tokens during training?",
+      "options": [
+        "Both tokens receive the NER label 'B-LOC'; the model learns to merge adjacent same-label tokens",
+        "The label 'B-LOC' is assigned to the first token 'Wash', and -100 (ignore index) is assigned to '##ington' so it contributes no loss",
+        "The label is split: 'B-LOC' goes to 'Wash' and 'I-LOC' goes to '##ington' to maintain consistent BIO tagging",
+        "A special aggregate token is created from 'Wash' + '##ington' before labeling, losing subword information"
+      ],
+      "correct": 1,
+      "explanation": "The standard approach: only the first subword token of each word receives the real NER label; all subsequent subword tokens get label -100 (the PyTorch/HuggingFace ignore index), which is excluded from the loss computation. This is because the word's semantic identity is represented by its first subword, and duplicate labels for subword continuations would distort the loss."
+    }
+  ],
+  "exercises": [
+    {
+      "prompt": "Implement LoRA (Low-Rank Adaptation) forward pass. A LoRA-adapted linear layer computes:\n\n   output = x @ W0 + (x @ A) @ B * (alpha / rank)\n\nwhere W0 is frozen (not updated), and A, B are the trainable LoRA matrices.\n\nAlso implement count_lora_params(d_in, d_out, rank) that returns the number of trainable parameters in a LoRA layer vs the original.\n\nVerify: for d_in=768, d_out=768, rank=8, LoRA trains <2% of the original layer's parameters.",
+      "starter": "import numpy as np\n\ndef lora_forward(x, W0, A, B, alpha, rank):\n    \"\"\"\n    x: (batch, d_in)\n    W0: (d_in, d_out) — frozen pre-trained weight\n    A: (d_in, rank) — trainable\n    B: (rank, d_out) — trainable (initialized to zeros)\n    alpha: scaling hyperparameter\n    rank: rank r\n    Returns: (batch, d_out)\n    \"\"\"\n    # YOUR CODE HERE\n    pass\n\ndef count_lora_params(d_in, d_out, rank):\n    \"\"\"\n    Returns: (original_params, lora_params, ratio)\n    \"\"\"\n    # YOUR CODE HERE\n    pass\n\n# Test forward pass\nnp.random.seed(42)\nbatch, d_in, d_out, rank, alpha = 4, 768, 768, 8, 16\nW0 = np.random.randn(d_in, d_out) / np.sqrt(d_in)\nA  = np.random.randn(d_in, rank) * 0.01\nB  = np.zeros((rank, d_out))  # initialized to zero!\nx  = np.random.randn(batch, d_in)\n\nout = lora_forward(x, W0, A, B, alpha, rank)\nprint('Output shape:', out.shape)  # (4, 768)\n\n# Verify B=0 gives same as W0 only\nbase = x @ W0\nprint('LoRA output == W0 output when B=0:', np.allclose(out, base))\n\n# Parameter count\norig, lora, ratio = count_lora_params(768, 768, 8)\nprint(f'Original params: {orig:,}')\nprint(f'LoRA params:     {lora:,}')\nprint(f'Ratio: {ratio:.2%}')",
+      "solution": "import numpy as np\n\ndef lora_forward(x, W0, A, B, alpha, rank):\n    base = x @ W0\n    lora_delta = (x @ A) @ B * (alpha / rank)\n    return base + lora_delta\n\ndef count_lora_params(d_in, d_out, rank):\n    original = d_in * d_out\n    lora = d_in * rank + rank * d_out\n    ratio = lora / original\n    return original, lora, ratio\n\nnp.random.seed(42)\nbatch, d_in, d_out, rank, alpha = 4, 768, 768, 8, 16\nW0 = np.random.randn(d_in, d_out) / np.sqrt(d_in)\nA  = np.random.randn(d_in, rank) * 0.01\nB  = np.zeros((rank, d_out))\nx  = np.random.randn(batch, d_in)\n\nout = lora_forward(x, W0, A, B, alpha, rank)\nprint('Output shape:', out.shape)\n\nbase = x @ W0\nprint('LoRA output == W0 output when B=0:', np.allclose(out, base))\n\norig, lora, ratio = count_lora_params(768, 768, 8)\nprint(f'Original params: {orig:,}')\nprint(f'LoRA params:     {lora:,}')\nprint(f'Ratio: {ratio:.2%}')",
+      "hints": [
+        "Base output: x @ W0 (the frozen pre-trained path)",
+        "LoRA delta: (x @ A) @ B * (alpha / rank) — first project x down to rank dimensions with A, then up to d_out with B",
+        "For count_lora_params: original = d_in * d_out, lora = d_in * rank + rank * d_out (A has d_in*rank params, B has rank*d_out params)"
+      ],
+      "tests": [
+        "W0=np.eye(4); A=np.ones((4,2)); B=np.zeros((2,4)); x=np.ones((3,4)); out=lora_forward(x,W0,A,B,8,2); assert np.allclose(out, x), 'When B=0, output should equal x @ W0'",
+        "orig, lora, ratio = count_lora_params(768, 768, 8); assert orig == 768*768",
+        "orig, lora, ratio = count_lora_params(768, 768, 8); assert lora == 768*8 + 8*768",
+        "orig, lora, ratio = count_lora_params(768, 768, 8); assert ratio < 0.02, 'LoRA should be less than 2% of original parameters'"
+      ]
+    },
+    {
+      "prompt": "Implement a learning rate schedule with linear warmup followed by linear decay. This is the standard schedule used for fine-tuning BERT-style models.\n\nGiven:\n- current_step: the current training step\n- total_steps: total number of training steps  \n- max_lr: the peak learning rate\n- warmup_fraction: fraction of steps used for warmup (e.g., 0.06 = 6%)\n\nReturn the learning rate at current_step:\n- During warmup: linearly increase from 0 to max_lr\n- After warmup: linearly decrease from max_lr to 0\n\nThen compute and print the LR at steps 0, 60, 100, 500, 999 for total_steps=1000, max_lr=2e-5, warmup_fraction=0.1",
+      "starter": "import numpy as np\n\ndef get_lr(current_step, total_steps, max_lr=2e-5, warmup_fraction=0.06):\n    \"\"\"\n    Linear warmup + linear decay schedule.\n    Returns: learning rate (float) at current_step\n    \"\"\"\n    # YOUR CODE HERE\n    pass\n\n# Test\ntotal = 1000\nmax_lr = 2e-5\nwf = 0.1  # 10% warmup\n\nprint(f'Warmup steps: {int(total * wf)}')\nfor step in [0, 60, 100, 500, 999]:\n    lr = get_lr(step, total, max_lr, wf)\n    print(f'Step {step:4d}: LR = {lr:.2e}')",
+      "solution": "import numpy as np\n\ndef get_lr(current_step, total_steps, max_lr=2e-5, warmup_fraction=0.06):\n    warmup_steps = int(total_steps * warmup_fraction)\n    if current_step < warmup_steps:\n        # Linear warmup from 0 to max_lr\n        return max_lr * current_step / max(1, warmup_steps)\n    else:\n        # Linear decay from max_lr to 0\n        remaining = total_steps - warmup_steps\n        decay_steps = current_step - warmup_steps\n        progress = decay_steps / max(1, remaining)\n        return max_lr * (1.0 - progress)\n\ntotal = 1000\nmax_lr = 2e-5\nwf = 0.1\n\nprint(f'Warmup steps: {int(total * wf)}')\nfor step in [0, 60, 100, 500, 999]:\n    lr = get_lr(step, total, max_lr, wf)\n    print(f'Step {step:4d}: LR = {lr:.2e}')",
+      "hints": [
+        "Compute warmup_steps = int(total_steps * warmup_fraction)",
+        "During warmup (current_step < warmup_steps): lr = max_lr * current_step / warmup_steps",
+        "After warmup: compute how far along the decay phase you are — progress = (current_step - warmup_steps) / (total_steps - warmup_steps), then lr = max_lr * (1.0 - progress)"
+      ],
+      "tests": [
+        "assert get_lr(0, 1000, 2e-5, 0.1) == 0.0, 'LR at step 0 should be 0'",
+        "assert abs(get_lr(100, 1000, 2e-5, 0.1) - 2e-5) < 1e-10, 'LR at end of warmup should be max_lr'",
+        "lr_mid = get_lr(550, 1000, 2e-5, 0.1); assert 0 < lr_mid < 2e-5, 'LR during decay should be between 0 and max_lr'",
+        "assert get_lr(999, 1000, 2e-5, 0.1) >= 0, 'LR should never be negative'"
+      ]
+    },
+    {
+      "prompt": "Implement a simple cross-entropy classification fine-tuning step with L2 regularization toward initial weights (to mitigate catastrophic forgetting).\n\nGiven features X (N, d), labels y (N,), initial weights W0 (d, C), compute:\n1. Current logits: logits = X @ W + b  \n2. Softmax probabilities\n3. Cross-entropy loss\n4. L2 regularization term: lambda_reg * ||W - W0||_F^2 / 2\n5. Total loss = cross_entropy + regularization\n6. Gradients of total loss w.r.t. W and b\n7. One gradient descent update step\n\nReturn the updated W, b, and the total loss.",
+      "starter": "import numpy as np\nfrom scipy.special import softmax\n\ndef finetune_step(X, y, W, b, W0, lr=1e-3, lambda_reg=0.01):\n    \"\"\"\n    X: (N, d) features\n    y: (N,) integer class labels  \n    W: (d, C) current weight matrix\n    b: (C,) current bias\n    W0: (d, C) initial (frozen) pre-trained weights\n    Returns: updated W, updated b, total loss\n    \"\"\"\n    # YOUR CODE HERE\n    pass\n\n# Test\nnp.random.seed(42)\nN, d, C = 32, 16, 3\nX = np.random.randn(N, d)\ny = np.random.randint(0, C, N)\nW0 = np.random.randn(d, C) * 0.1\nW = W0.copy()  # start from pre-trained weights\nb = np.zeros(C)\n\nlosses = []\nfor step in range(10):\n    W, b, loss = finetune_step(X, y, W, b, W0, lr=0.05, lambda_reg=0.1)\n    losses.append(loss)\n\nprint('Initial loss:', losses[0])\nprint('Final loss:', losses[-1])\nprint('Loss decreased:', losses[-1] < losses[0])",
+      "solution": "import numpy as np\nfrom scipy.special import softmax\n\ndef finetune_step(X, y, W, b, W0, lr=1e-3, lambda_reg=0.01):\n    N = X.shape[0]\n    C = W.shape[1]\n\n    # Forward pass\n    logits = X @ W + b  # (N, C)\n    probs = softmax(logits, axis=-1)  # (N, C)\n\n    # Cross-entropy loss\n    ce_loss = -np.mean(np.log(probs[np.arange(N), y] + 1e-10))\n\n    # L2 regularization toward W0\n    reg_loss = lambda_reg * 0.5 * np.sum((W - W0) ** 2)\n\n    total_loss = ce_loss + reg_loss\n\n    # Gradients of cross-entropy w.r.t. logits\n    dlogits = probs.copy()\n    dlogits[np.arange(N), y] -= 1\n    dlogits /= N  # (N, C)\n\n    # Gradients w.r.t. W and b\n    dW = X.T @ dlogits  # (d, C)\n    db = dlogits.sum(axis=0)  # (C,)\n\n    # Gradient of regularization w.r.t. W\n    dW += lambda_reg * (W - W0)\n\n    # Update\n    W = W - lr * dW\n    b = b - lr * db\n\n    return W, b, total_loss\n\nnp.random.seed(42)\nN, d, C = 32, 16, 3\nX = np.random.randn(N, d)\ny = np.random.randint(0, C, N)\nW0 = np.random.randn(d, C) * 0.1\nW = W0.copy()\nb = np.zeros(C)\n\nlosses = []\nfor step in range(10):\n    W, b, loss = finetune_step(X, y, W, b, W0, lr=0.05, lambda_reg=0.1)\n    losses.append(loss)\n\nprint('Initial loss:', losses[0])\nprint('Final loss:', losses[-1])\nprint('Loss decreased:', losses[-1] < losses[0])",
+      "hints": [
+        "Cross-entropy gradient w.r.t. logits: dlogits = probs; then dlogits[arange(N), y] -= 1; then dlogits /= N",
+        "dW from cross-entropy: X.T @ dlogits; add L2 gradient: lambda_reg * (W - W0)",
+        "db from cross-entropy: dlogits.sum(axis=0); total loss = ce_loss + lambda_reg * 0.5 * ||W - W0||^2"
+      ],
+      "tests": [
+        "np.random.seed(0); X=np.random.randn(10,4); y=np.random.randint(0,2,10); W0=np.zeros((4,2)); W=W0.copy(); b=np.zeros(2); W2,b2,loss=finetune_step(X,y,W,b,W0,lr=0.1,lambda_reg=0.0); assert isinstance(loss, float), 'Loss should be a scalar'",
+        "np.random.seed(0); X=np.random.randn(10,4); y=np.random.randint(0,2,10); W0=np.zeros((4,2)); W=W0.copy(); b=np.zeros(2); losses=[finetune_step(X,y,W,b,W0,lr=0.1)[2] for _ in range(5)]; assert losses[-1] < losses[0], 'Loss should decrease over training steps'",
+        "np.random.seed(0); X=np.random.randn(10,4); y=np.random.randint(0,2,10); W_init=np.ones((4,2)); W0=np.zeros((4,2)); b=np.zeros(2); _,_,loss_reg=finetune_step(X,y,W_init,b,W0,lr=0,lambda_reg=1.0); _,_,loss_noreg=finetune_step(X,y,W_init,b,W0,lr=0,lambda_reg=0.0); assert loss_reg > loss_noreg, 'L2 regularization should increase total loss when W != W0'"
+      ]
+    }
+  ]
+}

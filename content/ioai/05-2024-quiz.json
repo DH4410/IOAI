@@ -1,0 +1,100 @@
+{
+  "questions": [
+    {
+      "question": "IOAI 2024 was held in which city, and what made it historically significant?",
+      "options": [
+        "Paris, France — it was the first AI olympiad to be affiliated with UNESCO",
+        "Budapest, Hungary — it was the first ever International Olympiad in Artificial Intelligence",
+        "Zurich, Switzerland — it was the first AI competition open to high school students",
+        "Singapore — it combined AI and programming tasks for the first time"
+      ],
+      "correct": 1,
+      "explanation": "IOAI 2024 was held in Budapest, Hungary in August 2024. It was the first edition of the International Olympiad in Artificial Intelligence, making it historically significant as the inaugural competition in this series."
+    },
+    {
+      "question": "In a tabular classification pipeline, why should preprocessing (scaling, imputation) be done INSIDE a sklearn Pipeline rather than applied to the full dataset before cross-validation?",
+      "options": [
+        "Pipelines run faster because they use vectorized operations",
+        "Cross-validation inside a Pipeline automatically tunes hyperparameters",
+        "Preprocessing outside the pipeline causes data leakage: validation fold statistics contaminate training fold fits",
+        "sklearn's cross_val_score does not accept raw numpy arrays, only Pipeline objects"
+      ],
+      "correct": 2,
+      "explanation": "When you preprocess the entire dataset before cross-validation, the scaler or imputer sees the validation fold data during fitting, causing data leakage. This makes CV scores optimistically biased. Using a Pipeline ensures the preprocessor fits only on the training fold within each CV split."
+    },
+    {
+      "question": "You are solving an IOAI-style tabular classification problem with 5 classes and significant class imbalance (one class has 80% of samples). Which evaluation metric is most appropriate and why?",
+      "options": [
+        "Accuracy, because it directly measures correct predictions",
+        "F1-macro, because it treats all classes equally regardless of their frequency",
+        "F1-weighted, because it accounts for how common each class is",
+        "ROC-AUC, because it is threshold-independent"
+      ],
+      "correct": 1,
+      "explanation": "F1-macro averages the per-class F1 scores without weighting by class frequency. On an imbalanced dataset, this rewards correctly identifying the rare classes equally with the common class. Accuracy would be misleading (a model predicting all majority class scores 80%). F1-weighted would still favor the dominant class."
+    },
+    {
+      "question": "What is the recommended order of steps in the first hour of an IOAI practical exam?",
+      "options": [
+        "Ensemble multiple models → evaluate with CV → submit best model → read problem statement",
+        "Load data → run extensive hyperparameter search → submit best model",
+        "Read problem statement → EDA (shape, dtypes, missing values, target distribution) → baseline pipeline → submit baseline",
+        "Download additional training data from the internet → preprocess → train deep learning model"
+      ],
+      "correct": 2,
+      "explanation": "The correct order is: read the problem statement (understand the metric and task), perform EDA to understand the data, build a simple baseline pipeline, and submit it. Submitting the baseline early guarantees a non-zero score. Optimization comes after. Deep learning downloads and hyperparameter searches before a baseline is a common mistake."
+    },
+    {
+      "question": "Which of the following describes the key advantage of using StratifiedKFold over regular KFold for cross-validation in classification tasks?",
+      "options": [
+        "StratifiedKFold is faster because it uses fewer computation steps",
+        "StratifiedKFold preserves the class distribution in each fold, preventing degenerate evaluations on rare classes",
+        "StratifiedKFold prevents overfitting by adding L2 regularization to each fold",
+        "StratifiedKFold automatically selects the optimal number of folds based on dataset size"
+      ],
+      "correct": 1,
+      "explanation": "StratifiedKFold ensures each fold has approximately the same proportion of each class as the full dataset. Without this, rare classes might end up entirely in one fold, making that fold's evaluation useless (no training examples for that class) and causing misleading CV scores."
+    }
+  ],
+  "exercises": [
+    {
+      "prompt": "Build a complete tabular classification pipeline. Given X_train, y_train, X_test (numpy arrays, all numerical, no missing values), train a LogisticRegression model and return cross-validated F1-macro score and test predictions.\n\nThe function signature is:\n  def solve(X_train, y_train, X_test):\n      # return (cv_f1_score, test_predictions)\n\nUse 5-fold StratifiedKFold and StandardScaler inside the pipeline.",
+      "starter": "import numpy as np\nfrom sklearn.pipeline import Pipeline\nfrom sklearn.preprocessing import StandardScaler\nfrom sklearn.linear_model import LogisticRegression\nfrom sklearn.model_selection import StratifiedKFold, cross_val_score\n\ndef solve(X_train, y_train, X_test):\n    # TODO: build pipeline with StandardScaler + LogisticRegression\n    # TODO: 5-fold stratified CV to get f1_macro score\n    # TODO: fit on full train, predict X_test\n    # Return (cv_f1_score, test_predictions)\n    pass\n",
+      "solution": "import numpy as np\nfrom sklearn.pipeline import Pipeline\nfrom sklearn.preprocessing import StandardScaler\nfrom sklearn.linear_model import LogisticRegression\nfrom sklearn.model_selection import StratifiedKFold, cross_val_score\n\ndef solve(X_train, y_train, X_test):\n    pipeline = Pipeline([\n        ('scaler', StandardScaler()),\n        ('model', LogisticRegression(max_iter=1000, C=1.0)),\n    ])\n    cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)\n    scores = cross_val_score(pipeline, X_train, y_train, cv=cv, scoring='f1_macro')\n    cv_f1 = scores.mean()\n    pipeline.fit(X_train, y_train)\n    test_preds = pipeline.predict(X_test)\n    return (cv_f1, test_preds)\n",
+      "hints": [
+        "Create a Pipeline with two steps: ('scaler', StandardScaler()) and ('model', LogisticRegression(max_iter=1000))",
+        "Use cross_val_score with scoring='f1_macro' and your StratifiedKFold cv object to get scores, then take .mean()",
+        "After CV evaluation, call pipeline.fit(X_train, y_train) and pipeline.predict(X_test) for the final predictions"
+      ],
+      "tests": [
+        "from sklearn.datasets import make_classification; import numpy as np; X, y = make_classification(n_samples=200, n_features=10, n_classes=3, n_informative=5, random_state=42); X_tr, y_tr, X_te = X[:150], y[:150], X[150:]; result = solve(X_tr, y_tr, X_te); assert isinstance(result, tuple) and len(result) == 2, 'Should return a tuple of (float, array)'; assert 0.0 <= result[0] <= 1.0, 'CV F1 should be between 0 and 1'; assert len(result[1]) == 50, 'Should predict 50 test samples'"
+      ]
+    },
+    {
+      "prompt": "Implement a function that detects and reports data quality issues in a pandas DataFrame:\n  - Count missing values per column\n  - Identify columns where more than 30% of values are missing\n  - Return a dict with keys 'missing_counts' (Series) and 'high_missing_cols' (list of column names)\n\nFunction signature:\n  def audit_data(df):\n      # return {'missing_counts': ..., 'high_missing_cols': [...]}",
+      "starter": "import pandas as pd\nimport numpy as np\n\ndef audit_data(df):\n    # TODO: compute missing counts per column\n    # TODO: find columns where missing fraction > 0.30\n    # Return dict with 'missing_counts' and 'high_missing_cols'\n    pass\n",
+      "solution": "import pandas as pd\nimport numpy as np\n\ndef audit_data(df):\n    missing_counts = df.isnull().sum()\n    missing_fraction = missing_counts / len(df)\n    high_missing_cols = missing_fraction[missing_fraction > 0.30].index.tolist()\n    return {\n        'missing_counts': missing_counts,\n        'high_missing_cols': high_missing_cols,\n    }\n",
+      "hints": [
+        "Use df.isnull().sum() to get the count of missing values per column",
+        "Divide missing counts by len(df) to get the fraction, then filter where fraction > 0.30",
+        "Use .index.tolist() on the filtered Series to get column names as a list"
+      ],
+      "tests": [
+        "import pandas as pd; import numpy as np; df = pd.DataFrame({'a': [1, 2, None, None, None], 'b': [1, 2, 3, 4, 5], 'c': [None, 2, 3, None, None]}); result = audit_data(df); assert 'missing_counts' in result and 'high_missing_cols' in result; assert result['missing_counts']['a'] == 3; assert result['missing_counts']['b'] == 0; assert 'a' in result['high_missing_cols']; assert 'c' in result['high_missing_cols']; assert 'b' not in result['high_missing_cols']"
+      ]
+    },
+    {
+      "prompt": "Implement a simple ensemble that averages predicted probabilities from multiple classifiers.\n\nGiven:\n  - X_train, y_train, X_test (numpy arrays)\n  - A list of sklearn-compatible classifiers\n\nFor each classifier:\n  1. Fit it on X_train, y_train\n  2. Get predict_proba on X_test\n\nReturn the averaged probability array and the final class predictions (argmax).\n\nFunction signature:\n  def ensemble_models(classifiers, X_train, y_train, X_test):\n      # return (avg_proba, predictions)",
+      "starter": "import numpy as np\n\ndef ensemble_models(classifiers, X_train, y_train, X_test):\n    # TODO: fit each classifier, get predict_proba, average\n    # Return (avg_proba array of shape (n_test, n_classes), predictions array)\n    pass\n",
+      "solution": "import numpy as np\n\ndef ensemble_models(classifiers, X_train, y_train, X_test):\n    all_probas = []\n    for clf in classifiers:\n        clf.fit(X_train, y_train)\n        proba = clf.predict_proba(X_test)\n        all_probas.append(proba)\n    avg_proba = np.mean(all_probas, axis=0)\n    predictions = np.argmax(avg_proba, axis=1)\n    return (avg_proba, predictions)\n",
+      "hints": [
+        "Loop through classifiers, call clf.fit(X_train, y_train) then clf.predict_proba(X_test), collect probas in a list",
+        "Use np.mean(all_probas, axis=0) to average along the list dimension (axis=0 averages across classifiers)",
+        "Use np.argmax(avg_proba, axis=1) to convert averaged probabilities to class predictions"
+      ],
+      "tests": [
+        "import numpy as np; from sklearn.linear_model import LogisticRegression; from sklearn.ensemble import RandomForestClassifier; from sklearn.datasets import make_classification; X, y = make_classification(n_samples=200, n_features=8, n_classes=3, n_informative=4, random_state=0); clfs = [LogisticRegression(max_iter=500), RandomForestClassifier(n_estimators=20, random_state=0)]; avg_p, preds = ensemble_models(clfs, X[:150], y[:150], X[150:]); assert avg_p.shape == (50, 3), f'Expected (50, 3), got {avg_p.shape}'; assert preds.shape == (50,); assert np.allclose(avg_p.sum(axis=1), 1.0, atol=1e-6), 'Probabilities should sum to 1'"
+      ]
+    }
+  ]
+}

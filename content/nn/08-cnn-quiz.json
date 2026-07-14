@@ -1,0 +1,115 @@
+{
+  "questions": [
+    {
+      "question": "A convolutional layer has input of size 28×28, kernel size 5×5, stride 1, and padding 0. What is the output size?",
+      "options": [
+        "28×28 — padding preserves the size",
+        "24×24 — the formula gives (28-5)/1 + 1 = 24",
+        "26×26 — the formula gives (28-5+1)/1 = 24... wait, 28-5+1=24, not 26",
+        "14×14 — the kernel halves the spatial dimensions"
+      ],
+      "correct": 1,
+      "explanation": "The output size formula is: (input - kernel + 2*padding) / stride + 1. Here: (28 - 5 + 2*0) / 1 + 1 = 23/1 + 1 = 24. So the output is 24×24. No padding means the filter cannot be centred on border pixels, reducing the output size by (kernel_size - 1) = 4 in each dimension."
+    },
+    {
+      "question": "What is the main advantage of using two stacked 3×3 conv layers instead of one 5×5 conv layer?",
+      "options": [
+        "Two 3×3 layers produce a larger output size than one 5×5 layer",
+        "Two 3×3 layers have the same receptive field as one 5×5 but fewer parameters and an extra nonlinearity",
+        "A single 5×5 kernel cannot detect edges, while 3×3 kernels can",
+        "Two 3×3 layers always achieve better accuracy because more layers is always better"
+      ],
+      "correct": 1,
+      "explanation": "Two stacked 3×3 conv layers cover a 5×5 receptive field in the input (the first layer sees 3×3, the second layer's 3×3 window covers 5×5 of the original input). Parameter count comparison for C channels: two 3×3 = 2×3×3×C×C = 18C², one 5×5 = 5×5×C×C = 25C². So two 3×3 layers use 28% fewer parameters AND have an extra ReLU nonlinearity, increasing model expressiveness. This is the VGG insight."
+    },
+    {
+      "question": "In PyTorch, a Conv2d layer is defined as nn.Conv2d(in_channels=3, out_channels=16, kernel_size=3, padding=1). How many trainable parameters does this layer have (including biases)?",
+      "options": [
+        "144 — just the kernel weights (3×3×3×16 = 432 is too many)",
+        "448 — weights: 16×3×3×3 = 432, biases: 16, total = 448",
+        "288 — weights only, 3×16×3×3 with no biases",
+        "3×16 = 48 — one weight per input-output channel pair"
+      ],
+      "correct": 1,
+      "explanation": "Each of the 16 output filters has shape (in_channels × kH × kW) = (3 × 3 × 3) = 27 weights. Total weight parameters: 16 × 27 = 432. Plus one bias per output channel: 16 biases. Total: 432 + 16 = 448 parameters. This is dramatically fewer than a fully-connected layer connecting the same input pixels to the same number of outputs."
+    },
+    {
+      "question": "You have a feature map of shape (batch=8, channels=64, H=14, W=14). You apply MaxPool2d(kernel_size=2, stride=2). What is the output shape?",
+      "options": [
+        "(8, 64, 12, 12) — max pool reduces by kernel_size - 1 in each dimension",
+        "(8, 32, 14, 14) — max pool reduces the channels by half",
+        "(8, 64, 7, 7) — max pool with stride 2 halves H and W",
+        "(8, 64, 28, 28) — max pool increases resolution by upsampling"
+      ],
+      "correct": 2,
+      "explanation": "MaxPool2d(kernel_size=2, stride=2) applies a 2×2 pooling window with step 2 in both spatial dimensions. The output size formula: (14 - 2) / 2 + 1 = 7. Pooling does NOT change the number of channels — it only reduces spatial dimensions. The batch size also stays the same. Output: (8, 64, 7, 7)."
+    },
+    {
+      "question": "What is the purpose of skip connections in ResNet?",
+      "options": [
+        "They skip some convolutional layers entirely to make the network shallower",
+        "They allow the gradient to flow directly through the network, making very deep networks trainable by addressing the vanishing gradient problem",
+        "They connect multiple images in the batch together to share information",
+        "They reduce the number of parameters by reusing weights from earlier layers"
+      ],
+      "correct": 1,
+      "explanation": "A ResNet skip connection adds the input x directly to the output F(x) of a block: output = F(x) + x. During backpropagation, the gradient flows both through F(x) (via the chain rule) AND directly through the + x path (gradient = 1, no multiplication). This direct path prevents gradients from vanishing as they travel backwards through many layers. Also, if F(x) is hard to learn, the network can set F(x)≈0 and pass x through unchanged — learning residuals is easier than learning from scratch."
+    }
+  ],
+  "exercises": [
+    {
+      "prompt": "Compute the output size of a convolutional layer for several configurations.\n\nFor each case, apply the formula:\n  output = floor((input_size - kernel_size + 2 * padding) / stride) + 1\n\nCompute the OUTPUT SIZE (as a single integer for the spatial dimension) for:\n- case1: input=28, kernel=3, stride=1, padding=0\n- case2: input=28, kernel=3, stride=1, padding=1\n- case3: input=32, kernel=5, stride=2, padding=2\n- case4: input=64, kernel=3, stride=2, padding=1\n- case5: input=224, kernel=11, stride=4, padding=2\n\nStore results in variables case1, case2, case3, case4, case5 (integers).",
+      "starter": "import numpy as np\n\ndef conv_output_size(input_size, kernel_size, stride, padding):\n    # YOUR CODE: implement the formula and return as int\n    pass\n\ncase1 = conv_output_size(28,  3, 1, 0)   # expect 26\ncase2 = conv_output_size(28,  3, 1, 1)   # expect 28\ncase3 = conv_output_size(32,  5, 2, 2)   # expect 16\ncase4 = conv_output_size(64,  3, 2, 1)   # expect 32\ncase5 = conv_output_size(224, 11, 4, 2)  # expect 55 (AlexNet first layer)\n\nprint(f'case1={case1}, case2={case2}, case3={case3}, case4={case4}, case5={case5}')",
+      "solution": "import numpy as np\n\ndef conv_output_size(input_size, kernel_size, stride, padding):\n    return int((input_size - kernel_size + 2 * padding) / stride) + 1\n\ncase1 = conv_output_size(28,  3, 1, 0)   # (28-3+0)/1+1 = 26\ncase2 = conv_output_size(28,  3, 1, 1)   # (28-3+2)/1+1 = 28\ncase3 = conv_output_size(32,  5, 2, 2)   # (32-5+4)/2+1 = 16\ncase4 = conv_output_size(64,  3, 2, 1)   # (64-3+2)/2+1 = 32\ncase5 = conv_output_size(224, 11, 4, 2)  # (224-11+4)/4+1 = 55\n\nprint(f'case1={case1}, case2={case2}, case3={case3}, case4={case4}, case5={case5}')",
+      "hints": [
+        "The formula is: floor((input - kernel + 2*padding) / stride) + 1",
+        "Use Python's int() to truncate (same as floor for positive values)",
+        "For case2: padding=1 with kernel=3 should give the same output size as input — verify this!",
+        "For case3: (32 - 5 + 2*2) / 2 + 1 = (32 - 5 + 4) / 2 + 1 = 31/2 + 1 = 15.5 → floor = 15 + 1 = 16"
+      ],
+      "tests": [
+        "assert case1 == 26, f'case1 should be 26, got {case1}'",
+        "assert case2 == 28, f'case2 should be 28 (same padding), got {case2}'",
+        "assert case3 == 16, f'case3 should be 16, got {case3}'",
+        "assert case4 == 32, f'case4 should be 32, got {case4}'",
+        "assert case5 == 55, f'case5 should be 55 (AlexNet), got {case5}'"
+      ]
+    },
+    {
+      "prompt": "Implement a manual 2D convolution (no PyTorch) on a small matrix.\n\nGiven:\n- input: 5x5 matrix\n- kernel: 3x3 matrix\n- stride=1, padding=0\n\nSlide the kernel over the input, compute the dot product at each valid position, and store the result in a 3x3 output matrix.\n\nThe output at position (i, j) = sum of element-wise product of kernel and input[i:i+3, j:j+3]\n\nStore your result in variable 'output' (numpy array, shape (3,3)).",
+      "starter": "import numpy as np\n\n# 5x5 input\ninput_map = np.array([\n    [1, 2, 3, 4, 5],\n    [6, 7, 8, 9, 10],\n    [11, 12, 13, 14, 15],\n    [16, 17, 18, 19, 20],\n    [21, 22, 23, 24, 25]\n], dtype=float)\n\n# 3x3 kernel (vertical edge detector)\nkernel = np.array([\n    [ 1,  0, -1],\n    [ 2,  0, -2],\n    [ 1,  0, -1]\n], dtype=float)\n\n# Compute 2D convolution (correlation) manually\n# Output should be shape (3, 3)\noutput = np.zeros((3, 3))\n\nfor i in range(3):\n    for j in range(3):\n        # YOUR CODE: extract the patch and compute dot product with kernel\n        pass\n\nprint('Output:')\nprint(output)",
+      "solution": "import numpy as np\n\ninput_map = np.array([\n    [1, 2, 3, 4, 5],\n    [6, 7, 8, 9, 10],\n    [11, 12, 13, 14, 15],\n    [16, 17, 18, 19, 20],\n    [21, 22, 23, 24, 25]\n], dtype=float)\n\nkernel = np.array([\n    [ 1,  0, -1],\n    [ 2,  0, -2],\n    [ 1,  0, -1]\n], dtype=float)\n\noutput = np.zeros((3, 3))\n\nfor i in range(3):\n    for j in range(3):\n        patch = input_map[i:i+3, j:j+3]       # extract 3x3 patch\n        output[i, j] = np.sum(patch * kernel)  # element-wise multiply and sum\n\nprint('Output:')\nprint(output)",
+      "hints": [
+        "For each position (i,j) in the output, extract the patch: input_map[i:i+3, j:j+3]",
+        "Compute the dot product: np.sum(patch * kernel) — element-wise multiply, then sum all values",
+        "The output loop runs over i in range(3) and j in range(3) because output is 3x3",
+        "This is technically cross-correlation (not convolution), which is what CNNs actually use"
+      ],
+      "tests": [
+        "import numpy as np; assert output.shape == (3, 3), f'Output shape should be (3,3), got {output.shape}'",
+        "import numpy as np; expected_00 = 1*1+2*0+3*(-1)+6*2+7*0+8*(-2)+11*1+12*0+13*(-1); assert abs(output[0,0] - expected_00) < 1e-6, f'output[0,0] wrong: expected {expected_00}, got {output[0,0]}'",
+        "import numpy as np; assert np.all(output < 0), f'For this kernel (left-right edge detector), all outputs should be negative for this increasing input'",
+        "import numpy as np; assert output.dtype == float, 'Output should be float'"
+      ]
+    },
+    {
+      "prompt": "Compute the number of trainable parameters in a CNN architecture.\n\nGiven these layers in sequence:\n1. Conv2d(in=1, out=8, kernel=3, padding=1) + bias\n2. Conv2d(in=8, out=16, kernel=3, padding=1) + bias\n3. After two MaxPool2d(2,2), spatial dims go from 28x28 to 7x7\n4. Linear(in=16*7*7, out=128) + bias\n5. Linear(in=128, out=10) + bias\n\nFor Conv2d: params = out_channels * in_channels * kH * kW + out_channels (bias)\nFor Linear: params = out_features * in_features + out_features (bias)\n\nCompute each layer's params and the total. Store in:\nparams_conv1, params_conv2, params_fc1, params_fc2, total_params (all integers)",
+      "starter": "import numpy as np\n\n# Layer 1: Conv2d(in_channels=1, out_channels=8, kernel_size=3)\n# params = out * in * kH * kW + out (bias)\nparams_conv1 = None  # YOUR CODE\n\n# Layer 2: Conv2d(in_channels=8, out_channels=16, kernel_size=3)\nparams_conv2 = None  # YOUR CODE\n\n# After 2x MaxPool2d(2,2): 28x28 -> 14x14 -> 7x7\n# Layer 3 (fc1): Linear(16*7*7, 128)\nparams_fc1 = None  # YOUR CODE\n\n# Layer 4 (fc2): Linear(128, 10)\nparams_fc2 = None  # YOUR CODE\n\ntotal_params = None  # YOUR CODE: sum of all above\n\nprint(f'Conv1:  {params_conv1:,}')\nprint(f'Conv2:  {params_conv2:,}')\nprint(f'FC1:    {params_fc1:,}')\nprint(f'FC2:    {params_fc2:,}')\nprint(f'Total:  {total_params:,}')",
+      "solution": "import numpy as np\n\n# Conv2d formula: out_channels * in_channels * kH * kW + out_channels\nparams_conv1 = 8 * 1 * 3 * 3 + 8      # 72 + 8 = 80\nparams_conv2 = 16 * 8 * 3 * 3 + 16    # 1152 + 16 = 1168\n\n# Linear formula: out * in + out\nflattened = 16 * 7 * 7                 # = 784\nparams_fc1 = 128 * flattened + 128     # 100352 + 128 = 100480\nparams_fc2 = 10 * 128 + 10            # 1280 + 10 = 1290\n\ntotal_params = params_conv1 + params_conv2 + params_fc1 + params_fc2\n\nprint(f'Conv1:  {params_conv1:,}')\nprint(f'Conv2:  {params_conv2:,}')\nprint(f'FC1:    {params_fc1:,}')\nprint(f'FC2:    {params_fc2:,}')\nprint(f'Total:  {total_params:,}')",
+      "hints": [
+        "Conv2d params = out_channels * in_channels * kernel_h * kernel_w + out_channels",
+        "For Conv1: 8 output channels, 1 input channel, 3x3 kernel → 8*1*3*3 + 8",
+        "For Conv2: 16 output channels, 8 input channels, 3x3 kernel → 16*8*3*3 + 16",
+        "After two 2x2 MaxPool on 28x28: 28→14→7, so flattened size = 16*7*7 = 784",
+        "Linear params = out_features * in_features + out_features (bias)"
+      ],
+      "tests": [
+        "assert params_conv1 == 80, f'params_conv1 should be 80 (8*1*3*3+8), got {params_conv1}'",
+        "assert params_conv2 == 1168, f'params_conv2 should be 1168 (16*8*3*3+16), got {params_conv2}'",
+        "assert params_fc1 == 100480, f'params_fc1 should be 100480 (128*784+128), got {params_fc1}'",
+        "assert params_fc2 == 1290, f'params_fc2 should be 1290 (10*128+10), got {params_fc2}'",
+        "assert total_params == params_conv1 + params_conv2 + params_fc1 + params_fc2, 'total_params should be the sum'"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,109 @@
+{
+  "questions": [
+    {
+      "question": "In a sequence-to-sequence RNN without attention, what is the 'bottleneck' problem?",
+      "options": [
+        "The encoder processes tokens too slowly because of sequential computation",
+        "All source sequence information must be compressed into a single fixed-size context vector",
+        "The decoder cannot attend to the correct encoder hidden state at each step",
+        "The softmax operation becomes numerically unstable for long sequences"
+      ],
+      "correct": 1,
+      "explanation": "Without attention, the encoder compresses the entire source sequence into a single final hidden state (the context vector), which is passed to the decoder. This fixed-size vector cannot adequately represent long sequences — important early information is diluted or lost by the time all tokens are processed."
+    },
+    {
+      "question": "In scaled dot-product attention, why do we divide the dot products by √d_k before applying softmax?",
+      "options": [
+        "To ensure the output has unit variance, matching the scale of the input embeddings",
+        "To prevent extremely large dot products from pushing the softmax into its saturation region, causing near-zero gradients",
+        "To normalize the attention weights so they sum to exactly 1",
+        "To reduce the computational cost of the matrix multiplication from O(n²) to O(n log n)"
+      ],
+      "correct": 1,
+      "explanation": "When d_k is large, the dot products Q·K^T have large variance (approximately d_k). Large logits push the softmax into saturation — one entry gets weight ~1 and all others ~0. Gradients in this region are nearly zero, stalling training. Dividing by √d_k brings the variance back to ~1, keeping softmax in a healthy gradient regime."
+    },
+    {
+      "question": "What is the key difference between self-attention and encoder-decoder (cross) attention?",
+      "options": [
+        "Self-attention uses dot products while cross-attention uses an additive scoring function",
+        "Self-attention uses a causal mask while cross-attention does not",
+        "In self-attention, queries, keys, and values come from the same sequence; in cross-attention, queries come from one sequence while keys and values come from another",
+        "Self-attention applies softmax over keys while cross-attention applies softmax over values"
+      ],
+      "correct": 2,
+      "explanation": "Self-attention computes Q, K, V all from the same input sequence X (via different projections), allowing each position to attend to all other positions in the same sequence. Cross-attention (used in the decoder) takes queries from the decoder state but keys and values from the encoder output, enabling the decoder to 'read' the encoder's representations."
+    },
+    {
+      "question": "A transformer uses multi-head attention with h=8 heads and d_model=512. What is d_k (the key dimension per head)?",
+      "options": [
+        "512",
+        "256",
+        "128",
+        "64"
+      ],
+      "correct": 3,
+      "explanation": "In the standard transformer, each head operates in a d_k-dimensional subspace where d_k = d_model / h. With d_model=512 and h=8 heads: d_k = 512 / 8 = 64. This means each head projects the d_model=512 dimensional input down to 64 dimensions for Q and K. The total parameters across all heads is the same as a single 512-dimensional attention."
+    },
+    {
+      "question": "What is the computational complexity of scaled dot-product attention with respect to sequence length n?",
+      "options": [
+        "O(n) — linear in sequence length",
+        "O(n log n) — the attention matrix can be approximated efficiently",
+        "O(n²) — because we compute an n×n attention score matrix",
+        "O(n · d_k) — because each query is compared to all d_k-dimensional keys"
+      ],
+      "correct": 2,
+      "explanation": "Computing QK^T requires multiplying an (n × d_k) matrix by a (d_k × n) matrix, yielding an (n × n) score matrix. This requires O(n² · d_k) operations and O(n²) memory to store. For long sequences (n > 2000), this quadratic cost becomes the primary bottleneck. Methods like FlashAttention reduce memory to O(n) but maintain O(n²) FLOPs."
+    }
+  ],
+  "exercises": [
+    {
+      "prompt": "Implement the scaled dot-product attention function. Given matrices Q (n×d_k), K (n×d_k), and V (n×d_v), compute:\n1. The raw attention scores: S = Q @ K.T / sqrt(d_k)\n2. The softmax attention weights: A = softmax(S) along axis=-1\n3. The output: O = A @ V\n\nReturn the output O and the attention weights A.\n\nUse numerically stable softmax: subtract the row maximum before exponentiating.",
+      "starter": "import numpy as np\n\ndef scaled_dot_product_attention(Q, K, V):\n    \"\"\"\n    Q: (n, d_k)\n    K: (n, d_k)\n    V: (n, d_v)\n    Returns: output (n, d_v), weights (n, n)\n    \"\"\"\n    # YOUR CODE HERE\n    pass\n\n# Test\nnp.random.seed(0)\nn, d_k, d_v = 4, 8, 8\nQ = np.random.randn(n, d_k)\nK = np.random.randn(n, d_k)\nV = np.random.randn(n, d_v)\n\nO, A = scaled_dot_product_attention(Q, K, V)\nprint('Output shape:', O.shape)\nprint('Weight shape:', A.shape)\nprint('Row sums (should be ~1.0):', A.sum(axis=-1))",
+      "solution": "import numpy as np\n\ndef scaled_dot_product_attention(Q, K, V):\n    d_k = Q.shape[-1]\n    # Compute raw scores\n    scores = Q @ K.T / np.sqrt(d_k)\n    # Numerically stable softmax\n    scores -= scores.max(axis=-1, keepdims=True)\n    exp_scores = np.exp(scores)\n    A = exp_scores / exp_scores.sum(axis=-1, keepdims=True)\n    # Output\n    O = A @ V\n    return O, A\n\nnp.random.seed(0)\nn, d_k, d_v = 4, 8, 8\nQ = np.random.randn(n, d_k)\nK = np.random.randn(n, d_k)\nV = np.random.randn(n, d_v)\n\nO, A = scaled_dot_product_attention(Q, K, V)\nprint('Output shape:', O.shape)\nprint('Weight shape:', A.shape)\nprint('Row sums (should be ~1.0):', A.sum(axis=-1))",
+      "hints": [
+        "Compute scores = Q @ K.T (transpose K), then divide by sqrt(d_k)",
+        "For stable softmax: subtract scores.max(axis=-1, keepdims=True) before calling np.exp",
+        "Normalize by dividing exp_scores by exp_scores.sum(axis=-1, keepdims=True), then multiply by V"
+      ],
+      "tests": [
+        "assert O.shape == (4, 8), 'Output shape should be (n, d_v)'",
+        "assert A.shape == (4, 4), 'Weight matrix should be (n, n)'",
+        "assert np.allclose(A.sum(axis=-1), 1.0, atol=1e-6), 'Attention weights must sum to 1 per row'",
+        "assert np.all(A >= 0), 'Attention weights must be non-negative'"
+      ]
+    },
+    {
+      "prompt": "Implement a causal mask for autoregressive attention. The mask should be a boolean matrix of shape (n, n) where position (i, j) is True if token i should NOT attend to token j (i.e., j > i, future positions). Then apply this mask to attention scores by setting masked positions to -1e9 before softmax.\n\nWrite two functions:\n1. causal_mask(n): returns boolean mask (n, n), True where attention is blocked\n2. masked_softmax(scores, mask): sets True positions to -1e9 and applies softmax",
+      "starter": "import numpy as np\n\ndef causal_mask(n):\n    \"\"\"\n    Returns (n, n) boolean mask.\n    True at position (i, j) means token i cannot attend to token j.\n    \"\"\"\n    # YOUR CODE HERE\n    pass\n\ndef masked_softmax(scores, mask):\n    \"\"\"\n    scores: (n, n) raw attention scores\n    mask: (n, n) boolean — True where to block attention\n    Returns: (n, n) softmax probabilities with masked positions zeroed out\n    \"\"\"\n    # YOUR CODE HERE\n    pass\n\n# Test\nn = 5\nmask = causal_mask(n)\nprint('Causal mask:')\nprint(mask.astype(int))\n\nnp.random.seed(1)\nscores = np.random.randn(n, n)\nA = masked_softmax(scores, mask)\nprint('Row sums (should be 1):', A.sum(axis=-1))\nprint('A[0, 1:] (should be 0 — future positions masked):', A[0, 1:])",
+      "solution": "import numpy as np\n\ndef causal_mask(n):\n    # Upper triangular (k=1 means above the main diagonal)\n    return np.triu(np.ones((n, n), dtype=bool), k=1)\n\ndef masked_softmax(scores, mask):\n    masked = np.where(mask, -1e9, scores)\n    masked -= masked.max(axis=-1, keepdims=True)\n    exp_s = np.exp(masked)\n    return exp_s / exp_s.sum(axis=-1, keepdims=True)\n\nn = 5\nmask = causal_mask(n)\nprint('Causal mask:')\nprint(mask.astype(int))\n\nnp.random.seed(1)\nscores = np.random.randn(n, n)\nA = masked_softmax(scores, mask)\nprint('Row sums (should be 1):', A.sum(axis=-1))\nprint('A[0, 1:] (should be 0 — future positions masked):', A[0, 1:])",
+      "hints": [
+        "Use np.triu(np.ones((n,n), dtype=bool), k=1) to create an upper-triangular True mask (k=1 means start one above the diagonal)",
+        "Apply the mask with np.where(mask, -1e9, scores) to set blocked positions to a large negative value",
+        "After masking, apply the numerically stable softmax: subtract max per row, exponentiate, divide by sum"
+      ],
+      "tests": [
+        "assert causal_mask(4).shape == (4, 4), 'Mask shape should be (n, n)'",
+        "assert causal_mask(4)[0, 1] == True, 'Position (0,1) should be masked (future)'",
+        "assert causal_mask(4)[1, 0] == False, 'Position (1,0) should not be masked (past)'",
+        "assert causal_mask(4)[2, 2] == False, 'Diagonal (attending to self) should not be masked'",
+        "assert np.allclose(masked_softmax(np.zeros((4,4)), causal_mask(4)).sum(axis=-1), 1.0, atol=1e-6)"
+      ]
+    },
+    {
+      "prompt": "Simulate how attention weights change with different temperatures (applied to attention scores BEFORE softmax). Write a function attention_with_temperature(Q, K, V, temperature) that:\n1. Computes raw scores S = Q @ K.T (no scaling for simplicity)\n2. Divides scores by temperature before softmax\n3. Returns the output and attention weights\n\nThen compute the entropy of the attention distribution for each row at temperatures [0.1, 0.5, 1.0, 2.0] and print the average entropy. Entropy = -sum(p * log(p + 1e-10)).",
+      "starter": "import numpy as np\n\ndef attention_with_temperature(Q, K, V, temperature):\n    \"\"\"\n    Q: (n, d_k), K: (n, d_k), V: (n, d_v)\n    temperature: positive scalar\n    Returns: output (n, d_v), weights (n, n)\n    \"\"\"\n    # YOUR CODE HERE\n    pass\n\ndef row_entropy(weights):\n    \"\"\"Compute average entropy of attention weight rows.\"\"\"\n    # weights: (n, n), each row is a probability distribution\n    # YOUR CODE HERE\n    pass\n\nnp.random.seed(42)\nn, d_k, d_v = 6, 8, 8\nQ = np.random.randn(n, d_k)\nK = np.random.randn(n, d_k)\nV = np.random.randn(n, d_v)\n\nfor T in [0.1, 0.5, 1.0, 2.0]:\n    _, weights = attention_with_temperature(Q, K, V, T)\n    ent = row_entropy(weights)\n    print(f'Temperature={T:.1f}: avg entropy={ent:.4f}')",
+      "solution": "import numpy as np\n\ndef attention_with_temperature(Q, K, V, temperature):\n    scores = (Q @ K.T) / temperature\n    scores -= scores.max(axis=-1, keepdims=True)\n    exp_s = np.exp(scores)\n    weights = exp_s / exp_s.sum(axis=-1, keepdims=True)\n    output = weights @ V\n    return output, weights\n\ndef row_entropy(weights):\n    ent = -np.sum(weights * np.log(weights + 1e-10), axis=-1)\n    return float(np.mean(ent))\n\nnp.random.seed(42)\nn, d_k, d_v = 6, 8, 8\nQ = np.random.randn(n, d_k)\nK = np.random.randn(n, d_k)\nV = np.random.randn(n, d_v)\n\nfor T in [0.1, 0.5, 1.0, 2.0]:\n    _, weights = attention_with_temperature(Q, K, V, T)\n    ent = row_entropy(weights)\n    print(f'Temperature={T:.1f}: avg entropy={ent:.4f}')",
+      "hints": [
+        "Divide scores by temperature BEFORE softmax: scores = (Q @ K.T) / temperature",
+        "Use numerically stable softmax: subtract max per row before exponentiating",
+        "Entropy formula: H = -sum(p * log(p + 1e-10)) per row, then take the mean across rows"
+      ],
+      "tests": [
+        "assert attention_with_temperature(np.eye(4), np.eye(4), np.eye(4), 1.0)[1].shape == (4, 4)",
+        "assert np.allclose(attention_with_temperature(np.eye(4), np.eye(4), np.eye(4), 1.0)[1].sum(axis=-1), 1.0, atol=1e-6)",
+        "ent_low = row_entropy(attention_with_temperature(np.random.randn(4,4), np.random.randn(4,4), np.random.randn(4,4), 0.1)[1]); ent_high = row_entropy(attention_with_temperature(np.random.randn(4,4), np.random.randn(4,4), np.random.randn(4,4), 2.0)[1]); assert ent_low < ent_high, 'Lower temperature should produce lower entropy'"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,102 @@
+{
+  "questions": [
+    {
+      "question": "In CLIP, what does the contrastive training objective actually do?",
+      "options": [
+        "It trains the image encoder to predict pixel values from text descriptions",
+        "It trains both encoders so that matching image-text pairs have high cosine similarity and non-matching pairs have low cosine similarity",
+        "It trains the model to generate captions by minimising cross-entropy loss on text tokens",
+        "It trains a classifier to predict the correct image category from text descriptions"
+      ],
+      "correct": 1,
+      "explanation": "CLIP trains an image encoder and a text encoder simultaneously using a contrastive objective on a batch of N image-text pairs. It builds an N×N similarity matrix where entry (i,j) = cosine_similarity(image_i, text_j). The loss pushes the N diagonal entries (matched pairs) toward high similarity while pushing the N²-N off-diagonal entries (non-matched pairs) toward low similarity. After training, semantically related images and texts land near each other in the shared embedding space."
+    },
+    {
+      "question": "LLaVA connects a vision encoder to a language model using a 'projector'. What is this projector and why is it needed?",
+      "options": [
+        "A pretrained CLIP model that re-encodes the image in the LLM's format",
+        "A small MLP that transforms visual token embeddings from CLIP's dimensional space into the LLM's token embedding space, so the LLM can process them like text tokens",
+        "A cross-attention mechanism that allows image patches to attend to text tokens",
+        "A convolutional layer that downsamples the image to a single fixed-size vector"
+      ],
+      "correct": 1,
+      "explanation": "The CLIP vision encoder and the LLM were trained independently with different embedding spaces. Even if they produce vectors of the same dimension (e.g. 768), the vector [0.5, -0.3, 0.8, ...] means something completely different in each space. The projector MLP is trained to translate visual token embeddings into the LLM's embedding space, so the LLM can attend to them alongside text tokens. It's a learned adapter between two pretrained systems."
+    },
+    {
+      "question": "What is zero-shot classification, and why can CLIP do it while a standard ResNet classifier cannot?",
+      "options": [
+        "Zero-shot means classifying images with zero GPU usage; CLIP is smaller than ResNet so it runs faster",
+        "Zero-shot means classifying new categories without seeing any labelled examples; CLIP can do this because it learned a joint image-text space where class names and images are comparable, while ResNet's output layer only knows the fixed classes it was trained on",
+        "Zero-shot means achieving 0% error rate; CLIP achieves this while ResNet makes mistakes",
+        "Zero-shot means classifying from a single shot per class; ResNet needs 10+ examples per class but CLIP only needs 1"
+      ],
+      "correct": 1,
+      "explanation": "Zero-shot classification means classifying into categories that were never explicitly seen during fine-tuning. A ResNet trained on 1000 ImageNet classes has an output head with exactly 1000 neurons — it cannot classify into new categories without retraining. CLIP has no fixed output head. Instead, you encode class names as text and compute similarity to the image embedding. Since CLIP was trained on 400M image-text pairs from the internet, it has a rich shared space where 'a photo of a quokka' and an image of a quokka will be close, even if quokka was never an explicit training category."
+    },
+    {
+      "question": "Flamingo inserts cross-attention layers into a frozen language model. What do these cross-attention layers do?",
+      "options": [
+        "They allow image patches to modify each other using self-attention within the vision encoder",
+        "They replace the language model's self-attention entirely with visual attention",
+        "They allow text tokens at each position to attend to visual feature vectors, so the language model can 'look at' the image when generating each word",
+        "They compress all visual information into a single vector that is prepended to the text sequence"
+      ],
+      "correct": 2,
+      "explanation": "Flamingo's cross-attention layers are inserted between the language model's self-attention blocks. When generating each text token, the query comes from the current text state, while keys and values come from the visual feature vectors (outputs of the Perceiver Resampler). This means every generated word can selectively attend to relevant image regions. The language model's parameters remain frozen; only the cross-attention weights (and Perceiver) are trained, which preserves language ability while adding visual understanding."
+    },
+    {
+      "question": "Why is beam search preferred over greedy decoding for image captioning?",
+      "options": [
+        "Beam search is faster because it evaluates fewer candidate tokens at each step",
+        "Beam search maintains multiple candidate sequences and selects the one with the highest overall probability, avoiding locally optimal but globally poor choices that greedy decoding makes",
+        "Beam search guarantees finding the globally optimal caption because it explores all possible sequences",
+        "Greedy decoding requires a GPU while beam search works on CPU"
+      ],
+      "correct": 1,
+      "explanation": "Greedy decoding always picks the single most probable next token, which can lead to sequences like 'A dog dog dog...' if 'dog' is locally most probable at each step. Beam search keeps the top-K sequences (beams) alive at each step and continues expanding all of them. At the end, it selects the sequence with the highest total log-probability. It does NOT guarantee finding the globally optimal sequence (that would require exponential search), but it reliably finds much better sequences than greedy decoding for a modest computational cost (typically K=4 or K=8 beams)."
+    }
+  ],
+  "exercises": [
+    {
+      "prompt": "Implement cosine similarity between embeddings, mimicking what CLIP does.\n\nGiven two sets of vectors (representing image and text embeddings), compute:\n1. L2-normalise all vectors (divide each by its L2 norm)\n2. Compute the similarity matrix: S[i,j] = dot(image_i, text_j)\n3. Find the best matching text for each image (argmax over columns)\n4. Find the best matching image for each text (argmax over rows)\n\nStore: image_embs_norm (normalised), text_embs_norm (normalised), S (similarity matrix),\nbest_text_for_image (array of indices), best_image_for_text (array of indices)",
+      "starter": "import numpy as np\n\n# Simulated embeddings: 4 images, 4 texts, dimension 6\n# Each row is an embedding for one image/text\nnp.random.seed(42)\nimage_embs = np.array([\n    [1.0, 0.2, 0.0, 0.0, 0.0, 0.1],  # image 0: cat-like\n    [0.0, 0.0, 1.0, 0.3, 0.0, 0.0],  # image 1: dog-like\n    [0.0, 0.1, 0.0, 0.0, 1.0, 0.2],  # image 2: car-like\n    [0.2, 0.0, 0.0, 0.1, 0.0, 1.0],  # image 3: bird-like\n])\n\ntext_embs = np.array([\n    [0.9, 0.3, 0.0, 0.0, 0.0, 0.0],  # text 0: \"a photo of a cat\"\n    [0.0, 0.0, 0.9, 0.2, 0.0, 0.0],  # text 1: \"a photo of a dog\"\n    [0.0, 0.0, 0.0, 0.0, 0.9, 0.1],  # text 2: \"a photo of a car\"\n    [0.1, 0.0, 0.0, 0.0, 0.1, 0.9],  # text 3: \"a photo of a bird\"\n])\n\n# 1. L2-normalise: divide each row by its L2 norm\n# norm of row i = sqrt(sum of squares of row i)\nimage_norms      = None  # YOUR CODE: shape (4,) — norm of each image row\nimage_embs_norm  = None  # YOUR CODE: shape (4, 6) — each row divided by its norm\n\ntext_norms       = None  # YOUR CODE\ntext_embs_norm   = None  # YOUR CODE\n\n# 2. Similarity matrix: S = image_embs_norm @ text_embs_norm.T\nS = None  # YOUR CODE: shape (4, 4)\n\n# 3. Best match for each image: which text (column) has highest similarity?\nbest_text_for_image = None  # YOUR CODE: shape (4,), argmax over axis=1\n\n# 4. Best match for each text: which image (row) has highest similarity?\nbest_image_for_text = None  # YOUR CODE: shape (4,), argmax over axis=0\n\nprint('Similarity matrix:')\nprint(S.round(3))\nprint('Best text for each image:', best_text_for_image)\nprint('Best image for each text:', best_image_for_text)",
+      "solution": "import numpy as np\n\nnp.random.seed(42)\nimage_embs = np.array([\n    [1.0, 0.2, 0.0, 0.0, 0.0, 0.1],\n    [0.0, 0.0, 1.0, 0.3, 0.0, 0.0],\n    [0.0, 0.1, 0.0, 0.0, 1.0, 0.2],\n    [0.2, 0.0, 0.0, 0.1, 0.0, 1.0],\n])\n\ntext_embs = np.array([\n    [0.9, 0.3, 0.0, 0.0, 0.0, 0.0],\n    [0.0, 0.0, 0.9, 0.2, 0.0, 0.0],\n    [0.0, 0.0, 0.0, 0.0, 0.9, 0.1],\n    [0.1, 0.0, 0.0, 0.0, 0.1, 0.9],\n])\n\n# 1. L2-normalise\nimage_norms     = np.linalg.norm(image_embs, axis=1, keepdims=True)  # (4, 1)\nimage_embs_norm = image_embs / image_norms                            # (4, 6)\n\ntext_norms     = np.linalg.norm(text_embs, axis=1, keepdims=True)\ntext_embs_norm = text_embs / text_norms\n\n# 2. Similarity matrix\nS = image_embs_norm @ text_embs_norm.T   # (4, 4)\n\n# 3. Best text for each image (argmax over columns = over texts)\nbest_text_for_image = np.argmax(S, axis=1)   # (4,)\n\n# 4. Best image for each text (argmax over rows = over images)\nbest_image_for_text = np.argmax(S, axis=0)   # (4,)\n\nprint('Similarity matrix:')\nprint(S.round(3))\nprint('Best text for each image:', best_text_for_image)\nprint('Best image for each text:', best_image_for_text)",
+      "hints": [
+        "L2 norm of a row: np.linalg.norm(vector) — or use axis=1 for all rows at once",
+        "To normalise: image_embs_norm = image_embs / np.linalg.norm(image_embs, axis=1, keepdims=True)",
+        "keepdims=True keeps the shape as (4,1) so broadcasting works correctly for division",
+        "Similarity matrix: matrix multiply normalised embeddings — S = image_embs_norm @ text_embs_norm.T",
+        "argmax over axis=1 gives the best column (text) for each row (image)",
+        "argmax over axis=0 gives the best row (image) for each column (text)"
+      ],
+      "tests": [
+        "import numpy as np; assert image_embs_norm.shape == (4, 6), f'image_embs_norm shape should be (4,6), got {image_embs_norm.shape}'",
+        "import numpy as np; norms = np.linalg.norm(image_embs_norm, axis=1); assert np.allclose(norms, 1.0, atol=1e-6), f'Normalised vectors should have unit norm, got {norms}'",
+        "import numpy as np; assert S.shape == (4, 4), f'S shape should be (4,4), got {S.shape}'",
+        "import numpy as np; assert np.all(S <= 1.0 + 1e-6) and np.all(S >= -1.0 - 1e-6), 'Cosine similarities must be in [-1, 1]'",
+        "import numpy as np; assert best_text_for_image.shape == (4,), f'best_text_for_image shape should be (4,)'",
+        "import numpy as np; assert list(best_text_for_image) == [0, 1, 2, 3], f'Expected [0,1,2,3] (diagonal matches), got {list(best_text_for_image)}'"
+      ]
+    },
+    {
+      "prompt": "Implement a zero-shot image classification decision using cosine similarities, and compute retrieval metrics.\n\nYou are given:\n- image_embeddings: (5, 8) array — 5 test images, already L2-normalised\n- class_embeddings: (4, 8) array — 4 class text embeddings, already L2-normalised\n- true_labels: [0, 1, 2, 3, 0] — ground truth class for each image\n\nCompute:\n1. similarity_matrix: (5, 4) — cosine similarities between each image and each class\n2. predicted_labels: (5,) — predicted class for each image (argmax of similarities)\n3. accuracy: float — fraction of correct predictions\n4. For image 0, retrieve all classes ranked by similarity (most similar first): ranked_classes_for_img0",
+      "starter": "import numpy as np\n\n# Already L2-normalised embeddings\nnp.random.seed(123)\n\n# Simulate: make class-matched images close to their class embeddings\nclass_embeddings = np.array([\n    [0.8,  0.4,  0.2, -0.1,  0.0,  0.1,  0.3, -0.2],\n    [-0.2, 0.7,  0.5,  0.3,  0.1, -0.1,  0.0,  0.2],\n    [ 0.1,-0.2,  0.0,  0.6,  0.7,  0.2, -0.1,  0.1],\n    [-0.1, 0.1, -0.3,  0.0, -0.2,  0.8,  0.4,  0.3],\n], dtype=float)\n\n# Normalise class embeddings\nclass_embeddings = class_embeddings / np.linalg.norm(class_embeddings, axis=1, keepdims=True)\n\n# Image embeddings (slightly noisy versions of their class embeddings)\ntrue_labels = [0, 1, 2, 3, 0]\nnoise = 0.15\nimage_embeddings = np.array([\n    class_embeddings[0] + noise * np.random.randn(8),  # image 0 → class 0\n    class_embeddings[1] + noise * np.random.randn(8),  # image 1 → class 1\n    class_embeddings[2] + noise * np.random.randn(8),  # image 2 → class 2\n    class_embeddings[3] + noise * np.random.randn(8),  # image 3 → class 3\n    class_embeddings[0] + noise * np.random.randn(8),  # image 4 → class 0\n], dtype=float)\nimage_embeddings = image_embeddings / np.linalg.norm(image_embeddings, axis=1, keepdims=True)\n\n# 1. Compute similarity matrix (5 x 4)\nsimilarity_matrix = None  # YOUR CODE\n\n# 2. Predict class for each image\npredicted_labels = None  # YOUR CODE: shape (5,)\n\n# 3. Compute accuracy\naccuracy = None  # YOUR CODE: float in [0, 1]\n\n# 4. Rank all classes for image 0 by similarity (most similar first)\nranked_classes_for_img0 = None  # YOUR CODE: array of 4 class indices in descending similarity order\n\nprint(f'Similarity matrix:\\n{similarity_matrix.round(3)}')\nprint(f'Predicted labels: {predicted_labels}')\nprint(f'True labels:      {true_labels}')\nprint(f'Accuracy: {accuracy:.2f}')\nprint(f'Ranked classes for image 0: {ranked_classes_for_img0}')",
+      "solution": "import numpy as np\n\nnp.random.seed(123)\nclass_embeddings = np.array([\n    [0.8,  0.4,  0.2, -0.1,  0.0,  0.1,  0.3, -0.2],\n    [-0.2, 0.7,  0.5,  0.3,  0.1, -0.1,  0.0,  0.2],\n    [ 0.1,-0.2,  0.0,  0.6,  0.7,  0.2, -0.1,  0.1],\n    [-0.1, 0.1, -0.3,  0.0, -0.2,  0.8,  0.4,  0.3],\n], dtype=float)\nclass_embeddings = class_embeddings / np.linalg.norm(class_embeddings, axis=1, keepdims=True)\n\ntrue_labels = [0, 1, 2, 3, 0]\nnoise = 0.15\nimage_embeddings = np.array([\n    class_embeddings[0] + noise * np.random.randn(8),\n    class_embeddings[1] + noise * np.random.randn(8),\n    class_embeddings[2] + noise * np.random.randn(8),\n    class_embeddings[3] + noise * np.random.randn(8),\n    class_embeddings[0] + noise * np.random.randn(8),\n], dtype=float)\nimage_embeddings = image_embeddings / np.linalg.norm(image_embeddings, axis=1, keepdims=True)\n\n# 1. Similarity matrix\nsimilarity_matrix = image_embeddings @ class_embeddings.T   # (5, 4)\n\n# 2. Predict class\npredicted_labels = np.argmax(similarity_matrix, axis=1)     # (5,)\n\n# 3. Accuracy\naccuracy = np.mean(predicted_labels == np.array(true_labels))\n\n# 4. Rank classes for image 0 by descending similarity\nranked_classes_for_img0 = np.argsort(similarity_matrix[0])[::-1]  # descending\n\nprint(f'Similarity matrix:\\n{similarity_matrix.round(3)}')\nprint(f'Predicted labels: {predicted_labels}')\nprint(f'True labels:      {true_labels}')\nprint(f'Accuracy: {accuracy:.2f}')\nprint(f'Ranked classes for image 0: {ranked_classes_for_img0}')",
+      "hints": [
+        "Similarity matrix = image_embeddings @ class_embeddings.T — gives (5, 4) matrix",
+        "predicted_labels = np.argmax(similarity_matrix, axis=1) — best class per image",
+        "accuracy = np.mean(predicted_labels == np.array(true_labels))",
+        "To rank descending: np.argsort(row)[::-1] — argsort gives ascending, [::-1] reverses it",
+        "For image 0's similarities: similarity_matrix[0] is a (4,) vector"
+      ],
+      "tests": [
+        "import numpy as np; assert similarity_matrix.shape == (5, 4), f'similarity_matrix shape should be (5,4), got {similarity_matrix.shape}'",
+        "import numpy as np; assert predicted_labels.shape == (5,), f'predicted_labels shape should be (5,)'",
+        "import numpy as np; assert 0.0 <= accuracy <= 1.0, f'accuracy must be in [0,1], got {accuracy}'",
+        "import numpy as np; assert accuracy >= 0.6, f'Model should get most predictions right with low noise, accuracy={accuracy}'",
+        "import numpy as np; assert ranked_classes_for_img0.shape == (4,), f'ranked_classes_for_img0 shape should be (4,)'",
+        "import numpy as np; assert ranked_classes_for_img0[0] == 0, f'Image 0 should be most similar to class 0, got {ranked_classes_for_img0[0]}'"
+      ]
+    }
+  ]
+}

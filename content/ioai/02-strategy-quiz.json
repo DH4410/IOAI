@@ -1,0 +1,87 @@
+{
+  "questions": [
+    {
+      "question": "During the IOAI practical exam (5 hours total), you have spent 2.5 hours and your best cross-validation AUC is 0.847. The public leaderboard shows another submission with AUC 0.851 (from a less-disciplined experiment you ran earlier). With 2.5 hours remaining, what is the best strategy?",
+      "options": [
+        "Switch to the higher leaderboard submission immediately and continue improving from there",
+        "Continue iterating from the 0.847 CV submission — it is more trustworthy since CV is based on your full training data, not just the public test subset",
+        "Stop iterating and spend all remaining time on hyperparameter tuning of the 0.851 model",
+        "Submit both and ask a proctor which is better"
+      ],
+      "correct": 1,
+      "explanation": "The public leaderboard reflects only a subset (often 20-30%) of the test data. Cross-validation on your training data, done correctly without data leakage, is generally a more reliable estimate of true generalization performance. Chasing the public leaderboard can cause 'overfitting to the public split' — selecting a model that happened to be lucky on the public portion but performs poorly on the private (final) portion."
+    },
+    {
+      "question": "You are preparing a feature engineering step and need to standardize numerical features. You compute the mean and standard deviation from the combined train+test data and use those to scale both sets. This is an example of:",
+      "options": [
+        "A valid and efficient preprocessing technique called global normalization",
+        "Data leakage — test set statistics influence training, which can inflate CV scores and cause overoptimistic estimates",
+        "Transfer learning applied to preprocessing",
+        "A minor inefficiency that has no effect on model performance"
+      ],
+      "correct": 1,
+      "explanation": "Computing statistics from the test set and using them during training is a form of data leakage. The test set represents 'future' unseen data. In a proper pipeline, all statistics (mean, std, median, etc.) must be computed only from training data (within each cross-validation fold) and then applied to validation/test data. This can cause inflated CV scores that do not reflect real-world performance."
+    },
+    {
+      "question": "Which of the following orderings best reflects the recommended iteration priority during the IOAI practical exam iteration phase?",
+      "options": [
+        "Hyperparameter tuning → Feature engineering → Handle missing values → Try different models",
+        "Handle missing values → Encode categoricals → Feature engineering → Model selection → Hyperparameter tuning",
+        "Try a neural network immediately → If it fails, fall back to LightGBM",
+        "Ensemble first → Then improve individual models"
+      ],
+      "correct": 1,
+      "explanation": "The correct iteration order goes from data quality improvements (handling missing values, encoding categoricals) to feature engineering, then model selection, and finally hyperparameter tuning. This order reflects diminishing returns: cleaning data usually gives large gains; hyperparameter tuning usually gives small gains. Ensembling comes last, after individual models are strong and diverse."
+    },
+    {
+      "question": "A team member wants to implement a stacking ensemble during the practical exam. There are 90 minutes remaining in the 5-hour exam. They have three models with similar CV scores of 0.863, 0.865, and 0.861. What should they do?",
+      "options": [
+        "Implement full stacking with out-of-fold predictions — 90 minutes is enough",
+        "Use simple averaging of the three models' predictions — this is faster and achieves most of the ensemble benefit",
+        "Abandon all three models and train a single larger model",
+        "Submit the best single model (0.865) and make no further changes"
+      ],
+      "correct": 1,
+      "explanation": "When three models have very similar CV scores, simple averaging achieves the vast majority of ensemble benefit in a fraction of the time. Full stacking requires training a meta-model on out-of-fold predictions from all base models — a procedure that takes 30-60+ minutes to implement correctly and adds significant risk of bugs. With 90 minutes remaining, simple averaging is the correct choice. Submitting only the best single model wastes the diversity already in hand."
+    }
+  ],
+  "exercises": [
+    {
+      "prompt": "Competition Clock Manager: Write a class `CompetitionClock` that takes a `total_minutes` integer and tracks a competition workflow. It should have a method `phase_status(elapsed_minutes)` that returns a dict with the current phase name ('eda', 'baseline', 'iteration', 'ensemble', 'final_submission') and the minutes remaining in that phase. Use these phase boundaries (in % of total time): EDA ends at 15%, baseline ends at 35%, iteration ends at 80%, ensemble ends at 95%, final_submission ends at 100%. Also write a `danger_alert(elapsed_minutes)` method that returns True if you are in the final_submission phase with more than 20 minutes left in that phase (meaning you finished early and have spare time), or if you are past the 80% mark with NO valid submission yet (simulated by a `has_submission` parameter).",
+      "starter": "class CompetitionClock:\n    def __init__(self, total_minutes):\n        self.total_minutes = total_minutes\n        # Phase boundaries as cumulative % of total time\n        self.phases = [\n            ('eda', 0.15),\n            ('baseline', 0.35),\n            ('iteration', 0.80),\n            ('ensemble', 0.95),\n            ('final_submission', 1.00)\n        ]\n    \n    def phase_status(self, elapsed_minutes):\n        \"\"\"\n        Returns dict: {'phase': str, 'phase_minutes_remaining': float}\n        \"\"\"\n        # Your code here\n        pass\n    \n    def danger_alert(self, elapsed_minutes, has_submission=True):\n        \"\"\"\n        Returns True if in dangerous situation:\n        - Past 80% mark with no valid submission\n        Returns False otherwise.\n        \"\"\"\n        # Your code here\n        pass\n\nclock = CompetitionClock(300)\nprint(clock.phase_status(30))\nprint(clock.phase_status(100))\nprint(clock.danger_alert(250, has_submission=False))",
+      "solution": "class CompetitionClock:\n    def __init__(self, total_minutes):\n        self.total_minutes = total_minutes\n        self.phases = [\n            ('eda', 0.15),\n            ('baseline', 0.35),\n            ('iteration', 0.80),\n            ('ensemble', 0.95),\n            ('final_submission', 1.00)\n        ]\n    \n    def phase_status(self, elapsed_minutes):\n        elapsed_frac = elapsed_minutes / self.total_minutes\n        prev_end = 0.0\n        for name, end_frac in self.phases:\n            if elapsed_frac <= end_frac:\n                phase_start_min = prev_end * self.total_minutes\n                phase_end_min = end_frac * self.total_minutes\n                remaining = phase_end_min - elapsed_minutes\n                return {'phase': name, 'phase_minutes_remaining': remaining}\n            prev_end = end_frac\n        # Past all phases\n        return {'phase': 'final_submission', 'phase_minutes_remaining': 0}\n    \n    def danger_alert(self, elapsed_minutes, has_submission=True):\n        elapsed_frac = elapsed_minutes / self.total_minutes\n        if elapsed_frac > 0.80 and not has_submission:\n            return True\n        return False\n\nclock = CompetitionClock(300)\nprint(clock.phase_status(30))\nprint(clock.phase_status(100))\nprint(clock.danger_alert(250, has_submission=False))",
+      "hints": [
+        "Convert elapsed_minutes to a fraction of total_minutes",
+        "Iterate through phases and find which one the current fraction falls in",
+        "The remaining time in the current phase is (phase_end_frac * total_minutes) - elapsed_minutes"
+      ],
+      "tests": [
+        "c = CompetitionClock(300); assert c.phase_status(0)['phase'] == 'eda'",
+        "c = CompetitionClock(300); assert c.phase_status(44)['phase'] == 'eda'",
+        "c = CompetitionClock(300); assert c.phase_status(46)['phase'] == 'baseline'",
+        "c = CompetitionClock(300); assert c.phase_status(105)['phase'] == 'iteration'",
+        "c = CompetitionClock(300); assert c.phase_status(241)['phase'] == 'ensemble'",
+        "c = CompetitionClock(300); assert c.phase_status(286)['phase'] == 'final_submission'",
+        "c = CompetitionClock(300); assert c.danger_alert(250, has_submission=False) == True",
+        "c = CompetitionClock(300); assert c.danger_alert(250, has_submission=True) == False",
+        "c = CompetitionClock(300); assert c.danger_alert(100, has_submission=False) == False"
+      ]
+    },
+    {
+      "prompt": "Ensemble Diversity Analyzer: In competition strategy, a good ensemble requires diverse models — models that make different mistakes. Write a function `ensemble_improvement(preds_list, true_labels)` that takes a list of prediction arrays (probabilities) and true binary labels, and returns a dict with: (1) 'individual_aucs': list of AUC scores for each model, (2) 'simple_average_auc': AUC of simple average ensemble, (3) 'rank_average_auc': AUC of rank-averaged ensemble, (4) 'best_individual_auc': the best single model AUC. Use numpy and sklearn only.",
+      "starter": "import numpy as np\nfrom sklearn.metrics import roc_auc_score\nfrom scipy.stats import rankdata\n\ndef ensemble_improvement(preds_list, true_labels):\n    \"\"\"\n    preds_list: list of 1D numpy arrays of predicted probabilities\n    true_labels: 1D numpy array of binary labels (0 or 1)\n    Returns dict with ensemble analysis.\n    \"\"\"\n    # Your code here\n    pass\n\n# Test\nnp.random.seed(42)\ntrue_labels = np.random.randint(0, 2, 200)\npreds1 = np.clip(true_labels + np.random.normal(0, 0.4, 200), 0, 1)\npreds2 = np.clip(true_labels + np.random.normal(0, 0.4, 200), 0, 1)\npreds3 = np.clip(true_labels + np.random.normal(0, 0.4, 200), 0, 1)\n\nresult = ensemble_improvement([preds1, preds2, preds3], true_labels)\nprint(result)",
+      "solution": "import numpy as np\nfrom sklearn.metrics import roc_auc_score\nfrom scipy.stats import rankdata\n\ndef ensemble_improvement(preds_list, true_labels):\n    individual_aucs = [roc_auc_score(true_labels, p) for p in preds_list]\n    \n    # Simple average\n    avg_preds = np.mean(preds_list, axis=0)\n    avg_auc = roc_auc_score(true_labels, avg_preds)\n    \n    # Rank average\n    n = len(true_labels)\n    rank_preds = np.mean([rankdata(p) / n for p in preds_list], axis=0)\n    rank_auc = roc_auc_score(true_labels, rank_preds)\n    \n    return {\n        'individual_aucs': individual_aucs,\n        'simple_average_auc': avg_auc,\n        'rank_average_auc': rank_auc,\n        'best_individual_auc': max(individual_aucs)\n    }\n\nnp.random.seed(42)\ntrue_labels = np.random.randint(0, 2, 200)\npreds1 = np.clip(true_labels + np.random.normal(0, 0.4, 200), 0, 1)\npreds2 = np.clip(true_labels + np.random.normal(0, 0.4, 200), 0, 1)\npreds3 = np.clip(true_labels + np.random.normal(0, 0.4, 200), 0, 1)\n\nresult = ensemble_improvement([preds1, preds2, preds3], true_labels)\nprint(result)",
+      "hints": [
+        "Use roc_auc_score from sklearn.metrics for each model",
+        "np.mean(preds_list, axis=0) averages elementwise across models",
+        "rankdata from scipy.stats ranks predictions; divide by n to normalize to [0,1]"
+      ],
+      "tests": [
+        "import numpy as np; np.random.seed(42); tl = np.random.randint(0,2,200); p1 = np.clip(tl+np.random.normal(0,0.4,200),0,1); p2 = np.clip(tl+np.random.normal(0,0.4,200),0,1); r = ensemble_improvement([p1,p2],tl); assert 'individual_aucs' in r",
+        "import numpy as np; np.random.seed(42); tl = np.random.randint(0,2,200); p1 = np.clip(tl+np.random.normal(0,0.4,200),0,1); p2 = np.clip(tl+np.random.normal(0,0.4,200),0,1); r = ensemble_improvement([p1,p2],tl); assert len(r['individual_aucs']) == 2",
+        "import numpy as np; np.random.seed(42); tl = np.random.randint(0,2,200); p1 = np.clip(tl+np.random.normal(0,0.4,200),0,1); p2 = np.clip(tl+np.random.normal(0,0.4,200),0,1); r = ensemble_improvement([p1,p2],tl); assert 0 < r['simple_average_auc'] <= 1",
+        "import numpy as np; np.random.seed(42); tl = np.random.randint(0,2,200); p1 = np.clip(tl+np.random.normal(0,0.4,200),0,1); p2 = np.clip(tl+np.random.normal(0,0.4,200),0,1); r = ensemble_improvement([p1,p2],tl); assert r['best_individual_auc'] == max(r['individual_aucs'])"
+      ]
+    }
+  ]
+}

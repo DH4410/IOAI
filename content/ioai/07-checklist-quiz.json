@@ -1,0 +1,100 @@
+{
+  "questions": [
+    {
+      "question": "Which sklearn class should you use for preprocessing when your dataset has both numerical and categorical columns, so that different transformations apply to each column type?",
+      "options": [
+        "Pipeline — it chains transformers sequentially across all columns",
+        "ColumnTransformer — it applies different transformers to different subsets of columns simultaneously",
+        "FeatureUnion — it concatenates the outputs of multiple transformers applied to the full dataset",
+        "GridSearchCV — it selects the best preprocessing strategy by searching over parameter grids"
+      ],
+      "correct": 1,
+      "explanation": "ColumnTransformer applies different transformers to different column subsets and concatenates the results. For example, you can apply StandardScaler + SimpleImputer to numerical columns and OneHotEncoder + SimpleImputer to categorical columns in a single step. Pipeline chains steps sequentially for all columns."
+    },
+    {
+      "question": "You are 15 minutes into an IOAI practical exam. You have not yet submitted anything. What should your immediate priority be?",
+      "options": [
+        "Fine-tune hyperparameters using GridSearchCV with 100 configurations",
+        "Read all available documentation and papers about the domain before writing any code",
+        "Build and submit a working baseline — even a simple one — to guarantee a non-zero score before optimizing",
+        "Try to train the largest neural network available in the time remaining"
+      ],
+      "correct": 2,
+      "explanation": "The baseline-first principle is the most important competition strategy. A submitted baseline guarantees a non-zero score. An unsubmitted perfect model scores zero. After the baseline is submitted, you can safely iterate on improvements — there is always a working fallback. Never spend more than 45 minutes without a submitted solution."
+    },
+    {
+      "question": "What does the C parameter in sklearn's LogisticRegression control, and which direction makes the model more regularized?",
+      "options": [
+        "C is the learning rate; smaller C means faster training",
+        "C is the inverse of regularization strength; smaller C means stronger regularization (more regularized)",
+        "C is the number of classes; it is set automatically and should not be changed",
+        "C is the convergence tolerance; smaller C means more iterations are needed"
+      ],
+      "correct": 1,
+      "explanation": "In sklearn's LogisticRegression, C = 1/lambda where lambda is the regularization coefficient. A smaller C means a larger regularization penalty, which shrinks weights more aggressively toward zero (more regularized, simpler model). A larger C means less regularization, allowing the model to fit more closely to training data (risk of overfitting). Default is C=1.0."
+    },
+    {
+      "question": "You have a tabular dataset where the target variable is highly right-skewed (income: most values between $20k-$80k, some reaching $2M). For a regression task, what preprocessing should you apply to the target variable and why?",
+      "options": [
+        "Apply StandardScaler to the target; this removes skew by normalizing to mean=0, std=1",
+        "Apply np.log1p() to the target before training and np.expm1() to reverse-transform predictions; log compression reduces skew and prevents extreme values from dominating the loss",
+        "Clip the target at the 99th percentile to remove outliers before training",
+        "Use MinMaxScaler on the target to bound it to [0, 1] range"
+      ],
+      "correct": 1,
+      "explanation": "Log-transforming a right-skewed target (np.log1p handles zeros safely) compresses the long tail so that the model doesn't optimize almost entirely for the rare high-value samples. After prediction, reverse with np.expm1() to get back to the original scale. StandardScaler only shifts and scales but does not reduce skew. Clipping removes information."
+    },
+    {
+      "question": "Which of the following correctly describes the 'balanced' option in RandomForestClassifier(class_weight='balanced') and when you should use it?",
+      "options": [
+        "It oversamples minority classes by creating synthetic data points (SMOTE-like)",
+        "It automatically adjusts class weights to be inversely proportional to class frequencies, effectively penalizing misclassification of rare classes more heavily",
+        "It balances the number of trees per class by training separate forests for each label",
+        "It uses stratified sampling within each tree's bootstrap sample to ensure equal class representation"
+      ],
+      "correct": 1,
+      "explanation": "class_weight='balanced' computes weights as n_samples / (n_classes * np.bincount(y)), making rare classes receive higher weight in the loss function. This means the model is penalized more for misclassifying minority class samples. Use it when classes are imbalanced and F1-macro or per-class recall is the target metric. It does not create synthetic data (that's SMOTE)."
+    }
+  ],
+  "exercises": [
+    {
+      "prompt": "Implement the universal tabular classification pipeline from memory.\n\nGiven X (pandas DataFrame with mixed numerical/categorical columns) and y (Series of labels), X_test (DataFrame):\n  1. Automatically detect numerical and categorical columns\n  2. Apply median imputation + StandardScaler to numerical columns\n  3. Apply most_frequent imputation + OneHotEncoder to categorical columns\n  4. Train a GradientBoostingClassifier (n_estimators=100, random_state=42)\n  5. Return (cv_f1_macro, test_predictions) from 5-fold stratified CV + final fit\n\nFunction signature:\n  def universal_pipeline(X, y, X_test):",
+      "starter": "import numpy as np\nimport pandas as pd\nfrom sklearn.pipeline import Pipeline\nfrom sklearn.compose import ColumnTransformer\nfrom sklearn.preprocessing import StandardScaler, OneHotEncoder\nfrom sklearn.impute import SimpleImputer\nfrom sklearn.ensemble import GradientBoostingClassifier\nfrom sklearn.model_selection import StratifiedKFold, cross_val_score\n\ndef universal_pipeline(X, y, X_test):\n    # TODO: detect num_cols and cat_cols from X dtypes\n    # TODO: build ColumnTransformer with num_pipe and cat_pipe\n    # TODO: build full Pipeline with preprocessor + GradientBoostingClassifier\n    # TODO: 5-fold stratified CV, fit on all, predict test\n    # Return (cv_f1_macro, test_predictions)\n    pass\n",
+      "solution": "import numpy as np\nimport pandas as pd\nfrom sklearn.pipeline import Pipeline\nfrom sklearn.compose import ColumnTransformer\nfrom sklearn.preprocessing import StandardScaler, OneHotEncoder\nfrom sklearn.impute import SimpleImputer\nfrom sklearn.ensemble import GradientBoostingClassifier\nfrom sklearn.model_selection import StratifiedKFold, cross_val_score\n\ndef universal_pipeline(X, y, X_test):\n    num_cols = X.select_dtypes(include='number').columns.tolist()\n    cat_cols = X.select_dtypes(exclude='number').columns.tolist()\n\n    num_pipe = Pipeline([\n        ('impute', SimpleImputer(strategy='median')),\n        ('scale',  StandardScaler()),\n    ])\n    cat_pipe = Pipeline([\n        ('impute',  SimpleImputer(strategy='most_frequent')),\n        ('encode',  OneHotEncoder(handle_unknown='ignore', sparse_output=False)),\n    ])\n\n    preprocessor = ColumnTransformer([\n        ('num', num_pipe, num_cols),\n        ('cat', cat_pipe, cat_cols),\n    ], remainder='drop')\n\n    full_pipeline = Pipeline([\n        ('prep',  preprocessor),\n        ('model', GradientBoostingClassifier(n_estimators=100, random_state=42)),\n    ])\n\n    cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)\n    scores = cross_val_score(full_pipeline, X, y, cv=cv, scoring='f1_macro')\n    cv_f1 = scores.mean()\n\n    full_pipeline.fit(X, y)\n    test_predictions = full_pipeline.predict(X_test)\n    return (cv_f1, test_predictions)\n",
+      "hints": [
+        "Use X.select_dtypes(include='number').columns.tolist() for num_cols and select_dtypes(exclude='number') for cat_cols",
+        "Build num_pipe = Pipeline([('impute', SimpleImputer(strategy='median')), ('scale', StandardScaler())]) and similarly for cat_pipe with most_frequent imputation and OneHotEncoder",
+        "Wrap both in ColumnTransformer([('num', num_pipe, num_cols), ('cat', cat_pipe, cat_cols)]) and add that as the 'prep' step in the final Pipeline before the model"
+      ],
+      "tests": [
+        "import numpy as np; import pandas as pd; np.random.seed(42); n = 150; X = pd.DataFrame({'age': np.random.randint(20, 70, n).astype(float), 'income': np.random.exponential(50000, n), 'city': np.random.choice(['NY', 'LA', 'Chicago'], n), 'score': np.random.randn(n)}); X.loc[np.random.choice(n, 15, replace=False), 'age'] = np.nan; y = pd.Series((X['income'] > 50000).astype(int)); X_test = X.iloc[:20].copy(); result = universal_pipeline(X, y, X_test); assert isinstance(result, tuple) and len(result) == 2; assert 0.0 <= result[0] <= 1.0, f'CV F1 out of range: {result[0]}'; assert len(result[1]) == 20, f'Expected 20 predictions, got {len(result[1])}'"
+      ]
+    },
+    {
+      "prompt": "Implement feature engineering for a tabular dataset:\n  1. Log-transform all positive numerical columns that are right-skewed (skewness > 1.0)\n  2. Create an interaction feature: for the two highest-variance numerical columns, create their product\n  3. Return the modified DataFrame (do not modify the input in-place)\n\nFunction signature:\n  def engineer_features(X):\n      # X is a pandas DataFrame with only numerical columns\n      # Return a new DataFrame with added/transformed columns",
+      "starter": "import numpy as np\nimport pandas as pd\nfrom scipy import stats\n\ndef engineer_features(X):\n    X_new = X.copy()\n    # TODO: log-transform skewed columns (skewness > 1.0, all values > 0)\n    # TODO: find the 2 highest-variance columns and add their product as a new column\n    return X_new\n",
+      "solution": "import numpy as np\nimport pandas as pd\nfrom scipy import stats\n\ndef engineer_features(X):\n    X_new = X.copy()\n\n    # Log-transform skewed positive columns\n    for col in X_new.columns:\n        if X_new[col].min() > 0:\n            skewness = X_new[col].skew()\n            if skewness > 1.0:\n                X_new[f'log_{col}'] = np.log1p(X_new[col])\n\n    # Find 2 highest-variance columns\n    variances = X_new[[c for c in X.columns]].var()\n    top2 = variances.nlargest(2).index.tolist()\n    if len(top2) == 2:\n        X_new[f'{top2[0]}_x_{top2[1]}'] = X_new[top2[0]] * X_new[top2[1]]\n\n    return X_new\n",
+      "hints": [
+        "Use X_new[col].skew() to compute skewness; check X_new[col].min() > 0 before log-transforming; create new column with X_new[f'log_{col}'] = np.log1p(X_new[col])",
+        "Compute variances with X[original_cols].var() and use .nlargest(2).index.tolist() to get the two highest-variance column names",
+        "Create the interaction feature: X_new[f'{col1}_x_{col2}'] = X_new[col1] * X_new[col2]"
+      ],
+      "tests": [
+        "import numpy as np; import pandas as pd; np.random.seed(0); X = pd.DataFrame({'income': np.random.exponential(50000, 100), 'age': np.random.randint(18, 80, 100).astype(float), 'score': np.random.randn(100) * 10 + 50}); result = engineer_features(X); assert 'log_income' in result.columns, 'income is right-skewed and positive, should be log-transformed'; assert result.shape[0] == 100, 'Row count should not change'; assert result.shape[1] > X.shape[1], 'Should have more columns than original'; interaction_cols = [c for c in result.columns if '_x_' in c]; assert len(interaction_cols) == 1, f'Should have exactly 1 interaction column, got {interaction_cols}'"
+      ]
+    },
+    {
+      "prompt": "Implement cross-validation with early stopping simulation: for each fold, find the best n_estimators for GradientBoostingClassifier by evaluating a range of values [50, 100, 150, 200] using a hold-out within each fold.\n\nSpecifically:\n  - For each of 5 outer folds (StratifiedKFold):\n    - Take the training fold and split 80/20 into inner_train/inner_val\n    - Train GradientBoostingClassifier with each n_estimators value on inner_train\n    - Pick the best n_estimators based on inner_val F1-macro\n    - Train final model with best n_estimators on full outer training fold\n    - Evaluate on outer validation fold\n  - Return the mean outer F1-macro across folds\n\nFunction signature:\n  def cv_with_model_selection(X, y):",
+      "starter": "import numpy as np\nfrom sklearn.ensemble import GradientBoostingClassifier\nfrom sklearn.model_selection import StratifiedKFold, train_test_split\nfrom sklearn.metrics import f1_score\n\ndef cv_with_model_selection(X, y):\n    N_ESTIMATORS_OPTIONS = [50, 100, 150, 200]\n    outer_cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)\n    outer_scores = []\n\n    for train_idx, val_idx in outer_cv.split(X, y):\n        X_tr, X_val = X[train_idx], X[val_idx]\n        y_tr, y_val = y[train_idx], y[val_idx]\n\n        # TODO: split X_tr/y_tr 80/20 for inner selection\n        # TODO: for each n_estimators, train and evaluate on inner_val\n        # TODO: pick best_n, train on full X_tr, evaluate on X_val\n        # TODO: append outer score to outer_scores\n        pass\n\n    return float(np.mean(outer_scores))\n",
+      "solution": "import numpy as np\nfrom sklearn.ensemble import GradientBoostingClassifier\nfrom sklearn.model_selection import StratifiedKFold, train_test_split\nfrom sklearn.metrics import f1_score\n\ndef cv_with_model_selection(X, y):\n    N_ESTIMATORS_OPTIONS = [50, 100, 150, 200]\n    outer_cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)\n    outer_scores = []\n\n    for train_idx, val_idx in outer_cv.split(X, y):\n        X_tr, X_val = X[train_idx], X[val_idx]\n        y_tr, y_val = y[train_idx], y[val_idx]\n\n        # Inner split for model selection\n        X_inner_tr, X_inner_val, y_inner_tr, y_inner_val = train_test_split(\n            X_tr, y_tr, test_size=0.2, stratify=y_tr, random_state=0\n        )\n\n        best_n, best_inner_score = 50, -1.0\n        for n in N_ESTIMATORS_OPTIONS:\n            m = GradientBoostingClassifier(n_estimators=n, random_state=42)\n            m.fit(X_inner_tr, y_inner_tr)\n            score = f1_score(y_inner_val, m.predict(X_inner_val),\n                             average='macro', zero_division=0)\n            if score > best_inner_score:\n                best_inner_score = score\n                best_n = n\n\n        # Train on full outer training fold with best n\n        final_model = GradientBoostingClassifier(n_estimators=best_n, random_state=42)\n        final_model.fit(X_tr, y_tr)\n        outer_score = f1_score(y_val, final_model.predict(X_val),\n                               average='macro', zero_division=0)\n        outer_scores.append(outer_score)\n\n    return float(np.mean(outer_scores))\n",
+      "hints": [
+        "Inside each outer fold, use train_test_split(X_tr, y_tr, test_size=0.2, stratify=y_tr, random_state=0) for the inner split",
+        "Loop through N_ESTIMATORS_OPTIONS, fit a GradientBoostingClassifier on X_inner_tr, evaluate with f1_score on X_inner_val, track the best n with best_inner_score",
+        "After selecting best_n, train a fresh GradientBoostingClassifier(n_estimators=best_n) on the full X_tr and evaluate on X_val; append to outer_scores"
+      ],
+      "tests": [
+        "import numpy as np; from sklearn.datasets import make_classification; X, y = make_classification(n_samples=200, n_features=8, n_classes=3, n_informative=5, random_state=99); result = cv_with_model_selection(X, y); assert isinstance(result, float), f'Expected float, got {type(result)}'; assert 0.0 <= result <= 1.0, f'F1 score {result} out of range [0, 1]'"
+      ]
+    }
+  ]
+}

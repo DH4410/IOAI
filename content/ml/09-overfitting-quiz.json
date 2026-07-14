@@ -1,0 +1,103 @@
+{
+  "questions": [
+    {
+      "question": "Which statement most precisely distinguishes L1 (Lasso) from L2 (Ridge) regularization in linear regression?",
+      "options": [
+        "L1 adds λΣwᵢ² to the loss; L2 adds λΣ|wᵢ|",
+        "L1 tends to produce sparse solutions with exact zero coefficients; L2 shrinks all coefficients toward zero but rarely to exactly zero",
+        "L2 regularization is non-convex, making it harder to optimise than L1",
+        "L1 corresponds to a Gaussian prior on weights; L2 corresponds to a Laplace prior"
+      ],
+      "correct": 1,
+      "explanation": "The L1 penalty (λΣ|wᵢ|) creates a non-differentiable kink at zero, which — via the subgradient condition — drives many coefficients to exactly zero, enabling automatic feature selection. The L2 penalty (λΣwᵢ²) is smooth and only asymptotically approaches zero. Option A swaps the formulas. Option C is wrong — both are convex (L1 is non-smooth but convex). Option D reverses the Bayesian correspondence: L1 ↔ Laplace prior, L2 ↔ Gaussian prior."
+    },
+    {
+      "question": "In 5-fold cross-validation, a model is trained and evaluated 5 times, each time on a different 20% held-out fold. What is the primary advantage over a single 80/20 train/validation split?",
+      "options": [
+        "It reduces the total training time by a factor of 5",
+        "It produces a lower-variance estimate of generalisation performance because every sample appears in the validation set exactly once",
+        "It guarantees the model will not overfit the training data",
+        "It eliminates the need for a separate held-out test set"
+      ],
+      "correct": 1,
+      "explanation": "With a single split, the estimated performance depends heavily on which samples happened to be in the validation set. K-fold CV averages over k different train/val partitions, ensuring every sample contributes to validation exactly once, which lowers the variance of the performance estimate. Option A is wrong — k-fold trains the model k times, increasing computation. Option C is wrong — CV is an evaluation procedure, not a regularisation method. Option D is wrong — the CV estimate is still optimistic if used to tune hyperparameters; a separate test set remains necessary."
+    },
+    {
+      "question": "A deep neural network achieves 99.5% training accuracy and 62% test accuracy after 100 epochs. Which combination of interventions is most likely to help?",
+      "options": [
+        "Increase the learning rate and train for more epochs to improve convergence",
+        "Apply L2 weight decay, use dropout during training, and/or obtain more training data to reduce the variance",
+        "Reduce the number of hidden units to force the model to memorise less training data",
+        "Switch to a simpler loss function such as MSE to reduce the training signal"
+      ],
+      "correct": 1,
+      "explanation": "A 37+ percentage-point gap between train and test accuracy is a canonical overfitting (high-variance) symptom. L2 regularisation penalises large weights; dropout prevents co-adaptation of neurons by randomly zeroing activations during training; more data reduces overfitting by making the training distribution more representative. Option A worsens overfitting. Option C reduces capacity but risks underfitting — regularisation is preferred over architectural downscaling as a first step. Option D is unrelated to the overfitting diagnosis."
+    },
+    {
+      "question": "ElasticNet regularization was introduced to address a known limitation of Lasso. Which scenario most motivates choosing ElasticNet over pure Lasso?",
+      "options": [
+        "When you have many correlated features — Lasso arbitrarily selects one representative from each group, while ElasticNet can distribute weight across the group",
+        "When the dataset is very large and Lasso is too slow to converge",
+        "When all features are truly independent and uncorrelated with one another",
+        "When the target variable is categorical (classification) rather than continuous"
+      ],
+      "correct": 0,
+      "explanation": "Lasso's sparsity-inducing property breaks down with correlated predictors: among a group of highly correlated features, Lasso tends to select one arbitrarily and zero out the rest, discarding useful signal. ElasticNet (λ₁‖w‖₁ + λ₂‖w‖₂²) combines L1 sparsity with L2 grouping effect, allowing correlated features to share non-zero coefficients. This was the original motivation in Zou & Hastie (2005). Options B–D do not describe the key Lasso limitation that ElasticNet fixes."
+    },
+    {
+      "question": "A learning curve shows that both training error and validation error are high, close together, and do not diverge as training set size increases. What does this diagnose, and what is the correct remedy?",
+      "options": [
+        "Overfitting (high variance) — reduce regularisation or add more features so the model fits the data better",
+        "Underfitting (high bias) — the model lacks the capacity to capture the data structure; increase model complexity or add more expressive features",
+        "A data leakage problem — training and validation sets are too similar, causing artificially low generalisation gap",
+        "Optimal fit — equal train and validation error at any level indicates perfect calibration"
+      ],
+      "correct": 1,
+      "explanation": "When both curves converge to a high error with a small train/val gap, the model cannot fit the training data — a high-bias (underfitting) signature. Adding more training data will not help because the gap is already small. The remedy is to increase model capacity (deeper network, higher-degree polynomial, fewer regularisation constraints) or engineer more informative features. Overfitting (option A) shows a large train/val gap. Option C is a separate pathology identifiable through data auditing. Option D is wrong — 'equal errors' at a high level means the model is equally poor on both sets."
+    }
+  ],
+  "exercises": [
+    {
+      "prompt": "Implement k-fold cross-validation from scratch (without sklearn's KFold). Split the data into k=5 folds using array index slicing, train a LogisticRegression on each training partition, evaluate on the held-out fold, and collect fold accuracies. Store them in fold_accuracies (a numpy array) and compute mean_accuracy.",
+      "starter": "import numpy as np\nfrom sklearn.linear_model import LogisticRegression\n\nnp.random.seed(42)\nX = np.random.randn(100, 3)\ny = (X[:, 0] + X[:, 1] > 0).astype(int)\nk = 5\n\nfold_accuracies = []\nindices   = np.arange(len(X))\nfold_size = len(X) // k\n\nfor fold in range(k):\n    # TODO: compute val_indices and train_indices for this fold\n    # val_indices   = the fold-th slice of indices\n    # train_indices = everything else\n    val_indices   = None\n    train_indices = None\n\n    # TODO: fit LogisticRegression on train split, evaluate on val split\n    # append the accuracy to fold_accuracies\n    pass\n\nfold_accuracies = np.array(fold_accuracies)\nmean_accuracy   = None",
+      "solution": "import numpy as np\nfrom sklearn.linear_model import LogisticRegression\n\nnp.random.seed(42)\nX = np.random.randn(100, 3)\ny = (X[:, 0] + X[:, 1] > 0).astype(int)\nk = 5\n\nfold_accuracies = []\nindices   = np.arange(len(X))\nfold_size = len(X) // k\n\nfor fold in range(k):\n    val_indices   = indices[fold * fold_size : (fold + 1) * fold_size]\n    train_indices = np.concatenate([\n        indices[: fold * fold_size],\n        indices[(fold + 1) * fold_size :]\n    ])\n\n    X_train, X_val = X[train_indices], X[val_indices]\n    y_train, y_val = y[train_indices], y[val_indices]\n\n    model = LogisticRegression(random_state=0, max_iter=200)\n    model.fit(X_train, y_train)\n    fold_accuracies.append(model.score(X_val, y_val))\n\nfold_accuracies = np.array(fold_accuracies)\nmean_accuracy   = np.mean(fold_accuracies)",
+      "hints": [
+        "val_indices = indices[fold * fold_size : (fold + 1) * fold_size]. train_indices is everything before and after that slice — use np.concatenate.",
+        "Index into X and y using fancy indexing: X_train = X[train_indices], y_train = y[train_indices].",
+        "model.score(X_val, y_val) returns accuracy directly. Append it inside the loop, then convert fold_accuracies to a numpy array after the loop."
+      ],
+      "tests": [
+        "len(fold_accuracies) == 5",
+        "mean_accuracy > 0.7"
+      ]
+    },
+    {
+      "prompt": "Compare Ridge and Lasso regularization on a dataset where only 5 of 20 features are truly relevant. Fit both with alpha=0.1 on standardized data. Count how many Lasso coefficients are driven to (near-)zero and store in n_zero_lasso. Confirm Ridge drives fewer coefficients to zero.",
+      "starter": "import numpy as np\nfrom sklearn.linear_model import Ridge, Lasso\nfrom sklearn.preprocessing import StandardScaler\n\nnp.random.seed(42)\nn_features, n_samples = 20, 100\ntrue_coef = np.zeros(n_features)\ntrue_coef[:5] = [3.0, -2.0, 1.5, -1.0, 2.5]  # only first 5 features matter\n\nX = np.random.randn(n_samples, n_features)\ny = X @ true_coef + np.random.randn(n_samples) * 0.5\n\nscaler   = StandardScaler()\nX_scaled = scaler.fit_transform(X)\n\n# TODO: Fit Ridge and Lasso with alpha=0.1\nridge = None\nlasso = None\n\n# TODO: Count how many Lasso coefficients are effectively zero (|coef| < 1e-6)\nn_zero_lasso = None",
+      "solution": "import numpy as np\nfrom sklearn.linear_model import Ridge, Lasso\nfrom sklearn.preprocessing import StandardScaler\n\nnp.random.seed(42)\nn_features, n_samples = 20, 100\ntrue_coef = np.zeros(n_features)\ntrue_coef[:5] = [3.0, -2.0, 1.5, -1.0, 2.5]\n\nX = np.random.randn(n_samples, n_features)\ny = X @ true_coef + np.random.randn(n_samples) * 0.5\n\nscaler   = StandardScaler()\nX_scaled = scaler.fit_transform(X)\n\nridge = Ridge(alpha=0.1)\nridge.fit(X_scaled, y)\n\nlasso = Lasso(alpha=0.1, max_iter=5000)\nlasso.fit(X_scaled, y)\n\nn_zero_lasso = int(np.sum(np.abs(lasso.coef_) < 1e-6))",
+      "hints": [
+        "Instantiate Ridge(alpha=0.1) and Lasso(alpha=0.1), then call .fit(X_scaled, y) for each.",
+        "Access fitted coefficients via model.coef_ (shape: (n_features,)).",
+        "n_zero_lasso = np.sum(np.abs(lasso.coef_) < 1e-6). Lasso should zero out the 15 irrelevant features; Ridge will only shrink them."
+      ],
+      "tests": [
+        "n_zero_lasso > 5",
+        "int(np.sum(np.abs(ridge.coef_) < 1e-6)) < n_zero_lasso"
+      ]
+    },
+    {
+      "prompt": "Fit polynomial regression models of degrees [1, 3, 10, 20] on a noisy sinusoidal dataset and compute train/test MSE for each. Store results in train_mses and test_mses (numpy arrays). Find best_degree (the degree with lowest test MSE) and observe that high-degree models overfit: train error falls but test error rises.",
+      "starter": "import numpy as np\nfrom sklearn.preprocessing import PolynomialFeatures\nfrom sklearn.linear_model import LinearRegression\nfrom sklearn.metrics import mean_squared_error\n\nnp.random.seed(42)\nX = np.linspace(0, 1, 50).reshape(-1, 1)\ny = np.sin(2 * np.pi * X.ravel()) + np.random.randn(50) * 0.2\n\nX_train, X_test = X[:35], X[35:]\ny_train, y_test = y[:35], y[35:]\n\ndegrees    = [1, 3, 10, 20]\ntrain_mses = []\ntest_mses  = []\n\nfor degree in degrees:\n    # TODO: create PolynomialFeatures(degree, include_bias=False),\n    # fit_transform on train, transform on test,\n    # fit LinearRegression, compute and append MSE for train and test\n    pass\n\ntrain_mses  = np.array(train_mses)\ntest_mses   = np.array(test_mses)\nbest_degree = None  # degree with minimum test MSE",
+      "solution": "import numpy as np\nfrom sklearn.preprocessing import PolynomialFeatures\nfrom sklearn.linear_model import LinearRegression\nfrom sklearn.metrics import mean_squared_error\n\nnp.random.seed(42)\nX = np.linspace(0, 1, 50).reshape(-1, 1)\ny = np.sin(2 * np.pi * X.ravel()) + np.random.randn(50) * 0.2\n\nX_train, X_test = X[:35], X[35:]\ny_train, y_test = y[:35], y[35:]\n\ndegrees    = [1, 3, 10, 20]\ntrain_mses = []\ntest_mses  = []\n\nfor degree in degrees:\n    poly         = PolynomialFeatures(degree=degree, include_bias=False)\n    X_tr_poly    = poly.fit_transform(X_train)\n    X_te_poly    = poly.transform(X_test)\n    model        = LinearRegression()\n    model.fit(X_tr_poly, y_train)\n    train_mses.append(mean_squared_error(y_train, model.predict(X_tr_poly)))\n    test_mses.append(mean_squared_error(y_test,  model.predict(X_te_poly)))\n\ntrain_mses  = np.array(train_mses)\ntest_mses   = np.array(test_mses)\nbest_degree = degrees[int(np.argmin(test_mses))]",
+      "hints": [
+        "Use poly.fit_transform(X_train) to learn the feature mapping from training data, and poly.transform(X_test) to apply the same mapping to the test set — never fit on test data.",
+        "mean_squared_error(y_true, y_pred) computes the MSE. Append train and test MSEs inside the loop.",
+        "best_degree = degrees[np.argmin(test_mses)]. Expect train_mses to decrease monotonically with degree while test_mses first decreases then increases — the classic overfitting signature."
+      ],
+      "tests": [
+        "train_mses[-1] < train_mses[0]",
+        "test_mses[-1] > test_mses[1]"
+      ]
+    }
+  ]
+}
