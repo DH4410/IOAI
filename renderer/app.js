@@ -9,6 +9,9 @@ const state = {
   streak: 0,
   completed: new Set(),
   userName: '',
+  darkMode: false,
+  sidebarCollapsed: false,
+  lastLesson: null,
 };
 
 // ─── Storage ─────────────────────────────────────────────────────────────────
@@ -19,6 +22,9 @@ function progressToJSON() {
     streak: state.streak,
     lastDate: new Date().toDateString(),
     userName: state.userName,
+    darkMode: state.darkMode,
+    sidebarCollapsed: state.sidebarCollapsed,
+    lastLesson: state.lastLesson,
   });
 }
 
@@ -32,6 +38,9 @@ function applyProgressJSON(json) {
     const yesterday = new Date(Date.now() - 86400000).toDateString();
     if (d.lastDate === today || d.lastDate === yesterday) state.streak = d.streak || 0;
     else state.streak = 0;
+    if (d.darkMode != null) state.darkMode = d.darkMode;
+    if (d.sidebarCollapsed != null) state.sidebarCollapsed = d.sidebarCollapsed;
+    if (d.lastLesson) state.lastLesson = d.lastLesson;
   } catch (_) {}
 }
 
@@ -70,11 +79,11 @@ async function loadProgress() {
 // ─── Glossary Tooltips ────────────────────────────────────────────────────────
 const GLOSSARY = {
   'gradient': 'The direction of steepest increase of the loss. We move in the opposite direction during training.',
-  'gradients': 'Plural of gradient — the slopes that tell us how to update each weight.',
+  'gradients': 'Plural of gradient - the slopes that tell us how to update each weight.',
   'backpropagation': 'Algorithm that computes gradients by working backwards through the network, layer by layer.',
   'loss function': 'Measures how wrong the model\'s predictions are. Training tries to make this as small as possible.',
   'overfitting': 'When the model memorizes training data but fails on new examples it hasn\'t seen.',
-  'underfitting': 'When the model is too simple to capture the pattern — bad on both training and test data.',
+  'underfitting': 'When the model is too simple to capture the pattern - bad on both training and test data.',
   'regularization': 'A penalty added during training to keep weights small and prevent overfitting (e.g. L1, L2).',
   'learning rate': 'How big each step is during gradient descent. Too high = unstable, too low = very slow.',
   'epoch': 'One full pass through the entire training dataset.',
@@ -83,7 +92,7 @@ const GLOSSARY = {
   'bias': 'An extra learnable offset added to a neuron\'s output before the activation.',
   'activation function': 'Adds non-linearity to the network so it can learn complex patterns (e.g. ReLU, sigmoid).',
   'softmax': 'Converts raw scores into probabilities that sum to 1. Used in classification outputs.',
-  'ReLU': 'Rectified Linear Unit: max(0, x). The most common activation — simple and effective.',
+  'ReLU': 'Rectified Linear Unit: max(0, x). The most common activation - simple and effective.',
   'sigmoid': 'Maps any number to a value between 0 and 1. Useful for binary classification.',
   'tokenization': 'Breaking text into smaller pieces (tokens) that the model can process.',
   'embedding': 'A dense vector of numbers that represents a word or token in a way a model can use.',
@@ -96,18 +105,18 @@ const GLOSSARY = {
   'F1 score': 'Harmonic mean of precision and recall. Useful when classes are imbalanced.',
   'accuracy': 'The fraction of all predictions that were correct.',
   'decision tree': 'A model that makes predictions by asking a series of yes/no questions about the features.',
-  'random forest': 'An ensemble of many decision trees — reduces overfitting compared to a single tree.',
+  'random forest': 'An ensemble of many decision trees - reduces overfitting compared to a single tree.',
   'gradient boosting': 'Builds trees one at a time, each correcting the errors of the previous ones.',
   'ensemble': 'Combining multiple models to get better predictions than any single model alone.',
   'normalization': 'Scaling values to a common range, e.g. 0 to 1.',
   'standardization': 'Rescaling data to have mean 0 and standard deviation 1.',
-  'PCA': 'Principal Component Analysis — reduces the number of features while keeping as much variation as possible.',
+  'PCA': 'Principal Component Analysis - reduces the number of features while keeping as much variation as possible.',
   'dropout': 'Randomly disables neurons during training to prevent any single neuron from being over-relied on.',
   'batch normalization': 'Normalizes the activations within each mini-batch to stabilize and speed up training.',
   'fine-tuning': 'Starting from a pre-trained model and training it further on your specific task.',
   'transfer learning': 'Using knowledge a model gained from one task to help with a different task.',
   'hyperparameter': 'A setting you choose before training starts, like learning rate or number of layers.',
-  'perceptron': 'The simplest neural network unit — takes inputs, multiplies by weights, sums, applies a threshold.',
+  'perceptron': 'The simplest neural network unit - takes inputs, multiplies by weights, sums, applies a threshold.',
   'convolution': 'A filter that slides over an image to detect local patterns like edges or textures.',
 };
 
@@ -156,6 +165,76 @@ function addGlossaryTooltips(container) {
     if (last < text.length) frag.appendChild(document.createTextNode(text.slice(last)));
     textNode.parentNode.replaceChild(frag, textNode);
   }
+}
+
+// ─── Theme ────────────────────────────────────────────────────────────────────
+function applyTheme() {
+  document.documentElement.classList.toggle('dark', state.darkMode);
+}
+
+function toggleDarkMode() {
+  state.darkMode = !state.darkMode;
+  applyTheme();
+  saveProgress();
+}
+
+function toggleSidebar() {
+  state.sidebarCollapsed = !state.sidebarCollapsed;
+  document.getElementById('sidebar').classList.toggle('collapsed', state.sidebarCollapsed);
+  saveProgress();
+}
+
+// ─── Error parsing ────────────────────────────────────────────────────────────
+function parseError(raw) {
+  const lines = raw.split('\n').filter(l => l.trim());
+  const errorLine = [...lines].reverse().find(l =>
+    /^(\w*Error|SyntaxError|IndentationError|AssertionError)/.test(l.trim())
+  );
+  const lineRef = [...lines].reverse().find(l => l.trim().startsWith('File') && l.includes('line'));
+  const lineNum = lineRef?.match(/line (\d+)/)?.[1];
+  if (errorLine) return (lineNum ? `Line ${lineNum}: ` : '') + errorLine.trim();
+  return lines[lines.length - 1]?.trim() || raw;
+}
+
+// ─── Celebrations ─────────────────────────────────────────────────────────────
+function celebrate(anchorEl) {
+  const colors = ['#4f6ef7','#10b981','#f97316','#f59e0b','#8b5cf6','#ef4444','#06b6d4'];
+  const rect = anchorEl?.getBoundingClientRect?.() ?? { left: window.innerWidth/2, top: window.innerHeight/2, width: 0, height: 0 };
+  const cx = rect.left + rect.width / 2;
+  const cy = rect.top + rect.height / 2;
+  for (let i = 0; i < 40; i++) {
+    const p = document.createElement('div');
+    p.style.cssText = `position:fixed;pointer-events:none;z-index:9999;border-radius:${Math.random()>.5?'50%':'3px'};width:${6+Math.random()*7}px;height:${6+Math.random()*7}px;background:${colors[i%colors.length]};left:${cx}px;top:${cy}px;`;
+    document.body.appendChild(p);
+    const angle = Math.random() * Math.PI * 2;
+    const v = 80 + Math.random() * 220;
+    p.animate([
+      { transform: 'translate(0,0) rotate(0deg)', opacity: 1 },
+      { transform: `translate(${Math.cos(angle)*v}px,${Math.sin(angle)*v - 60}px) rotate(${Math.random()*720}deg)`, opacity: 0 }
+    ], { duration: 700 + Math.random()*600, easing: 'cubic-bezier(.25,.46,.45,.94)', fill: 'forwards' }).onfinish = () => p.remove();
+  }
+}
+
+function showXPGain(amount, anchorEl) {
+  const rect = anchorEl?.getBoundingClientRect?.() ?? { left: window.innerWidth/2, top: window.innerHeight/2, width: 0 };
+  const el = document.createElement('div');
+  el.className = 'xp-popup';
+  el.textContent = `+${amount} XP`;
+  el.style.left = (rect.left + (rect.width||0)/2) + 'px';
+  el.style.top = rect.top + 'px';
+  document.body.appendChild(el);
+  el.animate([
+    { transform: 'translateY(0) translateX(-50%) scale(0.8)', opacity: 0 },
+    { transform: 'translateY(-10px) translateX(-50%) scale(1.1)', opacity: 1, offset: 0.2 },
+    { transform: 'translateY(-55px) translateX(-50%) scale(1)', opacity: 0 }
+  ], { duration: 1200, fill: 'forwards' }).onfinish = () => el.remove();
+}
+
+// ─── Line numbers ─────────────────────────────────────────────────────────────
+function updateLineNums(textarea, numEl) {
+  const count = textarea.value.split('\n').length;
+  numEl.innerHTML = Array.from({ length: count }, (_, i) => `<div>${i + 1}</div>`).join('');
+  numEl.scrollTop = textarea.scrollTop;
 }
 
 // ─── Pyodide ─────────────────────────────────────────────────────────────────
@@ -348,7 +427,8 @@ function enhanceCodeBlocks(container) {
         btn.textContent = '▶ Run';
         if (error) {
           outputArea.className = 'code-output-area visible error';
-          outputArea.textContent = error;
+          const short = parseError(error);
+          outputArea.innerHTML = `<strong>${short}</strong><details style="margin-top:6px"><summary style="font-size:11px;cursor:pointer;color:#9ca3af">Full traceback</summary><pre style="margin-top:6px;font-size:11px;color:#9ca3af;white-space:pre-wrap">${error}</pre></details>`;
         } else {
           outputArea.className = 'code-output-area visible';
           outputArea.textContent = output;
@@ -395,7 +475,7 @@ function renderQuiz(quizData, container) {
         });
         if (chosen !== q.correct) opt.classList.add('wrong');
         explanation.classList.add('visible');
-        if (chosen === q.correct) { state.xp += 5; saveProgress(); }
+        if (chosen === q.correct) { state.xp += 5; saveProgress(); celebrate(opt); showXPGain(5, opt); }
       });
     });
 
@@ -423,9 +503,13 @@ function renderExercises(quizData, container) {
         <div class="exercise-prompt">${ex.prompt}</div>
       </div>
       <div class="exercise-editor">
-        <textarea class="editor-textarea" spellcheck="false" rows="${Math.max(5, (ex.starter || '').split('\n').length + 2)}">${ex.starter || '# Write your code here\n'}</textarea>
+        <div class="ide-editor-wrap">
+          <div class="ide-line-nums" aria-hidden="true"></div>
+          <textarea class="editor-textarea" spellcheck="false">${ex.starter || '# Write your code here\n'}</textarea>
+        </div>
         <div class="editor-actions">
-          <button class="btn-check-ex">Run &amp; Check</button>
+          <span class="editor-lang-tag">Python</span>
+          <button class="btn-check-ex">&#9654; Run &amp; Check</button>
           ${ex.hints?.length ? '<button class="btn-hint-ex">Hint</button>' : ''}
           <button class="btn-sol-ex">Show solution</button>
         </div>
@@ -435,9 +519,14 @@ function renderExercises(quizData, container) {
     `;
 
     const textarea = card.querySelector('.editor-textarea');
+    const numEl = card.querySelector('.ide-line-nums');
     const resultEl = card.querySelector('.exercise-result');
     const hintArea = card.querySelector('.hint-area');
     let hintIdx = 0;
+
+    updateLineNums(textarea, numEl);
+    textarea.addEventListener('input', () => updateLineNums(textarea, numEl));
+    textarea.addEventListener('scroll', () => { numEl.scrollTop = textarea.scrollTop; });
 
     textarea.addEventListener('keydown', e => {
       if (e.key === 'Tab') {
@@ -445,15 +534,16 @@ function renderExercises(quizData, container) {
         const s = textarea.selectionStart;
         textarea.value = textarea.value.substring(0, s) + '    ' + textarea.value.substring(textarea.selectionEnd);
         textarea.selectionStart = textarea.selectionEnd = s + 4;
+        updateLineNums(textarea, numEl);
       }
     });
 
     card.querySelector('.btn-check-ex').addEventListener('click', async () => {
       const btn = card.querySelector('.btn-check-ex');
       btn.disabled = true;
-      btn.textContent = 'Running…';
+      btn.textContent = 'Running...';
       resultEl.className = 'exercise-result visible output';
-      resultEl.textContent = 'Running…';
+      resultEl.textContent = 'Running...';
 
       let fullCode = textarea.value;
       if (ex.tests?.length) {
@@ -462,17 +552,22 @@ function renderExercises(quizData, container) {
 
       const { output, error } = await runPython(fullCode);
       btn.disabled = false;
-      btn.textContent = 'Run & Check';
+      btn.textContent = '▶ Run & Check';
 
       if (error) {
         const isFail = error.includes('AssertionError') || error.includes('Test failed');
         resultEl.className = 'exercise-result visible fail';
-        resultEl.textContent = isFail ? '✗ Not quite. Check your logic and try again.\n\n' + error : '✗ Error:\n' + error;
+        const short = parseError(error);
+        resultEl.innerHTML = isFail
+          ? `<div class="err-headline">Not quite - check your logic and try again</div><details class="err-details"><summary>Show error</summary><pre>${error}</pre></details>`
+          : `<div class="err-headline">${short}</div><details class="err-details"><summary>Full traceback</summary><pre>${error}</pre></details>`;
       } else {
         resultEl.className = 'exercise-result visible pass';
-        resultEl.textContent = '✓ Correct!' + (output && output !== '(no output)' ? '\n\nOutput:\n' + output : '');
+        resultEl.innerHTML = `<div class="pass-headline">Correct!</div>` + (output && output !== '(no output)' ? `<div class="pass-output">${output}</div>` : '');
         state.xp += 15;
         saveProgress();
+        celebrate(resultEl);
+        showXPGain(15, resultEl);
         toast('Exercise solved! +15 XP');
       }
     });
@@ -608,7 +703,9 @@ async function openLesson(trackId, lessonId) {
       state.streak++;
       saveProgress();
       refreshMarkBtn();
-      toast('Lesson complete! +50 XP 🎉');
+      celebrate(btnMark);
+      showXPGain(50, btnMark);
+      toast('Lesson complete! +50 XP');
     }
   };
 
@@ -643,6 +740,16 @@ async function openLesson(trackId, lessonId) {
   renderMath(contentEl);
   addGlossaryTooltips(contentEl);
   buildTOC(contentEl);
+
+  // Save + restore scroll position per lesson
+  state.lastLesson = { trackId, lessonId };
+  saveProgress();
+  const centerPanel = document.getElementById('lesson-center-panel');
+  const savedScroll = parseInt(localStorage.getItem(`ioai_scroll_${lessonId}`) || '0');
+  if (savedScroll > 0) setTimeout(() => { centerPanel.scrollTop = savedScroll; }, 120);
+  if (centerPanel._scrollSaver) centerPanel.removeEventListener('scroll', centerPanel._scrollSaver);
+  centerPanel._scrollSaver = () => localStorage.setItem(`ioai_scroll_${lessonId}`, centerPanel.scrollTop);
+  centerPanel.addEventListener('scroll', centerPanel._scrollSaver, { passive: true });
 
   // Load quiz
   const quizFile = lesson.file.replace('.md', '-quiz.json');
@@ -732,7 +839,7 @@ function renderHome() {
       <div class="goal-card">
         <div class="goal-label">Your goal</div>
         <div class="goal-title">International Olympiad in AI</div>
-        <div class="goal-desc">Master every track — from Python basics to neural networks — and compete at the world's top AI olympiad for students.</div>
+        <div class="goal-desc">Go from Python basics to neural networks and compete at the world's top AI olympiad for students.</div>
         ${nextLesson
           ? `<button class="btn-continue" id="btn-home-continue">Continue: ${nextLesson.title.slice(0, 30)}… →</button>`
           : '<div style="color:rgba(255,255,255,0.8);font-weight:600">🎉 All lessons complete!</div>'}
@@ -758,7 +865,7 @@ function renderHome() {
           </div>
           <div class="stat-row">
             <span class="stat-label">Day streak</span>
-            <span class="stat-value">${state.streak > 0 ? '🔥 ' + state.streak : '—'}</span>
+            <span class="stat-value">${state.streak > 0 ? '🔥 ' + state.streak : '-'}</span>
           </div>
           <div class="stat-row">
             <span class="stat-label">Tracks started</span>
@@ -1162,18 +1269,46 @@ function renderSettings() {
   view.innerHTML = `
     <div class="view-header">
       <h1>Settings</h1>
-      <p>Manage your profile and learning preferences.</p>
+      <p>Manage your profile and preferences.</p>
     </div>
-    <div style="max-width:480px;display:flex;flex-direction:column;gap:16px">
+    <div style="max-width:520px;display:flex;flex-direction:column;gap:16px;padding-bottom:32px">
+
       <div style="background:var(--white);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px">
-        <div style="font-weight:600;margin-bottom:14px">Profile</div>
+        <div style="font-weight:700;font-size:14px;margin-bottom:16px">Profile</div>
         <label style="font-size:13px;color:var(--text3);display:block;margin-bottom:6px">Your name</label>
         <input id="settings-name" class="modal-input" type="text" value="${state.userName}" placeholder="Enter your name" maxlength="30" style="margin-bottom:12px"/>
-        <button class="btn-save-notes" id="btn-save-name">Save changes</button>
+        <button class="btn-save-notes" id="btn-save-name">Save name</button>
       </div>
+
       <div style="background:var(--white);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px">
-        <div style="font-weight:600;margin-bottom:6px">Reset progress</div>
-        <div style="font-size:13px;color:var(--text3);margin-bottom:14px">Clear all completed lessons and XP. This cannot be undone.</div>
+        <div style="font-weight:700;font-size:14px;margin-bottom:16px">Appearance</div>
+
+        <div class="settings-row">
+          <div>
+            <div style="font-size:13px;font-weight:600">Dark mode</div>
+            <div style="font-size:12px;color:var(--text4);margin-top:2px">Switch to a dark background</div>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="toggle-dark" ${state.darkMode ? 'checked' : ''}>
+            <div class="toggle-track"><div class="toggle-thumb"></div></div>
+          </label>
+        </div>
+
+        <div class="settings-row" style="margin-top:14px">
+          <div>
+            <div style="font-size:13px;font-weight:600">Collapse sidebar</div>
+            <div style="font-size:12px;color:var(--text4);margin-top:2px">Show only icons on the left</div>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="toggle-sidebar" ${state.sidebarCollapsed ? 'checked' : ''}>
+            <div class="toggle-track"><div class="toggle-thumb"></div></div>
+          </label>
+        </div>
+      </div>
+
+      <div style="background:var(--white);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px">
+        <div style="font-weight:700;font-size:14px;margin-bottom:6px">Reset progress</div>
+        <div style="font-size:13px;color:var(--text3);margin-bottom:14px">Clear all completed lessons and XP. Cannot be undone.</div>
         <button id="btn-reset" style="background:var(--red-lt);border:1px solid var(--red);color:var(--red);padding:7px 18px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer">Reset all progress</button>
       </div>
     </div>
@@ -1183,11 +1318,14 @@ function renderSettings() {
     const name = view.querySelector('#settings-name').value.trim();
     if (!name) return;
     state.userName = name;
-    localStorage.setItem('ioai_name', name);
     document.getElementById('user-name-display').textContent = name;
     document.getElementById('user-avatar').textContent = name[0].toUpperCase();
+    saveProgress();
     toast('Name saved!');
   });
+
+  view.querySelector('#toggle-dark').addEventListener('change', toggleDarkMode);
+  view.querySelector('#toggle-sidebar').addEventListener('change', toggleSidebar);
 
   view.querySelector('#btn-reset').addEventListener('click', () => {
     if (!confirm('Reset all progress? This cannot be undone.')) return;
@@ -1237,11 +1375,18 @@ async function boot() {
   await loadCourses();
   configureMarked();
 
+  // Apply saved theme + sidebar state
+  applyTheme();
+  if (state.sidebarCollapsed) document.getElementById('sidebar').classList.add('collapsed');
+
   // Populate user info
   if (state.userName) {
     document.getElementById('user-name-display').textContent = state.userName;
     document.getElementById('user-avatar').textContent = state.userName[0].toUpperCase();
   }
+
+  // Sidebar collapse button
+  document.getElementById('btn-sidebar-toggle').addEventListener('click', toggleSidebar);
 
   // Wire up sidebar nav
   document.querySelectorAll('.nav-item[data-view]').forEach(item => {
