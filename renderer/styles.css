@@ -1185,3 +1185,34 @@ input, textarea { font-family: var(--font); }
 
 /* ─── Highlight.js override for inline feel ─────────────── */
 .hljs { background: transparent !important; padding: 0 !important; }
+
+/* ─── Glossary term tooltips ─────────────────────────────── */
+.gl {
+  border-bottom: 1px dashed var(--blue);
+  color: inherit;
+  cursor: help;
+  position: relative;
+}
+.gl::after {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--text);
+  color: #fff;
+  font-size: 12px;
+  line-height: 1.4;
+  padding: 7px 10px;
+  border-radius: 6px;
+  width: 240px;
+  white-space: normal;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+}
+.gl:hover::after {
+  opacity: 1;
+}

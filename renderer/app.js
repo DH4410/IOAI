@@ -12,24 +12,150 @@ const state = {
 };
 
 // ─── Storage ─────────────────────────────────────────────────────────────────
-function saveProgress() {
-  localStorage.setItem('ioai_completed', JSON.stringify([...state.completed]));
-  localStorage.setItem('ioai_xp', String(state.xp));
-  localStorage.setItem('ioai_streak', String(state.streak));
-  localStorage.setItem('ioai_last_date', new Date().toDateString());
+function progressToJSON() {
+  return JSON.stringify({
+    completed: [...state.completed],
+    xp: state.xp,
+    streak: state.streak,
+    lastDate: new Date().toDateString(),
+    userName: state.userName,
+  });
 }
 
-function loadProgress() {
-  const c = localStorage.getItem('ioai_completed');
-  if (c) state.completed = new Set(JSON.parse(c));
-  state.xp = parseInt(localStorage.getItem('ioai_xp') || '0');
-  state.userName = localStorage.getItem('ioai_name') || '';
-  const lastDate = localStorage.getItem('ioai_last_date');
-  const savedStreak = parseInt(localStorage.getItem('ioai_streak') || '0');
-  const yesterday = new Date(Date.now() - 86400000).toDateString();
-  const today = new Date().toDateString();
-  if (lastDate === today || lastDate === yesterday) state.streak = savedStreak;
-  else state.streak = 0;
+function applyProgressJSON(json) {
+  try {
+    const d = JSON.parse(json);
+    if (d.completed) state.completed = new Set(d.completed);
+    if (d.xp != null) state.xp = d.xp;
+    if (d.userName) state.userName = d.userName;
+    const today = new Date().toDateString();
+    const yesterday = new Date(Date.now() - 86400000).toDateString();
+    if (d.lastDate === today || d.lastDate === yesterday) state.streak = d.streak || 0;
+    else state.streak = 0;
+  } catch (_) {}
+}
+
+function saveProgress() {
+  const json = progressToJSON();
+  // Write to file (persists across reinstalls)
+  window.api.saveData(json);
+  // Also keep localStorage as fast cache
+  localStorage.setItem('ioai_progress', json);
+}
+
+async function loadProgress() {
+  // File storage is source of truth; localStorage is fallback
+  let json = await window.api.loadData();
+  if (!json) json = localStorage.getItem('ioai_progress');
+  // Legacy fallback for older installs
+  if (!json) {
+    const c = localStorage.getItem('ioai_completed');
+    if (c) {
+      state.completed = new Set(JSON.parse(c));
+      state.xp = parseInt(localStorage.getItem('ioai_xp') || '0');
+      state.userName = localStorage.getItem('ioai_name') || '';
+      const lastDate = localStorage.getItem('ioai_last_date');
+      const savedStreak = parseInt(localStorage.getItem('ioai_streak') || '0');
+      const yesterday = new Date(Date.now() - 86400000).toDateString();
+      const today = new Date().toDateString();
+      if (lastDate === today || lastDate === yesterday) state.streak = savedStreak;
+      else state.streak = 0;
+      saveProgress(); // migrate to new format
+    }
+    return;
+  }
+  applyProgressJSON(json);
+}
+
+// ─── Glossary Tooltips ────────────────────────────────────────────────────────
+const GLOSSARY = {
+  'gradient': 'The direction of steepest increase of the loss. We move in the opposite direction during training.',
+  'gradients': 'Plural of gradient — the slopes that tell us how to update each weight.',
+  'backpropagation': 'Algorithm that computes gradients by working backwards through the network, layer by layer.',
+  'loss function': 'Measures how wrong the model\'s predictions are. Training tries to make this as small as possible.',
+  'overfitting': 'When the model memorizes training data but fails on new examples it hasn\'t seen.',
+  'underfitting': 'When the model is too simple to capture the pattern — bad on both training and test data.',
+  'regularization': 'A penalty added during training to keep weights small and prevent overfitting (e.g. L1, L2).',
+  'learning rate': 'How big each step is during gradient descent. Too high = unstable, too low = very slow.',
+  'epoch': 'One full pass through the entire training dataset.',
+  'batch': 'A small chunk of training examples processed together in one forward + backward pass.',
+  'weight': 'A learnable number the model adjusts during training to improve its predictions.',
+  'bias': 'An extra learnable offset added to a neuron\'s output before the activation.',
+  'activation function': 'Adds non-linearity to the network so it can learn complex patterns (e.g. ReLU, sigmoid).',
+  'softmax': 'Converts raw scores into probabilities that sum to 1. Used in classification outputs.',
+  'ReLU': 'Rectified Linear Unit: max(0, x). The most common activation — simple and effective.',
+  'sigmoid': 'Maps any number to a value between 0 and 1. Useful for binary classification.',
+  'tokenization': 'Breaking text into smaller pieces (tokens) that the model can process.',
+  'embedding': 'A dense vector of numbers that represents a word or token in a way a model can use.',
+  'embeddings': 'Dense vector representations of words or tokens that capture meaning and relationships.',
+  'attention': 'A mechanism that lets the model decide which parts of the input to focus on.',
+  'transformer': 'A neural network architecture built entirely on attention, with no recurrence. Powers BERT, GPT, etc.',
+  'cross-entropy': 'A loss function for classification that penalizes wrong confident predictions more harshly.',
+  'precision': 'Of all the positive predictions made, how many were actually positive?',
+  'recall': 'Of all the actual positives in the data, how many did the model find?',
+  'F1 score': 'Harmonic mean of precision and recall. Useful when classes are imbalanced.',
+  'accuracy': 'The fraction of all predictions that were correct.',
+  'decision tree': 'A model that makes predictions by asking a series of yes/no questions about the features.',
+  'random forest': 'An ensemble of many decision trees — reduces overfitting compared to a single tree.',
+  'gradient boosting': 'Builds trees one at a time, each correcting the errors of the previous ones.',
+  'ensemble': 'Combining multiple models to get better predictions than any single model alone.',
+  'normalization': 'Scaling values to a common range, e.g. 0 to 1.',
+  'standardization': 'Rescaling data to have mean 0 and standard deviation 1.',
+  'PCA': 'Principal Component Analysis — reduces the number of features while keeping as much variation as possible.',
+  'dropout': 'Randomly disables neurons during training to prevent any single neuron from being over-relied on.',
+  'batch normalization': 'Normalizes the activations within each mini-batch to stabilize and speed up training.',
+  'fine-tuning': 'Starting from a pre-trained model and training it further on your specific task.',
+  'transfer learning': 'Using knowledge a model gained from one task to help with a different task.',
+  'hyperparameter': 'A setting you choose before training starts, like learning rate or number of layers.',
+  'perceptron': 'The simplest neural network unit — takes inputs, multiplies by weights, sums, applies a threshold.',
+  'convolution': 'A filter that slides over an image to detect local patterns like edges or textures.',
+};
+
+function addGlossaryTooltips(container) {
+  const terms = Object.keys(GLOSSARY).sort((a, b) => b.length - a.length);
+  const escaped = terms.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  const pattern = new RegExp(`\\b(${escaped.join('|')})\\b`, 'gi');
+
+  const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, {
+    acceptNode(node) {
+      let el = node.parentElement;
+      while (el && el !== container) {
+        if (['CODE', 'PRE', 'SCRIPT', 'STYLE', 'A', 'H1', 'H2', 'H3'].includes(el.tagName)
+            || el.classList.contains('gl')) return NodeFilter.FILTER_REJECT;
+        el = el.parentElement;
+      }
+      return NodeFilter.FILTER_ACCEPT;
+    }
+  });
+
+  const textNodes = [];
+  let node;
+  while ((node = walker.nextNode())) {
+    if (pattern.test(node.textContent)) textNodes.push(node);
+    pattern.lastIndex = 0;
+  }
+
+  for (const textNode of textNodes) {
+    const text = textNode.textContent;
+    pattern.lastIndex = 0;
+    if (!pattern.test(text)) continue;
+    pattern.lastIndex = 0;
+
+    const frag = document.createDocumentFragment();
+    let last = 0, match;
+    while ((match = pattern.exec(text)) !== null) {
+      if (match.index > last) frag.appendChild(document.createTextNode(text.slice(last, match.index)));
+      const key = Object.keys(GLOSSARY).find(k => k.toLowerCase() === match[0].toLowerCase()) || match[0];
+      const span = document.createElement('span');
+      span.className = 'gl';
+      span.dataset.tip = GLOSSARY[key] || '';
+      span.textContent = match[0];
+      frag.appendChild(span);
+      last = match.index + match[0].length;
+    }
+    if (last < text.length) frag.appendChild(document.createTextNode(text.slice(last)));
+    textNode.parentNode.replaceChild(frag, textNode);
+  }
 }
 
 // ─── Pyodide ─────────────────────────────────────────────────────────────────
@@ -515,6 +641,7 @@ async function openLesson(trackId, lessonId) {
   contentEl.innerHTML = marked.parse(body);
   enhanceCodeBlocks(contentEl);
   renderMath(contentEl);
+  addGlossaryTooltips(contentEl);
   buildTOC(contentEl);
 
   // Load quiz
@@ -1106,7 +1233,7 @@ async function boot() {
   pyScript.src = 'https://cdn.jsdelivr.net/pyodide/v0.26.2/full/pyodide.js';
   document.head.appendChild(pyScript);
 
-  loadProgress();
+  await loadProgress();
   await loadCourses();
   configureMarked();
 

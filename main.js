@@ -8,7 +8,7 @@ function createWindow() {
     height: 800,
     minWidth: 900,
     minHeight: 600,
-    title: 'IOAI Learning Platform',
+    title: 'Road to IOAI',
     backgroundColor: '#0a0a0a',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -38,6 +38,26 @@ ipcMain.handle('list-files', (_, relDir) => {
   const abs = path.join(__dirname, relDir);
   if (!fs.existsSync(abs)) return [];
   return fs.readdirSync(abs).filter(f => !f.startsWith('.'));
+});
+
+// Persistent file-based progress (survives app reinstalls)
+const progressFile = path.join(app.getPath('userData'), 'progress.json');
+
+ipcMain.handle('load-data', () => {
+  try {
+    if (fs.existsSync(progressFile)) return fs.readFileSync(progressFile, 'utf8');
+  } catch (_) {}
+  return null;
+});
+
+ipcMain.handle('save-data', (_, json) => {
+  try {
+    fs.mkdirSync(path.dirname(progressFile), { recursive: true });
+    fs.writeFileSync(progressFile, json, 'utf8');
+    return true;
+  } catch (_) {
+    return false;
+  }
 });
 
 app.whenReady().then(createWindow);

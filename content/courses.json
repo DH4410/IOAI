@@ -4,7 +4,7 @@
       "id": "python",
       "name": "Python Basics",
       "icon": "🐍",
-      "description": "Learn Python from scratch. Variables, loops, functions, classes, and libraries like numpy and pandas.",
+      "description": "Start from zero. Write your first line of code, then build up to numpy and pandas — the tools you'll use in every other track.",
       "totalTime": 420,
       "requiresPrev": false,
       "lessons": [
@@ -25,7 +25,7 @@
       "id": "math",
       "name": "Math for AI",
       "icon": "∑",
-      "description": "The essential math behind AI: linear algebra, calculus, probability, and information theory.",
+      "description": "The math that makes AI work. Vectors, derivatives, probability — explained with code examples, not just formulas.",
       "totalTime": 300,
       "requiresPrev": true,
       "lessons": [
@@ -41,7 +41,7 @@
       "id": "ml",
       "name": "Classical ML",
       "icon": "📊",
-      "description": "Supervised learning, decision trees, SVMs, ensembles, and evaluation. The foundation of competition ML.",
+      "description": "Linear regression, decision trees, random forests, gradient boosting. The bread and butter of competition ML.",
       "totalTime": 380,
       "requiresPrev": true,
       "lessons": [
@@ -60,7 +60,7 @@
       "id": "nn",
       "name": "Neural Networks",
       "icon": "🧠",
-      "description": "Perceptrons, backpropagation, activations, optimizers, and how to train your first neural network with PyTorch.",
+      "description": "How neural networks actually learn. Build them from scratch, get backprop to click, then write real PyTorch training loops.",
       "totalTime": 400,
       "requiresPrev": true,
       "lessons": [
@@ -78,7 +78,7 @@
       "id": "cv",
       "name": "Computer Vision",
       "icon": "👁",
-      "description": "Images as tensors, CNNs, transfer learning, YOLO object detection, Vision Transformers, and CLIP.",
+      "description": "Make models that see. From pixel arrays to CNNs to Vision Transformers — plus how CLIP links images to language.",
       "totalTime": 450,
       "requiresPrev": true,
       "lessons": [
@@ -95,7 +95,7 @@
       "id": "nlp",
       "name": "NLP",
       "icon": "💬",
-      "description": "Text processing, tokenization, word embeddings, attention, and transformers. From TF-IDF to fine-tuning BERT.",
+      "description": "Text → tokens → embeddings → attention → BERT. How language models are built, one step at a time.",
       "totalTime": 420,
       "requiresPrev": true,
       "lessons": [
@@ -112,7 +112,7 @@
       "id": "ioai",
       "name": "IOAI Competition",
       "icon": "🏆",
-      "description": "Compete at the international level. Strategy, baselines, past problems, and the full IOAI playbook.",
+      "description": "The IOAI playbook. Rules, strategy, how to build a fast baseline, and full walkthroughs of the 2024 and 2025 problems.",
       "totalTime": 360,
       "requiresPrev": true,
       "lessons": [
