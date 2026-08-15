@@ -26,10 +26,11 @@
   --text4:      #9ca3af;
   --border:     rgba(0,0,0,0.07);
   --border2:    rgba(0,0,0,0.12);
-  --shadow-sm:  0 1px 3px rgba(0,0,0,0.06);
-  --shadow:     0 2px 8px rgba(0,0,0,0.07);
-  --shadow-md:  0 6px 20px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.04);
-  --shadow-lg:  0 16px 40px rgba(0,0,0,0.10), 0 4px 12px rgba(0,0,0,0.06);
+  --shadow-sm:  none;
+  --shadow:     none;
+  --shadow-md:  none;
+  --shadow-lg:  0 20px 60px rgba(0,0,0,0.12);
+  --ease:       cubic-bezier(0.16, 1, 0.3, 1);
   --radius-sm:  8px;
   --radius:     10px;
   --radius-lg:  16px;
@@ -56,19 +57,25 @@ html.dark {
   --orange-lt: rgba(249,115,22,0.12);
   --red-lt: rgba(239,68,68,0.12);
   --purple-lt: rgba(139,92,246,0.12);
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.4);
-  --shadow: 0 2px 8px rgba(0,0,0,0.5);
-  --shadow-md: 0 6px 20px rgba(0,0,0,0.5), 0 2px 6px rgba(0,0,0,0.3);
-  --shadow-lg: 0 16px 40px rgba(0,0,0,0.6), 0 4px 12px rgba(0,0,0,0.4);
+  --shadow-sm: none;
+  --shadow: none;
+  --shadow-md: none;
+  --shadow-lg: 0 20px 60px rgba(0,0,0,0.5);
 }
 
 /* ─── Reset ──────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { height: 100%; overflow: hidden; }
-body { background: var(--bg); color: var(--text); font-family: var(--font); font-size: 14px; line-height: 1.5; -webkit-font-smoothing: antialiased; letter-spacing: -0.01em; }
+body { background: var(--bg); color: var(--text); font-family: var(--font); font-size: 14px; line-height: 1.5; -webkit-font-smoothing: antialiased; letter-spacing: -0.015em; }
 a { color: inherit; text-decoration: none; }
-button { cursor: pointer; font-family: var(--font); }
+button { cursor: pointer; font-family: var(--font); transition: opacity 0.2s var(--ease), transform 0.25s var(--ease); }
 input, textarea { font-family: var(--font); }
+
+/* Smooth page-level transitions */
+.view { transition: opacity 0.2s var(--ease); }
+.nav-item, .lesson-card, .roadmap-track-card, .ai-track-item, .track-lesson-row, .continue-lesson-item {
+  transition: background 0.2s var(--ease), color 0.2s var(--ease), transform 0.25s var(--ease), box-shadow 0.25s var(--ease);
+}
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
 ::-webkit-scrollbar-track { background: transparent; }
@@ -128,14 +135,15 @@ input, textarea { font-family: var(--font); }
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 8px 10px;
+  padding: 9px 10px;
   border-radius: var(--radius);
-  font-size: 13.5px;
+  font-size: 13px;
   font-weight: 500;
-  color: rgba(255,255,255,0.45);
+  color: rgba(255,255,255,0.42);
   cursor: pointer;
-  transition: background 0.12s, color 0.12s, transform 0.1s;
-  margin-bottom: 1px;
+  transition: background 0.2s var(--ease), color 0.2s var(--ease);
+  margin-bottom: 2px;
+  letter-spacing: -0.01em;
 }
 .nav-item:hover { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.85); }
 .nav-item:active { transform: scale(0.97); }
@@ -206,10 +214,9 @@ input, textarea { font-family: var(--font); }
   background: #0A0A0A;
   color: white;
   border-radius: var(--radius-xl);
-  padding: 24px;
+  padding: 28px;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
 }
 .goal-card::after {
   content: '';
@@ -231,8 +238,8 @@ input, textarea { font-family: var(--font); }
   gap: 6px;
 }
 .goal-label::before { content: '🎯'; font-size: 12px; }
-.goal-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
-.goal-desc { font-size: 13px; color: rgba(255,255,255,0.65); margin-bottom: 20px; line-height: 1.5; }
+.goal-title { font-size: 20px; font-weight: 800; margin-bottom: 8px; letter-spacing: -0.4px; }
+.goal-desc { font-size: 13px; color: rgba(255,255,255,0.5); margin-bottom: 22px; line-height: 1.6; }
 .btn-continue {
   background: white;
   color: #111111;
@@ -257,7 +264,6 @@ input, textarea { font-family: var(--font); }
   display: flex;
   gap: 24px;
   align-items: center;
-  box-shadow: var(--shadow-md);
 }
 .progress-circle-wrap { position: relative; flex-shrink: 0; }
 .progress-circle-svg { width: 90px; height: 90px; transform: rotate(-90deg); }
@@ -289,9 +295,8 @@ input, textarea { font-family: var(--font); }
   border: none;
   border-radius: var(--radius-xl);
   padding: 20px;
-  box-shadow: var(--shadow-md);
 }
-.card-title { font-size: 13px; font-weight: 600; color: var(--text2); margin-bottom: 14px; }
+.card-title { font-size: 11px; font-weight: 700; color: var(--text4); margin-bottom: 14px; text-transform: uppercase; letter-spacing: 0.06em; }
 
 .continue-lesson-item {
   display: flex;
@@ -338,7 +343,6 @@ input, textarea { font-family: var(--font); }
   border: none;
   border-radius: var(--radius-xl);
   padding: 20px;
-  box-shadow: var(--shadow-md);
 }
 .upcoming-item {
   display: flex;
@@ -359,10 +363,9 @@ input, textarea { font-family: var(--font); }
   background: #0A0A0A;
   color: white;
   border-radius: var(--radius-xl);
-  padding: 20px;
+  padding: 22px;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
 }
 .challenge-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
 .challenge-label { font-size: 12px; font-weight: 700; opacity: 0.55; text-transform: uppercase; letter-spacing: 0.6px; }
@@ -440,10 +443,8 @@ input, textarea { font-family: var(--font); }
   border: none;
   border-radius: var(--radius-lg);
   overflow: hidden;
-  transition: box-shadow 0.2s, transform 0.2s;
-  box-shadow: var(--shadow);
 }
-.roadmap-track-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-1px); }
+.roadmap-track-card:hover { transform: translateY(-1px); }
 
 .roadmap-track-header {
   display: flex;
@@ -546,12 +547,10 @@ input, textarea { font-family: var(--font); }
   background: var(--white);
   border: none;
   border-radius: var(--radius-lg);
-  padding: 18px;
+  padding: 20px;
   cursor: pointer;
-  transition: all 0.2s;
-  box-shadow: var(--shadow);
 }
-.lesson-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-2px); }
+.lesson-card:hover { transform: translateY(-2px); }
 .lesson-card-icon { font-size: 22px; margin-bottom: 10px; }
 .lesson-card-track { font-size: 11px; color: var(--text4); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
 .lesson-card-title { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
@@ -570,12 +569,11 @@ input, textarea { font-family: var(--font); }
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 20px;
+  padding: 10px 24px;
   background: var(--white);
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
   gap: 16px;
-  box-shadow: 0 1px 0 var(--border);
 }
 #lesson-breadcrumb {
   font-size: 13px;
@@ -642,13 +640,13 @@ input, textarea { font-family: var(--font); }
   padding: 16px 0;
 }
 .panel-label {
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 10px;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.6px;
+  letter-spacing: 0.08em;
   color: var(--text4);
   padding: 0 16px;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 #lesson-toc-list { padding: 0 8px; }
 .toc-item {
@@ -679,7 +677,7 @@ input, textarea { font-family: var(--font); }
   border-right: 1px solid var(--border);
 }
 #lesson-title-row { padding: 24px 32px 0; }
-#lesson-title-heading { font-size: 24px; font-weight: 700; letter-spacing: -0.4px; color: var(--text); }
+#lesson-title-heading { font-size: 26px; font-weight: 800; letter-spacing: -0.6px; color: var(--text); line-height: 1.2; }
 
 /* Tabs */
 #lesson-tabs {
@@ -882,8 +880,7 @@ input, textarea { font-family: var(--font); }
   background: var(--white);
   border: none;
   border-radius: var(--radius);
-  padding: 14px;
-  box-shadow: var(--shadow);
+  padding: 16px;
 }
 .qp-label {
   font-size: 11px;
@@ -916,7 +913,6 @@ input, textarea { font-family: var(--font); }
   border-radius: var(--radius-lg);
   overflow: hidden;
   margin-bottom: 20px;
-  box-shadow: var(--shadow-md);
 }
 .exercise-header { padding: 16px 20px 0; }
 .exercise-num { font-size: 11px; color: var(--text4); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
@@ -1073,9 +1069,8 @@ input, textarea { font-family: var(--font); }
   background: var(--white);
   border: none;
   border-radius: var(--radius-lg);
-  padding: 18px;
+  padding: 20px;
   margin-bottom: 14px;
-  box-shadow: var(--shadow);
 }
 .quiz-q-text { font-size: 14px; font-weight: 500; margin-bottom: 14px; line-height: 1.6; color: var(--text); }
 .quiz-q-text code { font-family: var(--mono); font-size: 13px; background: var(--bg); border: 1px solid var(--border); padding: 1px 5px; border-radius: 4px; color: #c7254e; }
@@ -1135,15 +1130,13 @@ input, textarea { font-family: var(--font); }
   background: var(--white);
   border: none;
   border-radius: var(--radius-lg);
-  padding: 16px 20px;
+  padding: 18px 22px;
   display: flex;
   align-items: center;
   gap: 16px;
   cursor: pointer;
-  transition: box-shadow 0.2s, transform 0.2s;
-  box-shadow: var(--shadow);
 }
-.ai-track-item:hover { box-shadow: var(--shadow-lg); transform: translateY(-1px); }
+.ai-track-item:hover { transform: translateY(-1px); }
 .ai-item-icon {
   width: 42px; height: 42px;
   border-radius: 10px;
@@ -1169,7 +1162,7 @@ input, textarea { font-family: var(--font); }
 .skill-pct { font-size: 12px; font-weight: 600; color: var(--text3); width: 35px; text-align: right; }
 
 /* Settings */
-.settings-group { background: var(--white); border: none; border-radius: var(--radius-lg); padding: 20px; margin-bottom: 16px; max-width: 500px; box-shadow: var(--shadow-md); }
+.settings-group { background: var(--white); border: none; border-radius: var(--radius-lg); padding: 22px; margin-bottom: 16px; max-width: 500px; }
 .settings-group-title { font-size: 13px; font-weight: 600; color: var(--text2); margin-bottom: 16px; }
 .settings-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
 .settings-row:last-child { margin-bottom: 0; }
@@ -1203,22 +1196,21 @@ input, textarea { font-family: var(--font); }
 ═══════════════════════════════════════════════════════════ */
 .modal-overlay {
   position: fixed; inset: 0;
-  background: rgba(0,0,0,0.35);
+  background: rgba(0,0,0,0.25);
   display: flex; align-items: center; justify-content: center;
   z-index: 1000;
-  backdrop-filter: blur(2px);
+  backdrop-filter: blur(8px);
 }
 .modal-box {
   background: #0A0A0A;
   color: white;
-  border-radius: 24px;
-  padding: 36px;
-  width: 400px;
-  box-shadow: 0 24px 80px rgba(0,0,0,0.35);
-  animation: modal-in 0.25s cubic-bezier(0.34,1.56,0.64,1);
-  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 28px;
+  padding: 40px;
+  width: 420px;
+  animation: modal-in 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1px solid rgba(255,255,255,0.09);
 }
-@keyframes modal-in { from { transform: scale(0.9); opacity: 0; } }
+@keyframes modal-in { from { transform: scale(0.94) translateY(8px); opacity: 0; } }
 .modal-title { font-size: 22px; font-weight: 800; margin-bottom: 6px; letter-spacing: -0.4px; color: white; }
 .modal-desc { font-size: 14px; color: rgba(255,255,255,0.5); margin-bottom: 24px; }
 .modal-input {
