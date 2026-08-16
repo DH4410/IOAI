@@ -9,7 +9,7 @@ function createWindow() {
     minWidth: 900,
     minHeight: 600,
     title: 'IOAI Prep',
-    backgroundColor: '#0a0a0a',
+    backgroundColor: '#F4F5FA',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,

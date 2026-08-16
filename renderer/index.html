@@ -14,10 +14,12 @@
   <!-- ───────── Sidebar ───────── -->
   <aside id="sidebar">
     <div id="sidebar-logo">
-      <span class="logo-mark">◆</span>
+      <span class="logo-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c0 1.1 2.7 2.5 6 2.5s6-1.4 6-2.5v-5"/></svg>
+      </span>
       <span class="logo-name">IOAI Prep</span>
       <button id="btn-sidebar-toggle" title="Toggle sidebar">
-        <svg viewBox="0 0 20 20" style="width:16px;height:16px"><path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/></svg>
+        <svg viewBox="0 0 20 20" style="width:16px;height:16px" fill="currentColor"><path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/></svg>
       </button>
     </div>
 
@@ -93,8 +95,15 @@
       </div>
       <div id="lesson-layout">
         <aside id="lesson-toc-panel">
-          <div class="panel-label">Lesson Content</div>
+          <div class="panel-label">Lesson Outline</div>
           <div id="lesson-toc-list"></div>
+          <div id="lesson-progress-box">
+            <div class="lp-row">
+              <span class="lp-label">Lesson Progress</span>
+              <span class="lp-pct" id="lesson-progress-pct">0%</span>
+            </div>
+            <div class="lp-bar"><div class="lp-fill" id="lesson-progress-fill" style="width:0%"></div></div>
+          </div>
         </aside>
         <div id="lesson-center-panel">
           <div id="lesson-title-row">
@@ -118,7 +127,7 @@
           </div>
         </div>
         <aside id="lesson-right-panel">
-          <div class="panel-label">In this lesson</div>
+          <div class="panel-label">In This Lesson</div>
           <div id="lesson-outline"></div>
           <div id="quick-practice-card" style="display:none">
             <div class="qp-label">Quick Practice</div>

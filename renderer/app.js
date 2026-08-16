@@ -603,6 +603,12 @@ function renderExercises(quizData, container, lessonId) {
 }
 
 // ─── TOC Builder ─────────────────────────────────────────────────────────────
+function setLessonProgress(pct) {
+  const p = Math.max(0, Math.min(100, Math.round(pct)));
+  document.getElementById('lesson-progress-pct').textContent = `${p}%`;
+  document.getElementById('lesson-progress-fill').style.width = `${p}%`;
+}
+
 function buildTOC(contentEl) {
   const headings = [...contentEl.querySelectorAll('h2, h3')];
   const tocList = document.getElementById('lesson-toc-list');
@@ -638,15 +644,19 @@ function buildTOC(contentEl) {
   const outItems = [...outlineEl.querySelectorAll('.outline-item')];
   const centerPanel = document.getElementById('lesson-center-panel');
 
+  setLessonProgress(headings.length ? (1 / headings.length) * 100 : 0);
+
   const obs = new IntersectionObserver(entries => {
     entries.forEach(entry => {
       if (!entry.isIntersecting) return;
       const idx = headings.indexOf(entry.target);
       if (idx < 0) return;
-      tocItems.forEach(t => t.classList.remove('active'));
-      outItems.forEach(t => t.classList.remove('active'));
-      tocItems[idx]?.classList.add('active');
-      outItems[idx]?.classList.add('active');
+      tocItems.forEach((t, i) => {
+        t.classList.toggle('active', i === idx);
+        t.classList.toggle('done', i < idx);
+      });
+      outItems.forEach((t, i) => t.classList.toggle('active', i === idx));
+      setLessonProgress(((idx + 1) / headings.length) * 100);
     });
   }, { root: centerPanel, threshold: 0.2 });
 
@@ -675,8 +685,7 @@ async function openLesson(trackId, lessonId) {
   // Breadcrumb
   const breadcrumb = document.getElementById('lesson-breadcrumb');
   breadcrumb.innerHTML = `
-    <span class="bc-link">Roadmap</span>
-    <span class="bc-sep">›</span>
+    <span class="bc-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c0 1.1 2.7 2.5 6 2.5s6-1.4 6-2.5v-5"/></svg></span>
     <span class="bc-link">${track.name}</span>
     <span class="bc-sep">›</span>
     <span class="bc-current">${lesson.title}</span>
@@ -701,6 +710,7 @@ async function openLesson(trackId, lessonId) {
     const done = state.completed.has(lessonId);
     btnMark.textContent = done ? '✓ Completed' : '✓ Mark Complete';
     btnMark.className = done ? 'btn-mark-complete done' : 'btn-mark-complete';
+    if (done) setLessonProgress(100);
   }
   refreshMarkBtn();
 
@@ -725,6 +735,7 @@ async function openLesson(trackId, lessonId) {
   contentEl.innerHTML = '<div style="color:var(--text4);padding:24px 0 40px">Loading…</div>';
   document.getElementById('lesson-toc-list').innerHTML = '';
   document.getElementById('lesson-outline').innerHTML = '';
+  setLessonProgress(state.completed.has(lessonId) ? 100 : 0);
   document.getElementById('lesson-center-panel').scrollTop = 0;
 
   // Load markdown
@@ -821,7 +832,7 @@ function renderHome() {
     resumeTarget = { track: nextTrack, lesson: nextLesson };
   }
 
-  // Upcoming (first 3 incomplete)
+  // Upcoming (first 4 incomplete)
   const upcoming = [];
   for (const track of state.courses.tracks) {
     for (const lesson of track.lessons) {
@@ -831,6 +842,19 @@ function renderHome() {
     }
     if (upcoming.length >= 4) break;
   }
+
+  // Recommended (further along the path)
+  const remaining = [];
+  for (const track of state.courses.tracks) {
+    for (const lesson of track.lessons) {
+      if (!state.completed.has(lesson.id)) remaining.push({ track, lesson });
+    }
+  }
+  const recReasons = ['Next up in your path', 'Builds on what you just learned', 'Strengthens your fundamentals'];
+  const recTones = ['sky', 'emerald', 'amber'];
+  const recIcons = ['📘', '🧠', '⚡'];
+  const recommended = (remaining.length > 7 ? remaining.slice(4, 7) : remaining.slice(0, 3))
+    .map((r, i) => ({ ...r, reason: recReasons[i], tone: recTones[i], icon: recIcons[i] }));
 
   // Daily challenge
   const challenges = [
@@ -847,27 +871,37 @@ function renderHome() {
   // SVG rings
   const rSm = 11, circSm = 2 * Math.PI * rSm;
   const offsetSm = circSm - (pct / 100) * circSm;
-  const r = 33, circ = 2 * Math.PI * r;
+  const r = 40, circ = 2 * Math.PI * r;
   const offset = circ - (pct / 100) * circ;
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
 
+  const ICON_BOOK = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>';
+  const ICON_ZAP = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>';
+  const ICON_TARGET = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5"/></svg>';
+  const ICON_MOON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>';
+  const ICON_SUN = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
+
+  const dailyGoalDone = Math.min(state.completed.size, 3);
+
   view.innerHTML = `
+    <div class="home-wrap">
     <div class="home-topbar">
       <div class="home-greeting">
-        <h2>${greeting}, ${state.userName || 'Student'}! 👋</h2>
+        <h2>${greeting}, ${state.userName || 'Student'} 👋</h2>
         <p>You're ${pct}% of the way to IOAI-ready.</p>
       </div>
       <div class="home-topbar-right">
         ${state.streak > 0 ? '<div class="stat-chip"><span class="chip-icon">🔥</span><span>' + state.streak + '</span><span class="stat-chip-label">day streak</span></div>' : ''}
         <div class="stat-chip">
           <div class="stat-chip-ring">
-            <svg width="28" height="28" viewBox="0 0 28 28"><circle cx="14" cy="14" r="${rSm}" fill="none" stroke="var(--border)" stroke-width="3"/><circle cx="14" cy="14" r="${rSm}" fill="none" stroke="var(--blue)" stroke-width="3" stroke-linecap="round" stroke-dasharray="${circSm.toFixed(2)}" stroke-dashoffset="${offsetSm.toFixed(2)}" style="transform:rotate(-90deg);transform-origin:center"/></svg>
+            <svg width="28" height="28" viewBox="0 0 28 28" style="transform:rotate(-90deg)"><circle cx="14" cy="14" r="${rSm}" fill="none" stroke="var(--muted)" stroke-width="3"/><circle cx="14" cy="14" r="${rSm}" fill="none" stroke="var(--primary)" stroke-width="3" stroke-linecap="round" stroke-dasharray="${circSm.toFixed(2)}" stroke-dashoffset="${offsetSm.toFixed(2)}"/></svg>
             <div class="stat-chip-ring-text">${pct}%</div>
           </div>
           <span>${doneLessons}/${totalLessons}</span>
           <span class="stat-chip-label">lessons</span>
         </div>
+        <button class="icon-btn" id="btn-home-theme" title="Toggle theme">${state.darkMode ? ICON_SUN : ICON_MOON}</button>
         <button class="bell-btn" title="Notifications">
           <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
           <span class="bell-dot"></span>
@@ -877,33 +911,52 @@ function renderHome() {
 
     <div class="home-top-row">
       <div class="goal-card">
-        <div class="goal-label">My Goal</div>
+        <svg class="goal-mountains" viewBox="0 0 200 130" fill="none" aria-hidden="true">
+          <path d="M0 130 L58 44 L92 92 L118 62 L200 130 Z" fill="#fff"/>
+          <path d="M40 130 L110 34 L200 130 Z" fill="#fff" opacity="0.55"/>
+        </svg>
+        <div class="goal-label">🎯 Your Goal</div>
         <div class="goal-title">International Olympiad in AI</div>
         <div class="goal-desc">Go from Python basics to neural networks and compete at the world's top AI olympiad for students.</div>
         ${resumeTarget
-          ? '<button class="btn-continue" id="btn-home-continue">Resume: ' + resumeTarget.lesson.title.slice(0, 26) + '… →</button>'
-          : '<div style="color:rgba(255,255,255,0.85);font-weight:600;font-size:14px">🎉 All lessons complete!</div>'}
+          ? '<button class="btn-continue" id="btn-home-continue">View Roadmap →</button>'
+          : '<div style="color:rgba(255,255,255,0.9);font-weight:600;font-size:14px;position:relative">🎉 All lessons complete!</div>'}
       </div>
 
       <div class="progress-card">
         <div class="progress-card-title">Today's Plan</div>
-        <div class="progress-circle-wrap">
-          <svg class="progress-circle-svg" viewBox="0 0 80 80" style="width:80px;height:80px">
-            <circle class="progress-circle-bg" cx="40" cy="40" r="${r}"/>
-            <circle class="progress-circle-fg" cx="40" cy="40" r="${r}"
-              stroke-dasharray="${circ.toFixed(2)}"
-              stroke-dashoffset="${offset.toFixed(2)}"/>
-          </svg>
-          <div class="progress-circle-text">${pct}%</div>
-        </div>
-        <div class="progress-stats">
-          <div class="stat-row">
-            <span class="stat-label">Lessons done</span>
-            <span class="stat-value">${doneLessons} / ${totalLessons}</span>
+        <div class="plan-body">
+          <div class="plan-list">
+            <div class="plan-row">
+              <div class="plan-icon blue">${ICON_BOOK}</div>
+              <div class="plan-text">
+                <div class="plan-name">Lessons</div>
+                <div class="plan-val">${doneLessons} of ${totalLessons} done</div>
+              </div>
+            </div>
+            <div class="plan-row">
+              <div class="plan-icon green">${ICON_ZAP}</div>
+              <div class="plan-text">
+                <div class="plan-name">XP Earned</div>
+                <div class="plan-val">${state.xp} XP total</div>
+              </div>
+            </div>
+            <div class="plan-row">
+              <div class="plan-icon amber">${ICON_TARGET}</div>
+              <div class="plan-text">
+                <div class="plan-name">Daily Goal</div>
+                <div class="plan-val">${dailyGoalDone} of 3 lessons</div>
+              </div>
+            </div>
           </div>
-          <div class="stat-row">
-            <span class="stat-label">XP earned</span>
-            <span class="stat-value">${state.xp} XP</span>
+          <div class="progress-circle-wrap">
+            <svg class="progress-circle-svg" viewBox="0 0 92 92">
+              <circle class="progress-circle-bg" cx="46" cy="46" r="${r}"/>
+              <circle class="progress-circle-fg" cx="46" cy="46" r="${r}"
+                stroke-dasharray="${circ.toFixed(2)}"
+                stroke-dashoffset="${offset.toFixed(2)}"/>
+            </svg>
+            <div class="progress-circle-text">${pct}%<small>COMPLETE</small></div>
           </div>
         </div>
         <button class="progress-card-btn" id="btn-home-continue-plan">Continue Learning →</button>
@@ -911,27 +964,39 @@ function renderHome() {
 
       <div class="challenge-card">
         <div class="challenge-header">
-          <span class="challenge-label">Daily challenge</span>
+          <span class="challenge-label">Daily Challenge</span>
           <span class="challenge-pts">+25 XP</span>
         </div>
         <div class="challenge-title">${challenge.title}</div>
         <div class="challenge-diff">${challenge.diff}</div>
-        <div style="margin:10px 0;padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);font-size:11px;color:var(--text4);">🔥 Streak Bonus — complete today to keep your streak alive</div>
         <button class="btn-solve" id="btn-home-challenge">Try it →</button>
+        <div class="streak-bonus">
+          <div class="streak-bonus-inner">
+            <div class="streak-bonus-icon">🎁</div>
+            <div>
+              <div class="streak-bonus-title">Streak Bonus</div>
+              <div class="streak-bonus-desc">Finish today's challenge to keep your ${state.streak}-day streak alive.</div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
     <div class="home-mid-row">
       <div class="continue-card">
-        <div class="card-title">Continue Learning</div>
-        <div class="continue-grid">
+        <div class="card-head">
+          <div class="card-title">Continue Learning</div>
+          <span class="card-link" id="link-view-all">View all</span>
+        </div>
+        <div class="continue-list">
           ${upcoming.map(({ track, lesson }) => {
             const tp = getTrackProgress(track.id);
-            return '<div class="continue-grid-card continue-lesson-item" data-track="' + track.id + '" data-lesson="' + lesson.id + '">'
-              + '<div class="continue-grid-icon">' + track.icon + '</div>'
-              + '<div class="continue-grid-track">' + track.name + '</div>'
-              + '<div class="continue-grid-title">' + lesson.title + '</div>'
-              + '<div class="continue-grid-bar-wrap"><div class="continue-grid-bar-fill" style="width:' + tp + '%"></div></div>'
+            return '<div class="continue-lesson-item" data-track="' + track.id + '" data-lesson="' + lesson.id + '">'
+              + '<div class="continue-lesson-meta">'
+              + '<div class="continue-track">' + track.icon + ' ' + track.name + '</div>'
+              + '<div class="continue-title">' + lesson.title + '</div>'
+              + '<div class="continue-bar-row"><div class="continue-bar-wrap"><div class="continue-bar-fill" style="width:' + tp + '%"></div></div><div class="continue-bar-pct">' + tp + '%</div></div>'
+              + '</div>'
               + '<button class="btn-continue-sm">Continue →</button>'
               + '</div>';
           }).join('')}
@@ -939,7 +1004,18 @@ function renderHome() {
       </div>
 
       <div class="upcoming-card">
-        <div class="card-title">All Tracks</div>
+        <div class="card-head">
+          <div class="card-title">✨ Recommended for You</div>
+        </div>
+        ${recommended.map(rec =>
+          '<div class="rec-item" data-track="' + rec.track.id + '" data-lesson="' + rec.lesson.id + '">'
+          + '<div class="rec-icon ' + rec.tone + '">' + rec.icon + '</div>'
+          + '<div class="rec-text"><div class="rec-title">' + rec.lesson.title + '</div>'
+          + '<div class="rec-reason">' + rec.reason + '</div></div>'
+          + '<span class="rec-arrow">→</span>'
+          + '</div>'
+        ).join('')}
+        <div class="card-head" style="margin-top:18px;margin-bottom:10px"><div class="card-title">All Tracks</div></div>
         ${state.courses.tracks.map(track => {
           const tp = getTrackProgress(track.id);
           return '<div class="upcoming-item" data-track="' + track.id + '">'
@@ -950,14 +1026,21 @@ function renderHome() {
         }).join('')}
       </div>
     </div>
+    </div>
   `;
 
   // Events
   view.querySelector('#btn-home-continue')?.addEventListener('click', () => {
-    if (resumeTarget) openLesson(resumeTarget.track.id, resumeTarget.lesson.id);
+    navigate('roadmap'); renderRoadmap();
   });
   view.querySelector('#btn-home-continue-plan')?.addEventListener('click', () => {
     if (resumeTarget) openLesson(resumeTarget.track.id, resumeTarget.lesson.id);
+  });
+  view.querySelector('#btn-home-theme')?.addEventListener('click', () => {
+    toggleDarkMode(); renderHome();
+  });
+  view.querySelector('#link-view-all')?.addEventListener('click', () => {
+    navigate('lessons'); renderLessonsBrowser();
   });
 
   view.querySelectorAll('.continue-lesson-item').forEach(item => {
@@ -966,6 +1049,10 @@ function renderHome() {
       e.stopPropagation();
       openLesson(item.dataset.track, item.dataset.lesson);
     });
+  });
+
+  view.querySelectorAll('.rec-item').forEach(item => {
+    item.addEventListener('click', () => openLesson(item.dataset.track, item.dataset.lesson));
   });
 
   view.querySelector('#btn-home-challenge')?.addEventListener('click', () => {
