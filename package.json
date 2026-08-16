@@ -6,10 +6,39 @@
   "scripts": {
     "start": "electron .",
     "dev": "electron . --dev",
-    "setup": "node scripts/install-electron.js"
+    "setup": "node scripts/install-electron.js",
+    "build": "electron-builder --win portable"
   },
-  "dependencies": {
-    "electron": "^31.0.0"
+  "dependencies": {},
+  "devDependencies": {
+    "electron": "^31.0.0",
+    "electron-builder": "^25.1.8"
   },
-  "devDependencies": {}
+  "build": {
+    "appId": "com.ioai.platform",
+    "productName": "IOAI Prep",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "renderer/**/*",
+      "content/**/*",
+      "lib/**/*",
+      "assets/**/*",
+      "node_modules/**/*",
+      "!node_modules/electron/**/*"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    }
+  }
 }

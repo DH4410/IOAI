@@ -1,0 +1,64 @@
+{
+  "questions": [
+    {
+      "id": "ait-1",
+      "question": "You get a 'KeyError: target' when running df['target']. What is the best prompt to send the contest AI?",
+      "options": [
+        "Here is my 200-line data loading script, what is wrong?",
+        "KeyError: target on df['target']. How do I list all column names in a pandas DataFrame?",
+        "Fix my code so it doesn't give errors.",
+        "What is a KeyError?"
+      ],
+      "correct": 1,
+      "explanation": "Short and specific wins. Paste only the error and the line, then ask for the exact thing you need (how to list columns). Generic questions get generic answers."
+    },
+    {
+      "id": "ait-2",
+      "question": "The contest AI has input and output length limits. What does this mean for how you write prompts?",
+      "options": [
+        "Paste your full script so the AI has all the context it needs.",
+        "Ask one large question that covers everything at once.",
+        "Be specific. Paste only the few lines that relate to your question.",
+        "Always ask in bullet points to save space."
+      ],
+      "correct": 2,
+      "explanation": "Limits force you to be precise. Paste the minimum code that shows the problem, and ask one specific question. You get better answers and waste less of your input budget."
+    },
+    {
+      "id": "ait-3",
+      "question": "Which of these is a good use of the contest AI?",
+      "options": [
+        "Write me a neural network that classifies my dataset.",
+        "My score is 0.65, how do I get to 0.80?",
+        "What does StratifiedKFold do differently from KFold? One sentence.",
+        "Is my whole approach correct?"
+      ],
+      "correct": 2,
+      "explanation": "Asking for a quick concept clarification (with 'one sentence') is perfect. The AI can answer this precisely. The other options are too vague or ask the AI to do your work for you."
+    },
+    {
+      "id": "ait-4",
+      "question": "While studying, what is the best way to use a full AI tool so you are prepared for the contest?",
+      "options": [
+        "Ask it to write all your code so you see correct examples.",
+        "Try the problem yourself first, then ask the AI to explain WHY your code fails, not HOW to fix it.",
+        "Skip the AI entirely while studying.",
+        "Ask the AI to rate your code quality."
+      ],
+      "correct": 1,
+      "explanation": "Building a mental model matters most. If you just copy AI solutions, you won't be able to work with the contest's limited AI. Try first, then use AI to understand the gap."
+    },
+    {
+      "id": "ait-5",
+      "question": "You are confused about what log-loss measures. According to the lesson's prompt patterns, a good prompt is:",
+      "options": [
+        "Explain log-loss in full detail with examples.",
+        "The task says minimize log-loss. My model outputs class probabilities. What value is 'good' for a 3-class problem?",
+        "Here is my training loop, is the loss going down correctly?",
+        "What is entropy?"
+      ],
+      "correct": 1,
+      "explanation": "Give context (3-class, probabilities) and ask one specific thing (what counts as a good value). This gets a targeted answer in few words."
+    }
+  ]
+}

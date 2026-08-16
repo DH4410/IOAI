@@ -4,7 +4,7 @@
       "id": "python",
       "name": "Python Basics",
       "icon": "🐍",
-      "description": "Start from zero. Write your first line of code, then build up to numpy and pandas — the tools you'll use in every other track.",
+      "description": "Start from zero. Write your first line of code, then build up to numpy and pandas - the tools you'll use in every other track.",
       "totalTime": 420,
       "requiresPrev": false,
       "lessons": [
@@ -25,7 +25,7 @@
       "id": "math",
       "name": "Math for AI",
       "icon": "∑",
-      "description": "The math that makes AI work. Vectors, derivatives, probability — explained with code examples, not just formulas.",
+      "description": "The math that makes AI work. Vectors, derivatives, probability - explained with code examples, not just formulas.",
       "totalTime": 300,
       "requiresPrev": true,
       "lessons": [
@@ -78,7 +78,7 @@
       "id": "cv",
       "name": "Computer Vision",
       "icon": "👁",
-      "description": "Make models that see. From pixel arrays to CNNs to Vision Transformers — plus how CLIP links images to language.",
+      "description": "Make models that see. From pixel arrays to CNNs to Vision Transformers - plus how CLIP links images to language.",
       "totalTime": 450,
       "requiresPrev": true,
       "lessons": [
@@ -122,7 +122,8 @@
         { "id": "ioai-04-metrics",   "title": "Competition Metrics Explained","file": "04-metrics.md",     "estimatedTime": 45, "difficulty": "advanced" },
         { "id": "ioai-05-2024",      "title": "IOAI 2024: Past Problems",     "file": "05-2024.md",        "estimatedTime": 60, "difficulty": "advanced" },
         { "id": "ioai-06-2025",      "title": "IOAI 2025: Past Problems",     "file": "06-2025.md",        "estimatedTime": 60, "difficulty": "advanced" },
-        { "id": "ioai-07-checklist", "title": "Final Checklist and Tips",     "file": "07-checklist.md",   "estimatedTime": 30, "difficulty": "advanced" }
+        { "id": "ioai-07-checklist", "title": "Final Checklist and Tips",     "file": "07-checklist.md",   "estimatedTime": 30, "difficulty": "advanced" },
+        { "id": "ioai-08-aitool",   "title": "Using the Contest AI Wisely",  "file": "08-ai-tool.md",     "estimatedTime": 35, "difficulty": "intermediate" }
       ]
     }
   ]
