@@ -165,6 +165,30 @@ plt.show()
 
 ---
 
+## Sort the Plot Types
+
+```widget
+{
+  "type": "concept-sort",
+  "title": "Which Plot for Which Data?",
+  "categories": [
+    { "name": "Line plot (plt.plot)", "color": "#5B5BD6" },
+    { "name": "Scatter plot (plt.scatter)", "color": "#F97316" },
+    { "name": "Histogram (plt.hist)", "color": "#22C55E" }
+  ],
+  "items": [
+    { "text": "Training loss over 100 epochs", "category": "Line plot (plt.plot)" },
+    { "text": "Distribution of house prices in the dataset", "category": "Histogram (plt.hist)" },
+    { "text": "Feature A vs feature B for 1000 data points", "category": "Scatter plot (plt.scatter)" },
+    { "text": "Validation accuracy over training time", "category": "Line plot (plt.plot)" },
+    { "text": "Check if a feature is normally distributed", "category": "Histogram (plt.hist)" },
+    { "text": "Visualize clustering of data points in 2D", "category": "Scatter plot (plt.scatter)" }
+  ]
+}
+```
+
+---
+
 ## Summary
 
 | What to plot | Use |

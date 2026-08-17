@@ -200,6 +200,30 @@ OOF (out-of-fold) predictions give you an unbiased estimate of how well your mod
 
 ---
 
+## Which Model First?
+
+```widget
+{
+  "type": "concept-sort",
+  "title": "Match the Task to its Competition Baseline",
+  "categories": [
+    { "name": "LightGBM / XGBoost", "color": "#5B5BD6" },
+    { "name": "Pretrained CNN / ViT", "color": "#22C55E" },
+    { "name": "TF-IDF + LogReg → BERT", "color": "#F97316" }
+  ],
+  "items": [
+    { "text": "Tabular data with categorical and numerical features", "category": "LightGBM / XGBoost" },
+    { "text": "Image classification from raw photos", "category": "Pretrained CNN / ViT" },
+    { "text": "Text sentiment analysis", "category": "TF-IDF + LogReg → BERT" },
+    { "text": "CSV with 50 numerical features, predict survival", "category": "LightGBM / XGBoost" },
+    { "text": "Counting objects in satellite images", "category": "Pretrained CNN / ViT" },
+    { "text": "Classify customer reviews as positive/negative/neutral", "category": "TF-IDF + LogReg → BERT" }
+  ]
+}
+```
+
+---
+
 ## Summary
 
 | Task | Baseline model | Time to baseline |
