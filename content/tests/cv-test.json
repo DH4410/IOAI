@@ -1,0 +1,185 @@
+{
+  "id": "cv-test",
+  "title": "Computer Vision Mid-Term",
+  "track": "cv",
+  "emoji": "👁️",
+  "description": "16 questions on image tensors, CNNs, augmentation, transfer learning, and vision transformers.",
+  "timeLimit": 1200,
+  "passMark": 70,
+  "questions": [
+    {
+      "id": "cv-q1",
+      "type": "mcq",
+      "question": "A standard RGB image of size 224×224 pixels is represented as a tensor of shape:",
+      "options": ["(224, 224)", "(224, 224, 3)", "(3, 224, 224) in PyTorch convention", "(224, 224, 1)"],
+      "correct": 2,
+      "explanation": "PyTorch uses (Channels, Height, Width) convention. An RGB image has 3 channels. A batch of 32 such images would be shape (32, 3, 224, 224)."
+    },
+    {
+      "id": "cv-q2",
+      "type": "mcq",
+      "question": "Why is data augmentation used in computer vision training?",
+      "options": [
+        "To make the model train faster",
+        "To artificially increase dataset diversity, improving generalization and reducing overfitting",
+        "To reduce the size of the dataset",
+        "To replace the need for validation data"
+      ],
+      "correct": 1,
+      "explanation": "Augmentations like random crops, flips, and color jitter create varied versions of each training image. The model sees more diverse examples, making it robust to the same variations at test time."
+    },
+    {
+      "id": "cv-q3",
+      "type": "truefalse",
+      "question": "Horizontal flipping is a valid augmentation for most natural image datasets but would be harmful for tasks like reading handwritten digits (MNIST).",
+      "correct": true,
+      "explanation": "Flipping a '6' horizontally doesn't produce a valid '6'. For handwriting, orientation matters. Always design augmentations that preserve the class label semantics."
+    },
+    {
+      "id": "cv-q4",
+      "type": "mcq",
+      "question": "Transfer learning from ImageNet pre-trained models works well even for medical imaging because:",
+      "options": [
+        "ImageNet contains medical images",
+        "Low-level features (edges, textures, shapes) learned on natural images are generally useful features for any image domain",
+        "All CNNs are identical regardless of training data",
+        "Medical images are always gray-scale, so 3-channel models don't apply"
+      ],
+      "correct": 1,
+      "explanation": "Early convolutional layers learn universal low-level features. Later layers learn domain-specific patterns. Fine-tuning keeps the useful low-level filters and adapts higher layers to the new domain."
+    },
+    {
+      "id": "cv-q5",
+      "type": "mcq",
+      "question": "When fine-tuning a pre-trained CNN on a small new dataset, which approach is usually best?",
+      "options": [
+        "Randomly re-initialize all weights and train from scratch",
+        "Freeze the early convolutional layers and only train the final classification head and last few layers",
+        "Freeze all layers including the classification head",
+        "Remove all convolutional layers and only keep fully-connected layers"
+      ],
+      "correct": 1,
+      "explanation": "With a small dataset, training everything risks overfitting. Early layers have general features worth keeping. Freezing them and training the top layers adapts the model with minimal overfitting risk."
+    },
+    {
+      "id": "cv-q6",
+      "type": "mcq",
+      "question": "Object detection outputs both:",
+      "options": [
+        "Image labels and captions",
+        "Bounding boxes (location) and class labels (what is in each box)",
+        "Pixel-level segmentation masks",
+        "Feature maps and attention maps"
+      ],
+      "correct": 1,
+      "explanation": "Detection = 'where' (bounding box: x, y, w, h) + 'what' (class label). Segmentation further identifies which pixels belong to each object — a harder task."
+    },
+    {
+      "id": "cv-q7",
+      "type": "mcq",
+      "question": "IoU (Intersection over Union) is used to evaluate object detection quality. A perfect prediction has IoU of:",
+      "options": ["0", "0.5", "1.0", "100"],
+      "correct": 2,
+      "explanation": "IoU = Area(Predicted ∩ Ground Truth) / Area(Predicted ∪ Ground Truth). When predicted and ground-truth boxes are identical, intersection equals union, so IoU = 1."
+    },
+    {
+      "id": "cv-q8",
+      "type": "truefalse",
+      "question": "YOLO processes the entire image in a single forward pass, making it faster than two-stage detectors like Faster R-CNN.",
+      "correct": true,
+      "explanation": "YOLO divides the image into a grid and predicts boxes and classes for each cell simultaneously in one pass. Two-stage detectors first propose regions then classify each — more accurate but slower."
+    },
+    {
+      "id": "cv-q9",
+      "type": "mcq",
+      "question": "A Vision Transformer (ViT) divides an image into 16×16 patches and treats them like:",
+      "options": [
+        "Pixels to be processed by CNNs",
+        "Tokens in a sequence, similar to words in a sentence for a text transformer",
+        "Separate images for parallel processing",
+        "Superpixels for segmentation"
+      ],
+      "correct": 1,
+      "explanation": "Each 16×16 patch is flattened and linearly projected into an embedding — just like word embeddings. The sequence of patch embeddings (+ positional encoding) is fed to a standard transformer."
+    },
+    {
+      "id": "cv-q10",
+      "type": "mcq",
+      "question": "Compared to CNNs, Vision Transformers (ViT) generally need:",
+      "options": [
+        "Less data to train from scratch",
+        "More data to train from scratch, because self-attention doesn't have built-in translation invariance",
+        "No pre-training",
+        "A fixed image size only"
+      ],
+      "correct": 1,
+      "explanation": "CNNs have convolution's translation invariance built in — they generalize from limited data. ViTs have no such inductive bias, requiring more data or pre-training to learn basic visual structure."
+    },
+    {
+      "id": "cv-q11",
+      "type": "mcq",
+      "question": "CLIP (Contrastive Language-Image Pre-training) is trained by:",
+      "options": [
+        "Supervised classification on ImageNet",
+        "Maximizing similarity between matching image-text pairs and minimizing it for non-matching pairs",
+        "Predicting masked image patches",
+        "Predicting image labels from random text"
+      ],
+      "correct": 1,
+      "explanation": "CLIP uses contrastive loss on 400M image-caption pairs from the web. The image and text encoders learn a shared embedding space where matching pairs are close, non-matching pairs are far."
+    },
+    {
+      "id": "cv-q12",
+      "type": "truefalse",
+      "question": "CLIP enables zero-shot image classification by comparing image embeddings to text embeddings of class descriptions.",
+      "correct": true,
+      "explanation": "You embed both the image and text descriptions like 'a photo of a cat' / 'a photo of a dog'. The class with the closest text embedding to the image embedding wins — no task-specific training needed."
+    },
+    {
+      "id": "cv-q13",
+      "type": "mcq",
+      "question": "Batch Normalization in CNNs normalizes across which dimensions?",
+      "options": [
+        "Across the channel (feature map) dimension per sample",
+        "Across samples in the mini-batch for each channel, spatial position combination",
+        "Across spatial positions within each channel and sample",
+        "Across all pixels of the entire dataset"
+      ],
+      "correct": 1,
+      "explanation": "For a feature map (B, C, H, W), BatchNorm normalizes across the B dimension (and H, W), computing mean and variance per channel across all examples in the batch."
+    },
+    {
+      "id": "cv-q14",
+      "type": "mcq",
+      "question": "Mean Average Precision (mAP) is the standard metric for object detection. What does 'mean' refer to?",
+      "options": [
+        "The mean of bounding box sizes",
+        "The mean of the Average Precision scores computed per class",
+        "The mean of IoU thresholds",
+        "The mean number of objects per image"
+      ],
+      "correct": 1,
+      "explanation": "AP is computed per class (area under the precision-recall curve). mAP averages AP over all classes — sometimes also averaged over multiple IoU thresholds (COCO mAP)."
+    },
+    {
+      "id": "cv-q15",
+      "type": "mcq",
+      "question": "A Vision-Language Model (VLM) like LLaVA can do which of the following that a standard image classifier cannot?",
+      "options": [
+        "Process images faster",
+        "Describe image content in natural language, answer questions about images, and follow image-based instructions",
+        "Achieve 100% classification accuracy",
+        "Process video"
+      ],
+      "correct": 1,
+      "explanation": "VLMs combine vision and language capabilities. They can caption images, perform visual question answering, read text in images, and respond to complex instructions about what they see."
+    },
+    {
+      "id": "cv-q16",
+      "type": "truefalse",
+      "question": "ResNet's main innovation is skip connections that let gradients bypass convolutional blocks, enabling training of very deep networks (100+ layers).",
+      "correct": true,
+      "explanation": "Before ResNet, very deep networks suffered from vanishing/exploding gradients. Skip connections create identity shortcuts, allowing gradients to flow through the network without degrading."
+    }
+  ]
+}

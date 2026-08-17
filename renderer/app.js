@@ -14,8 +14,12 @@ const state = {
   darkMode: false,
   sidebarCollapsed: false,
   lastLesson: null,
-  // Spaced repetition: { [questionKey]: { ef: float, interval: days, due: ISO-date, correct: int, total: int } }
+  // Spaced repetition
   sr: {},
+  // Mid-term test results: { [testId]: { score, total, pct, date, timeTaken } }
+  testResults: {},
+  // Active test session (in-memory only, not persisted)
+  activeTest: null,
 };
 
 // ─── Storage ─────────────────────────────────────────────────────────────────
@@ -30,6 +34,7 @@ function progressToJSON() {
     sidebarCollapsed: state.sidebarCollapsed,
     lastLesson: state.lastLesson,
     sr: state.sr,
+    testResults: state.testResults,
   });
 }
 
@@ -47,6 +52,7 @@ function applyProgressJSON(json) {
     if (d.sidebarCollapsed != null) state.sidebarCollapsed = d.sidebarCollapsed;
     if (d.lastLesson) state.lastLesson = d.lastLesson;
     if (d.sr) state.sr = d.sr;
+    if (d.testResults) state.testResults = d.testResults;
   } catch (_) {}
 }
 
@@ -923,6 +929,66 @@ async function setupAIPanel(trackName, lessonTitle) {
   });
 }
 
+// ─── Kai Mascot ──────────────────────────────────────────────────────────────
+const KAI_TIPS = [
+  { tag: 'Study tip', text: 'The spacing effect is real — reviewing material across multiple sessions beats cramming. That\'s exactly what the spaced repetition quizzes are for!' },
+  { tag: 'IOAI insight', text: 'At IOAI, fast baselines win time. Train a simple model first, validate it works, then iterate. A LightGBM or simple CNN baseline takes 10 minutes.' },
+  { tag: 'Math nugget', text: 'Gradient descent is just following the slope downhill on your loss landscape. The gradient tells you which direction is "uphill" — so you go the opposite way.' },
+  { tag: 'ML trick', text: 'When stuck on a competition: check your validation strategy first. A leaky validation set can make a bad model look great — until the public test.' },
+  { tag: 'Study tip', text: 'Struggling to understand backprop? Try computing it by hand for a tiny 2-neuron network. Once the numbers click, the algorithm clicks too.' },
+  { tag: 'NLP insight', text: 'Tokenization matters more than people think. The same model can score very differently on a task based purely on how text is tokenized.' },
+  { tag: 'Motivation', text: 'You\'re preparing for one of the most exciting competitions in the world. Even finishing the Python and ML tracks puts you ahead of 90% of applicants.' },
+  { tag: 'NN tip', text: 'ReLU is simple: max(0, x). But that simple non-linearity is what lets neural networks approximate any function. Power comes from stacking, not complexity.' },
+  { tag: 'IOAI insight', text: 'Read the problem statement twice at IOAI. The metric they choose (accuracy vs F1 vs AUC) completely changes what model and threshold you should use.' },
+  { tag: 'Study tip', text: 'After each lesson, close it and write 3 things you remember. Active recall is 3× more effective than re-reading the same content.' },
+  { tag: 'CV insight', text: 'For vision tasks, always try a pre-trained ResNet or EfficientNet before anything custom. Transfer learning from ImageNet almost always beats training from scratch.' },
+  { tag: 'Math nugget', text: 'Cross-entropy loss penalizes confident wrong answers harshly. If your model says 99% probability but is wrong, the loss spikes. This is by design.' },
+  { tag: 'ML trick', text: 'Feature engineering often beats fancy models on tabular data. Creating interaction features (A × B) or log transforms can give bigger gains than switching to XGBoost.' },
+  { tag: 'Study tip', text: 'Use the AI assistant panel in lessons! Ask it to explain anything confusing in simpler terms, or to give you a code example.' },
+];
+
+function renderKaiCard(pct, doneLessons) {
+  const tip = KAI_TIPS[Math.floor(Date.now() / 86400000) % KAI_TIPS.length];
+  const KAI_SVG = `<svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" class="kai-svg">
+    <defs>
+      <linearGradient id="kaiH" x1="12" y1="22" x2="68" y2="62" gradientUnits="userSpaceOnUse">
+        <stop offset="0" stop-color="#6366f1"/>
+        <stop offset="1" stop-color="#8b5cf6"/>
+      </linearGradient>
+      <linearGradient id="kaiB" x1="22" y1="62" x2="58" y2="76" gradientUnits="userSpaceOnUse">
+        <stop offset="0" stop-color="#5B5BD6"/>
+        <stop offset="1" stop-color="#7c3aed"/>
+      </linearGradient>
+    </defs>
+    <line x1="40" y1="10" x2="40" y2="22" stroke="#8b5cf6" stroke-width="2.5" stroke-linecap="round"/>
+    <circle cx="40" cy="8" r="4" fill="#8b5cf6"/>
+    <rect x="12" y="22" width="56" height="40" rx="12" fill="url(#kaiH)"/>
+    <circle cx="29" cy="38" r="7" fill="#fff"/>
+    <circle cx="51" cy="38" r="7" fill="#fff"/>
+    <circle cx="30" cy="39" r="4" fill="#1e1b4b"/>
+    <circle cx="52" cy="39" r="4" fill="#1e1b4b"/>
+    <circle cx="32" cy="37" r="1.5" fill="#fff"/>
+    <circle cx="54" cy="37" r="1.5" fill="#fff"/>
+    <path d="M27 50 Q40 59 53 50" stroke="#fff" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+    <ellipse cx="16" cy="43" rx="4" ry="3" fill="#a78bfa" opacity="0.5"/>
+    <ellipse cx="64" cy="43" rx="4" ry="3" fill="#a78bfa" opacity="0.5"/>
+    <rect x="22" y="62" width="36" height="14" rx="7" fill="url(#kaiB)"/>
+    <rect x="30" y="65" width="5" height="8" rx="2.5" fill="#c4b5fd" opacity="0.6"/>
+    <rect x="38" y="65" width="5" height="8" rx="2.5" fill="#c4b5fd" opacity="0.4"/>
+    <rect x="46" y="65" width="5" height="8" rx="2.5" fill="#c4b5fd" opacity="0.6"/>
+  </svg>`;
+
+  return `
+    <div class="kai-card">
+      <div class="kai-left">${KAI_SVG}</div>
+      <div class="kai-body">
+        <div class="kai-name">Kai <span class="kai-tag">${tip.tag}</span></div>
+        <div class="kai-text">${tip.text}</div>
+      </div>
+      <button class="kai-close" id="kai-dismiss" title="Dismiss">✕</button>
+    </div>`;
+}
+
 // ─── Home Dashboard ───────────────────────────────────────────────────────────
 function renderHome() {
   const view = document.getElementById('view-home');
@@ -1107,6 +1173,8 @@ function renderHome() {
       </div>
     </div>
 
+    ${renderKaiCard(pct, doneLessons)}
+
     <div class="home-mid-row">
       <div class="continue-card">
         <div class="card-head">
@@ -1182,6 +1250,10 @@ function renderHome() {
 
   view.querySelector('#btn-home-challenge')?.addEventListener('click', () => {
     navigate('practice'); renderPractice();
+  });
+
+  view.querySelector('#kai-dismiss')?.addEventListener('click', e => {
+    e.currentTarget.closest('.kai-card')?.remove();
   });
 
   view.querySelectorAll('.upcoming-item').forEach(item => {
@@ -1559,6 +1631,339 @@ function renderSettings() {
   });
 }
 
+// ─── Mid-Term Test Engine ─────────────────────────────────────────────────────
+const TEST_REGISTRY = [
+  { id: 'ml-test',  file: 'content/tests/ml-test.json'  },
+  { id: 'nn-test',  file: 'content/tests/nn-test.json'  },
+  { id: 'nlp-test', file: 'content/tests/nlp-test.json' },
+  { id: 'cv-test',  file: 'content/tests/cv-test.json'  },
+];
+
+function fmtTime(secs) {
+  const m = Math.floor(secs / 60), s = secs % 60;
+  return `${m}:${String(s).padStart(2, '0')}`;
+}
+
+async function renderTestsView() {
+  const view = document.getElementById('view-tests');
+  view.innerHTML = `
+    <div class="view-header">
+      <h1>Mid-Term Tests</h1>
+      <p>Put your knowledge to the test. Each exam has a timer — just like IOAI. Review wrong answers to lock in the learning.</p>
+    </div>
+    <div class="test-card-grid" id="test-card-grid">
+      <div class="loading-pulse">Loading tests…</div>
+    </div>`;
+
+  const grid = view.querySelector('#test-card-grid');
+
+  const tests = await Promise.all(
+    TEST_REGISTRY.map(async ({ id, file }) => {
+      try {
+        const raw = await window.api.readFile(file);
+        return JSON.parse(raw);
+      } catch { return null; }
+    })
+  );
+
+  grid.innerHTML = tests.filter(Boolean).map(t => {
+    const res = state.testResults[t.id];
+    const mins = Math.round(t.timeLimit / 60);
+    const pctClass = !res ? '' : res.pct >= t.passMark ? 'test-pass' : 'test-fail';
+    const badge = !res ? '' :
+      `<div class="test-score-badge ${pctClass}">${res.pct}%</div>`;
+    return `
+      <div class="test-lobby-card" data-testid="${t.id}">
+        <div class="test-card-emoji">${t.emoji}</div>
+        <div class="test-card-body">
+          <div class="test-card-title">${t.title}</div>
+          <div class="test-card-desc">${t.description}</div>
+          <div class="test-card-meta">
+            <span>📝 ${t.questions.length} questions</span>
+            <span>⏱ ${mins} min</span>
+            <span>🎯 Pass: ${t.passMark}%</span>
+          </div>
+          ${res ? `<div class="test-prev-result">
+            Last attempt: <strong>${res.pct}%</strong> (${res.score}/${res.total}) · ${res.date}
+          </div>` : '<div class="test-prev-result" style="color:var(--text4)">Not attempted yet</div>'}
+        </div>
+        ${badge}
+        <button class="btn-start-test" data-testid="${t.id}">
+          ${res ? 'Retake' : 'Start'} Test →
+        </button>
+      </div>`;
+  }).join('');
+
+  grid.querySelectorAll('.btn-start-test').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const testId = btn.dataset.testid;
+      const raw = await window.api.readFile(`content/tests/${testId}.json`);
+      const testData = JSON.parse(raw);
+      openTestLobby(testData);
+    });
+  });
+}
+
+function openTestLobby(testData) {
+  const view = document.getElementById('view-tests');
+  const mins = Math.round(testData.timeLimit / 60);
+  view.innerHTML = `
+    <div class="test-lobby">
+      <div class="test-lobby-emoji">${testData.emoji}</div>
+      <h2 class="test-lobby-title">${testData.title}</h2>
+      <p class="test-lobby-desc">${testData.description}</p>
+      <div class="test-lobby-stats">
+        <div class="test-stat"><div class="test-stat-n">${testData.questions.length}</div><div class="test-stat-l">Questions</div></div>
+        <div class="test-stat"><div class="test-stat-n">${mins}</div><div class="test-stat-l">Minutes</div></div>
+        <div class="test-stat"><div class="test-stat-n">${testData.passMark}%</div><div class="test-stat-l">To Pass</div></div>
+      </div>
+      <div class="test-lobby-tips">
+        <div style="font-weight:600;margin-bottom:8px">Before you start:</div>
+        <ul>
+          <li>Read each question carefully — some have tricky wording.</li>
+          <li>You can flag questions to revisit before submitting.</li>
+          <li>When time runs out, the test auto-submits.</li>
+        </ul>
+      </div>
+      <div class="test-lobby-btns">
+        <button id="btn-back-tests" class="btn-lesson-nav">← Back</button>
+        <button id="btn-begin-test" class="btn-lesson-nav primary">Begin Test ▶</button>
+      </div>
+    </div>`;
+
+  view.querySelector('#btn-back-tests').addEventListener('click', () => renderTestsView());
+  view.querySelector('#btn-begin-test').addEventListener('click', () => startTest(testData));
+}
+
+function startTest(testData) {
+  // Shuffle questions order for variety on retakes
+  const questions = [...testData.questions].sort(() => Math.random() - 0.5);
+  state.activeTest = {
+    testData,
+    questions,
+    answers: new Array(questions.length).fill(null), // null = unanswered
+    flagged: new Set(),
+    currentIdx: 0,
+    startTime: Date.now(),
+    secondsLeft: testData.timeLimit,
+    timerId: null,
+  };
+  renderTestQuestion();
+  // Start timer
+  state.activeTest.timerId = setInterval(() => {
+    if (!state.activeTest) return;
+    state.activeTest.secondsLeft--;
+    const timerEl = document.getElementById('test-timer');
+    if (timerEl) {
+      timerEl.textContent = fmtTime(state.activeTest.secondsLeft);
+      timerEl.classList.toggle('test-timer-warn', state.activeTest.secondsLeft < 120);
+    }
+    if (state.activeTest.secondsLeft <= 0) finishTest(true);
+  }, 1000);
+}
+
+function renderTestQuestion() {
+  const at = state.activeTest;
+  if (!at) return;
+  const q = at.questions[at.currentIdx];
+  const view = document.getElementById('view-tests');
+  const total = at.questions.length;
+  const answered = at.answers.filter(a => a !== null).length;
+
+  // Build answer options
+  const isTF = q.type === 'truefalse';
+  const options = isTF ? ['True', 'False'] : (q.options || []);
+  const correctIdx = isTF ? (q.correct === true ? 0 : 1) : q.correct;
+  const userAnswer = at.answers[at.currentIdx];
+  const isFlagged = at.flagged.has(at.currentIdx);
+
+  view.innerHTML = `
+    <div class="test-run">
+      <div class="test-run-header">
+        <button id="test-quit" class="test-quit-btn" title="Quit test">✕ Quit</button>
+        <div class="test-progress-info">
+          <span>Q${at.currentIdx + 1} of ${total}</span>
+          <span class="test-answered-count">${answered}/${total} answered</span>
+        </div>
+        <div id="test-timer" class="test-timer ${at.secondsLeft < 120 ? 'test-timer-warn' : ''}">${fmtTime(at.secondsLeft)}</div>
+      </div>
+
+      <div class="test-progress-bar-wrap">
+        <div class="test-progress-bar-fill" style="width:${((at.currentIdx) / total * 100).toFixed(1)}%"></div>
+      </div>
+
+      <div class="test-question-area">
+        <div class="test-q-top">
+          <span class="test-q-type-badge">${isTF ? 'True / False' : 'Multiple Choice'}</span>
+          <button id="test-flag" class="test-flag-btn ${isFlagged ? 'flagged' : ''}" title="Flag for review">
+            ${isFlagged ? '🚩 Flagged' : '⚑ Flag'}
+          </button>
+        </div>
+        <div class="test-q-text">${q.question}</div>
+        <div class="test-options">
+          ${options.map((opt, i) => `
+            <button class="test-opt ${userAnswer === i ? 'selected' : ''}" data-idx="${i}">
+              <span class="test-opt-letter">${isTF ? (i === 0 ? 'T' : 'F') : String.fromCharCode(65 + i)}</span>
+              <span class="test-opt-text">${opt}</span>
+            </button>`).join('')}
+        </div>
+      </div>
+
+      <div class="test-nav-row">
+        <button id="test-prev" class="btn-lesson-nav" ${at.currentIdx === 0 ? 'disabled' : ''}>← Prev</button>
+        <div class="test-dot-row">
+          ${at.questions.map((_, i) => {
+            const cls = i === at.currentIdx ? 'active' : (at.answers[i] !== null ? 'done' : (at.flagged.has(i) ? 'flagged' : ''));
+            return `<div class="test-dot ${cls}" data-goto="${i}"></div>`;
+          }).join('')}
+        </div>
+        ${at.currentIdx < total - 1
+          ? `<button id="test-next" class="btn-lesson-nav primary">Next →</button>`
+          : `<button id="test-submit" class="btn-lesson-nav primary submit">Submit Test ✓</button>`}
+      </div>
+    </div>`;
+
+  // Wire up options
+  view.querySelectorAll('.test-opt').forEach(btn => {
+    btn.addEventListener('click', () => {
+      at.answers[at.currentIdx] = parseInt(btn.dataset.idx);
+      view.querySelectorAll('.test-opt').forEach(b => b.classList.toggle('selected', b === btn));
+      // Auto-advance after brief pause
+      if (at.currentIdx < at.questions.length - 1) {
+        setTimeout(() => {
+          at.currentIdx++;
+          renderTestQuestion();
+        }, 300);
+      }
+    });
+  });
+
+  view.querySelector('#test-quit')?.addEventListener('click', () => {
+    if (!confirm('Quit this test? Your progress will not be saved.')) return;
+    clearInterval(at.timerId);
+    state.activeTest = null;
+    renderTestsView();
+  });
+
+  view.querySelector('#test-flag')?.addEventListener('click', () => {
+    if (at.flagged.has(at.currentIdx)) at.flagged.delete(at.currentIdx);
+    else at.flagged.add(at.currentIdx);
+    renderTestQuestion();
+  });
+
+  view.querySelector('#test-prev')?.addEventListener('click', () => {
+    at.currentIdx--;
+    renderTestQuestion();
+  });
+
+  view.querySelector('#test-next')?.addEventListener('click', () => {
+    at.currentIdx++;
+    renderTestQuestion();
+  });
+
+  view.querySelector('#test-submit')?.addEventListener('click', () => finishTest(false));
+
+  view.querySelectorAll('.test-dot').forEach(dot => {
+    dot.addEventListener('click', () => {
+      at.currentIdx = parseInt(dot.dataset.goto);
+      renderTestQuestion();
+    });
+  });
+}
+
+function finishTest(timedOut = false) {
+  const at = state.activeTest;
+  if (!at) return;
+  clearInterval(at.timerId);
+
+  const { questions, answers, testData, startTime } = at;
+  const timeTaken = Math.round((Date.now() - startTime) / 1000);
+  let score = 0;
+
+  questions.forEach((q, i) => {
+    const isTF = q.type === 'truefalse';
+    const correctIdx = isTF ? (q.correct === true ? 0 : 1) : q.correct;
+    if (answers[i] === correctIdx) score++;
+  });
+
+  const pct = Math.round((score / questions.length) * 100);
+  const passed = pct >= testData.passMark;
+
+  // Save result
+  state.testResults[testData.id] = {
+    score, total: questions.length, pct, passed,
+    date: new Date().toLocaleDateString(),
+    timeTaken,
+  };
+  saveProgress();
+
+  // XP reward
+  const xpGain = passed ? 150 : 50;
+  state.xp += xpGain;
+
+  state.activeTest = null;
+  renderTestResults(testData, questions, answers, score, pct, passed, timeTaken, timedOut, xpGain);
+}
+
+function renderTestResults(testData, questions, answers, score, pct, passed, timeTaken, timedOut, xpGain) {
+  const view = document.getElementById('view-tests');
+  const total = questions.length;
+
+  const wrongItems = questions.map((q, i) => {
+    const isTF = q.type === 'truefalse';
+    const correctIdx = isTF ? (q.correct === true ? 0 : 1) : q.correct;
+    const correctOpts = isTF ? ['True', 'False'] : (q.options || []);
+    const userOpts = isTF ? ['True', 'False'] : (q.options || []);
+    return { q, i, correct: answers[i] === correctIdx, correctIdx, correctText: correctOpts[correctIdx], userText: answers[i] !== null ? userOpts[answers[i]] : 'No answer' };
+  });
+
+  view.innerHTML = `
+    <div class="test-results">
+      <div class="test-result-hero ${passed ? 'pass' : 'fail'}">
+        <div class="test-result-emoji">${passed ? '🏆' : '📚'}</div>
+        <div class="test-result-score">${pct}%</div>
+        <div class="test-result-verdict">${passed ? 'Passed!' : 'Keep studying!'}</div>
+        <div class="test-result-sub">${score} / ${total} correct · ${fmtTime(timeTaken)}${timedOut ? ' · Time up!' : ''}</div>
+        <div class="test-result-xp">+${xpGain} XP</div>
+      </div>
+
+      <div class="test-result-body">
+        <div class="test-result-stats">
+          <div class="tr-stat correct"><div class="tr-stat-n">${score}</div><div class="tr-stat-l">Correct</div></div>
+          <div class="tr-stat wrong"><div class="tr-stat-n">${total - score}</div><div class="tr-stat-l">Wrong</div></div>
+          <div class="tr-stat time"><div class="tr-stat-n">${fmtTime(timeTaken)}</div><div class="tr-stat-l">Time</div></div>
+        </div>
+
+        <div class="test-review-section">
+          <div class="test-review-title">Review: Wrong / Flagged Answers</div>
+          ${wrongItems.filter(r => !r.correct).length === 0
+            ? '<div class="test-perfect">Perfect score! Every answer was correct.</div>'
+            : wrongItems.filter(r => !r.correct).map(r => `
+              <div class="test-review-item">
+                <div class="test-review-q">${r.q.question}</div>
+                <div class="test-review-your ${r.correct ? 'correct' : 'wrong'}">
+                  Your answer: <strong>${r.userText}</strong>
+                </div>
+                <div class="test-review-correct">
+                  Correct: <strong>${r.correctText}</strong>
+                </div>
+                <div class="test-review-explanation">${r.q.explanation || ''}</div>
+              </div>`).join('')}
+        </div>
+
+        <div class="test-result-actions">
+          <button id="btn-retake-test" class="btn-lesson-nav">Retake Test</button>
+          <button id="btn-back-to-tests" class="btn-lesson-nav primary">Back to Tests</button>
+        </div>
+      </div>
+    </div>`;
+
+  if (passed) celebrate(view.querySelector('.test-result-hero'));
+
+  view.querySelector('#btn-retake-test').addEventListener('click', () => openTestLobby(testData));
+  view.querySelector('#btn-back-to-tests').addEventListener('click', () => renderTestsView());
+}
+
 // ─── Name Modal ───────────────────────────────────────────────────────────────
 function setupNameModal() {
   if (state.userName) return;
@@ -1619,6 +2024,7 @@ async function boot() {
       else if (v === 'practice') renderPractice();
       else if (v === 'aitrack') renderAITrack();
       else if (v === 'math') renderMathView();
+      else if (v === 'tests') renderTestsView();
       else if (v === 'progress') renderProgress();
       else if (v === 'settings') renderSettings();
     });

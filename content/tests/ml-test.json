@@ -1,0 +1,221 @@
+{
+  "id": "ml-test",
+  "title": "Classical ML Mid-Term",
+  "track": "ml",
+  "emoji": "📊",
+  "description": "20 questions covering regression, gradient descent, decision trees, ensembles, and evaluation.",
+  "timeLimit": 1500,
+  "passMark": 70,
+  "questions": [
+    {
+      "id": "ml-q1",
+      "type": "mcq",
+      "question": "Which loss function does Linear Regression minimize?",
+      "options": ["Mean Absolute Error", "Mean Squared Error", "Binary Cross-Entropy", "Hinge Loss"],
+      "correct": 1,
+      "explanation": "Linear regression minimizes MSE (mean squared error). Squaring errors penalizes large mistakes more, which encourages a good overall fit."
+    },
+    {
+      "id": "ml-q2",
+      "type": "mcq",
+      "question": "In gradient descent, what happens if the learning rate is too large?",
+      "options": [
+        "Training is slower but always converges",
+        "The loss decreases faster",
+        "The loss may oscillate or diverge instead of converging",
+        "The model underfits"
+      ],
+      "correct": 2,
+      "explanation": "A learning rate that's too large causes the optimizer to overshoot the minimum. The loss bounces around or climbs instead of falling."
+    },
+    {
+      "id": "ml-q3",
+      "type": "truefalse",
+      "question": "Logistic regression outputs a probability between 0 and 1.",
+      "correct": true,
+      "explanation": "Yes — the sigmoid function squashes any real number into (0, 1), which we interpret as the probability of the positive class."
+    },
+    {
+      "id": "ml-q4",
+      "type": "mcq",
+      "question": "What is the decision boundary of a logistic regression model?",
+      "options": [
+        "A curve fitting the data",
+        "A linear surface where the predicted probability equals 0.5",
+        "The point with maximum loss",
+        "The midpoint between the two class centroids"
+      ],
+      "correct": 1,
+      "explanation": "The decision boundary is where σ(wᵀx + b) = 0.5, which means wᵀx + b = 0 — a hyperplane."
+    },
+    {
+      "id": "ml-q5",
+      "type": "mcq",
+      "question": "At each node, a Decision Tree splits by choosing the feature and threshold that:",
+      "options": [
+        "Maximizes accuracy on the full training set",
+        "Minimizes the depth of the tree",
+        "Maximizes information gain (or minimizes Gini impurity) in the child nodes",
+        "Randomly selects a feature"
+      ],
+      "correct": 2,
+      "explanation": "Decision Trees use a greedy, local criterion — they pick whatever split produces the purest child nodes, measured by information gain or Gini."
+    },
+    {
+      "id": "ml-q6",
+      "type": "truefalse",
+      "question": "A deep, unpruned Decision Tree with no min-samples constraint will almost always overfit training data.",
+      "correct": true,
+      "explanation": "An unconstrained tree can memorize every training example by splitting until each leaf has exactly one sample. It gets 100% train accuracy but generalizes poorly."
+    },
+    {
+      "id": "ml-q7",
+      "type": "mcq",
+      "question": "What key idea makes Random Forest different from a single Decision Tree?",
+      "options": [
+        "It uses gradient boosting",
+        "It trains many trees on random subsets of data and features, then averages predictions",
+        "It replaces the tree with a neural network",
+        "It uses a different loss function"
+      ],
+      "correct": 1,
+      "explanation": "Random Forest uses bootstrap sampling (bagging) and random feature subsets for each tree. Averaging many diverse trees reduces variance without increasing bias much."
+    },
+    {
+      "id": "ml-q8",
+      "type": "mcq",
+      "question": "Gradient Boosting builds trees sequentially. Each new tree is trained on:",
+      "options": [
+        "The original labels",
+        "A random sample of features",
+        "The residuals (errors) of the previous ensemble",
+        "Purely random data"
+      ],
+      "correct": 2,
+      "explanation": "Gradient Boosting fits each new tree to the gradient of the loss — effectively the residuals. Each tree corrects mistakes the ensemble has made so far."
+    },
+    {
+      "id": "ml-q9",
+      "type": "mcq",
+      "question": "In a classification problem where only 1% of samples are positive, accuracy is not a good metric because:",
+      "options": [
+        "Accuracy can't be computed for imbalanced classes",
+        "A model predicting 'negative' for everything achieves 99% accuracy while being useless",
+        "Accuracy is always worse than AUC",
+        "Accuracy only works for regression"
+      ],
+      "correct": 1,
+      "explanation": "With class imbalance, a trivial model that always predicts the majority class gets near-perfect accuracy. Use precision, recall, or F1 instead."
+    },
+    {
+      "id": "ml-q10",
+      "type": "mcq",
+      "question": "Which metric is the harmonic mean of Precision and Recall?",
+      "options": ["Accuracy", "AUC-ROC", "F1 Score", "MCC"],
+      "correct": 2,
+      "explanation": "F1 = 2 × (Precision × Recall) / (Precision + Recall). Harmonic mean means F1 is only high when BOTH precision and recall are high."
+    },
+    {
+      "id": "ml-q11",
+      "type": "truefalse",
+      "question": "A model with high AUC-ROC (e.g., 0.95) always has high accuracy.",
+      "correct": false,
+      "explanation": "AUC measures ranking quality, not accuracy at a fixed threshold. On imbalanced datasets, high AUC can coexist with poor accuracy — and vice versa."
+    },
+    {
+      "id": "ml-q12",
+      "type": "mcq",
+      "question": "Feature scaling (e.g., StandardScaler) is most critical for which algorithm?",
+      "options": ["Decision Trees", "Random Forests", "Gradient Boosting", "Logistic Regression with gradient descent"],
+      "correct": 3,
+      "explanation": "Tree-based models split on thresholds so scale doesn't matter. Gradient-based models like logistic regression converge much faster when features are on the same scale."
+    },
+    {
+      "id": "ml-q13",
+      "type": "mcq",
+      "question": "One-hot encoding is used to:",
+      "options": [
+        "Reduce the number of features",
+        "Convert continuous features to categorical",
+        "Convert a categorical feature into multiple binary columns",
+        "Normalize numerical features"
+      ],
+      "correct": 2,
+      "explanation": "One-hot encoding creates one binary column per category. It lets linear models and distance-based models work with categorical data without implying an ordinal relationship."
+    },
+    {
+      "id": "ml-q14",
+      "type": "truefalse",
+      "question": "L2 regularization (Ridge) adds the sum of squared weights to the loss, which pushes weights toward zero but rarely makes them exactly zero.",
+      "correct": true,
+      "explanation": "L2 penalizes large weights smoothly (it's differentiable everywhere). L1 (Lasso) uses absolute values and can set weights exactly to zero, making it a feature selector."
+    },
+    {
+      "id": "ml-q15",
+      "type": "mcq",
+      "question": "What is the bias-variance tradeoff?",
+      "options": [
+        "High bias → overfitting; high variance → underfitting",
+        "High bias → underfitting; high variance → overfitting",
+        "Both bias and variance should always be minimized together",
+        "Bias and variance are independent and have no tradeoff"
+      ],
+      "correct": 1,
+      "explanation": "A simple model has high bias (underfits, misses patterns). A complex model has high variance (overfits, sensitive to training noise). You balance them with regularization and data."
+    },
+    {
+      "id": "ml-q16",
+      "type": "mcq",
+      "question": "k-fold cross-validation with k=5 trains how many separate models?",
+      "options": ["1", "5", "10", "k × n (n = samples)"],
+      "correct": 1,
+      "explanation": "5-fold CV splits data into 5 folds, trains on 4 and validates on 1, rotating which fold is the held-out set. That's 5 training runs and 5 validation scores."
+    },
+    {
+      "id": "ml-q17",
+      "type": "mcq",
+      "question": "Stochastic Gradient Descent (SGD) updates weights using:",
+      "options": [
+        "The gradient computed on all training data",
+        "A random gradient",
+        "The gradient computed on one (or a mini-batch of) training examples",
+        "The second derivative (Hessian)"
+      ],
+      "correct": 2,
+      "explanation": "SGD uses a single example or small mini-batch per update. It's noisier than full-batch GD but much faster per update and can escape shallow local minima."
+    },
+    {
+      "id": "ml-q18",
+      "type": "truefalse",
+      "question": "Increasing the depth of a decision tree always decreases training error.",
+      "correct": true,
+      "explanation": "Deeper trees can always split further, eventually memorizing each training point. Training error monotonically decreases with depth — but validation error usually increases after a point."
+    },
+    {
+      "id": "ml-q19",
+      "type": "mcq",
+      "question": "In IOAI competitions, XGBoost and LightGBM are popular because:",
+      "options": [
+        "They always outperform neural networks",
+        "They require no hyperparameter tuning",
+        "They are fast, handle missing values, and perform well on tabular data",
+        "They are the only algorithms allowed in IOAI"
+      ],
+      "correct": 2,
+      "explanation": "Gradient boosting libraries (XGBoost, LightGBM, CatBoost) dominate tabular competitions because they're fast, handle heterogeneous features, and tune well with fewer data."
+    },
+    {
+      "id": "ml-q20",
+      "type": "mcq",
+      "question": "You train a model and get: Train accuracy = 99%, Validation accuracy = 61%. This is most likely:",
+      "options": [
+        "Underfitting — the model is too simple",
+        "Overfitting — the model memorized training data",
+        "A good result — high train accuracy is the goal",
+        "A data leakage problem — impossible otherwise"
+      ],
+      "correct": 1,
+      "explanation": "A huge gap between train and validation performance is the classic overfitting signature. Fix it with regularization, more data, dropout, or a simpler model."
+    }
+  ]
+}

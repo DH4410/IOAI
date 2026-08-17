@@ -1,0 +1,226 @@
+{
+  "id": "nn-test",
+  "title": "Neural Networks Mid-Term",
+  "track": "nn",
+  "emoji": "🧠",
+  "description": "20 questions on perceptrons, backprop, activations, optimizers, CNNs, and regularization.",
+  "timeLimit": 1500,
+  "passMark": 70,
+  "questions": [
+    {
+      "id": "nn-q1",
+      "type": "mcq",
+      "question": "A single perceptron (with no activation) is equivalent to:",
+      "options": ["A Random Forest", "A linear classifier", "A convolutional filter", "A recurrent cell"],
+      "correct": 1,
+      "explanation": "A perceptron computes a weighted sum of inputs plus bias — that's a linear function. Without a non-linear activation it can only separate linearly separable classes."
+    },
+    {
+      "id": "nn-q2",
+      "type": "truefalse",
+      "question": "A neural network with multiple layers but only linear activations is no more powerful than a single linear layer.",
+      "correct": true,
+      "explanation": "The composition of linear functions is still linear. You need non-linear activations (ReLU, sigmoid, tanh) to express non-linear decision boundaries."
+    },
+    {
+      "id": "nn-q3",
+      "type": "mcq",
+      "question": "Backpropagation computes gradients by applying:",
+      "options": [
+        "Numerical differentiation (finite differences)",
+        "The chain rule of calculus through the computation graph",
+        "Monte Carlo sampling",
+        "The Hessian matrix"
+      ],
+      "correct": 1,
+      "explanation": "Backprop is reverse-mode automatic differentiation. It applies the chain rule layer by layer from the loss back to the inputs, efficiently computing all gradients in one backward pass."
+    },
+    {
+      "id": "nn-q4",
+      "type": "mcq",
+      "question": "What is the 'vanishing gradient' problem?",
+      "options": [
+        "Weights randomly jump to zero during training",
+        "Gradients shrink exponentially as they are backpropagated through many layers, making early layers learn very slowly",
+        "The loss function becomes zero too quickly",
+        "The optimizer skips some layers during the update"
+      ],
+      "correct": 1,
+      "explanation": "With sigmoid/tanh activations, gradients are multiplied by values < 1 at each layer. In deep networks they become negligibly small by the time they reach early layers."
+    },
+    {
+      "id": "nn-q5",
+      "type": "mcq",
+      "question": "Which activation function mostly avoids the vanishing gradient problem in deep networks?",
+      "options": ["Sigmoid", "Tanh", "ReLU", "Softmax"],
+      "correct": 2,
+      "explanation": "ReLU (max(0, x)) has gradient exactly 1 for positive inputs, so gradients don't shrink through active units. Sigmoid saturates at both ends (gradient ≈ 0), causing vanishing."
+    },
+    {
+      "id": "nn-q6",
+      "type": "truefalse",
+      "question": "Softmax is typically used as the output activation for multi-class classification because its outputs sum to 1.",
+      "correct": true,
+      "explanation": "Softmax converts a vector of raw scores (logits) into a probability distribution. Each output is ≥ 0 and they all sum to exactly 1."
+    },
+    {
+      "id": "nn-q7",
+      "type": "mcq",
+      "question": "Adam optimizer combines which two ideas?",
+      "options": [
+        "SGD + L2 regularization",
+        "Momentum (first moment) + Adaptive learning rates per parameter (second moment)",
+        "Gradient clipping + weight decay",
+        "Batch normalization + learning rate scheduling"
+      ],
+      "correct": 1,
+      "explanation": "Adam tracks an exponential moving average of gradients (momentum) and of squared gradients (to adapt learning rates per parameter). It's fast and robust in practice."
+    },
+    {
+      "id": "nn-q8",
+      "type": "mcq",
+      "question": "In a Convolutional Neural Network, what does a 3×3 filter compute at each position?",
+      "options": [
+        "The average of all pixels in the image",
+        "The dot product of the filter weights with the overlapping 3×3 patch of the input",
+        "The maximum value in the 3×3 region",
+        "A random transformation of the input"
+      ],
+      "correct": 1,
+      "explanation": "A convolution slides the filter across the input and computes a dot product (plus bias) at every position. Different filters learn to detect different local patterns like edges or textures."
+    },
+    {
+      "id": "nn-q9",
+      "type": "mcq",
+      "question": "Max Pooling with a 2×2 window reduces the spatial dimensions by:",
+      "options": ["Half in each dimension (width and height)", "A quarter total", "Multiplying by 2", "Keeps the same size"],
+      "correct": 0,
+      "explanation": "A 2×2 max pool with stride 2 halves both width and height, so the total number of spatial locations is divided by 4. It keeps the largest activation in each 2×2 patch."
+    },
+    {
+      "id": "nn-q10",
+      "type": "truefalse",
+      "question": "Dropout randomly sets neuron activations to zero during training to reduce overfitting.",
+      "correct": true,
+      "explanation": "By randomly dropping units each forward pass, dropout prevents co-adaptation between neurons — they can't rely on each other always being present, forcing more robust feature learning."
+    },
+    {
+      "id": "nn-q11",
+      "type": "mcq",
+      "question": "Batch Normalization normalizes activations using statistics from:",
+      "options": [
+        "The entire training dataset",
+        "The current mini-batch",
+        "The previous layer's weights",
+        "A held-out validation set"
+      ],
+      "correct": 1,
+      "explanation": "BatchNorm computes the mean and variance within the current mini-batch, normalizes, then applies learned scale (γ) and shift (β). At inference it uses running statistics from training."
+    },
+    {
+      "id": "nn-q12",
+      "type": "mcq",
+      "question": "What is weight initialization for and why does it matter?",
+      "options": [
+        "It sets the learning rate to a good starting value",
+        "It prevents dead neurons and ensures gradients flow at the start of training",
+        "It picks the best architecture automatically",
+        "It computes the initial loss"
+      ],
+      "correct": 1,
+      "explanation": "If weights start too large, activations saturate. Too small, signals vanish. Xavier/Glorot and He initialization keep activations and gradients at a sensible scale from the first forward pass."
+    },
+    {
+      "id": "nn-q13",
+      "type": "mcq",
+      "question": "In PyTorch, what does `loss.backward()` do?",
+      "options": [
+        "Updates the model weights",
+        "Computes and accumulates gradients in `.grad` for all parameters with `requires_grad=True`",
+        "Prints the loss value",
+        "Resets the optimizer state"
+      ],
+      "correct": 1,
+      "explanation": "`backward()` runs backpropagation, filling in `.grad` tensors. You then call `optimizer.step()` to apply the weight update, and `optimizer.zero_grad()` to clear for the next batch."
+    },
+    {
+      "id": "nn-q14",
+      "type": "truefalse",
+      "question": "`optimizer.zero_grad()` should be called before `loss.backward()` each iteration (or you risk accumulating gradients across batches).",
+      "correct": true,
+      "explanation": "PyTorch accumulates (adds) gradients by default. If you forget to zero them before the next backward pass, the gradient includes contributions from multiple batches — corrupting the update."
+    },
+    {
+      "id": "nn-q15",
+      "type": "mcq",
+      "question": "Early stopping is a regularization technique that:",
+      "options": [
+        "Stops training when the learning rate drops below a threshold",
+        "Stops training when the validation loss stops improving (to prevent overfitting)",
+        "Randomly stops training after a fixed number of epochs",
+        "Stops training when training loss reaches zero"
+      ],
+      "correct": 1,
+      "explanation": "You monitor validation loss and save the best checkpoint. When validation loss stops decreasing (or starts rising), you restore the best weights and stop. Simple but very effective."
+    },
+    {
+      "id": "nn-q16",
+      "type": "mcq",
+      "question": "Which of these is NOT a benefit of Batch Normalization?",
+      "options": [
+        "Allows higher learning rates",
+        "Reduces internal covariate shift",
+        "Acts as a mild regularizer",
+        "Doubles the number of trainable parameters"
+      ],
+      "correct": 3,
+      "explanation": "BatchNorm adds 2 parameters per feature (γ and β), which is small. It doesn't double parameters — it's a small overhead. The other three are genuine benefits."
+    },
+    {
+      "id": "nn-q17",
+      "type": "mcq",
+      "question": "The 'dying ReLU' problem occurs when:",
+      "options": [
+        "ReLU outputs are too large, causing exploding gradients",
+        "A neuron's weights update so that it always outputs 0, and the gradient is also always 0, so it can never recover",
+        "ReLU is used in the output layer instead of softmax",
+        "The learning rate is too small for ReLU networks"
+      ],
+      "correct": 1,
+      "explanation": "If the pre-activation input to a ReLU neuron is always negative, the output is 0 and the gradient is 0 — the weights never update. Leaky ReLU and good initialization help prevent this."
+    },
+    {
+      "id": "nn-q18",
+      "type": "mcq",
+      "question": "Convolutional layers have far fewer parameters than fully-connected layers of the same input size because:",
+      "options": [
+        "They use lower precision arithmetic",
+        "They share weights (the same filter is applied to every position in the image)",
+        "They skip some connections randomly",
+        "They use fewer neurons"
+      ],
+      "correct": 1,
+      "explanation": "A 3×3 filter with 32 output channels has just 3×3×32 = 288 weights regardless of image size. An FC layer on a 224×224 image needs 224×224 = 50,176 weights per output — per neuron."
+    },
+    {
+      "id": "nn-q19",
+      "type": "truefalse",
+      "question": "Residual connections (skip connections) in ResNet help solve the vanishing gradient problem by providing a gradient 'shortcut' back to earlier layers.",
+      "correct": true,
+      "explanation": "The identity shortcut in a residual block means gradients can flow directly backward without passing through all the non-linearities of the block. This enables training of very deep networks."
+    },
+    {
+      "id": "nn-q20",
+      "type": "mcq",
+      "question": "For a classification task with 10 classes, what shape should the output layer of a neural network be, and what loss should you use?",
+      "options": [
+        "Shape (1,), Binary Cross-Entropy",
+        "Shape (10,) with softmax, Cross-Entropy Loss",
+        "Shape (10,) with ReLU, MSE Loss",
+        "Shape (1,) with sigmoid, Binary Cross-Entropy"
+      ],
+      "correct": 1,
+      "explanation": "Multi-class classification needs one output per class. Softmax turns logits into probabilities (sum to 1). Cross-entropy loss measures divergence between predicted and true distributions."
+    }
+  ]
+}

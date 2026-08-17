@@ -1,0 +1,221 @@
+{
+  "id": "nlp-test",
+  "title": "NLP Mid-Term",
+  "track": "nlp",
+  "emoji": "💬",
+  "description": "18 questions on tokenization, embeddings, attention, transformers, and language models.",
+  "timeLimit": 1350,
+  "passMark": 70,
+  "questions": [
+    {
+      "id": "nlp-q1",
+      "type": "mcq",
+      "question": "Why can't a neural network process raw text directly?",
+      "options": [
+        "Text is too slow to read",
+        "Neural networks only operate on numbers; text must first be converted to numerical representations",
+        "Text has infinite vocabulary",
+        "Neural networks don't support the ASCII standard"
+      ],
+      "correct": 1,
+      "explanation": "Neural networks compute with real-valued tensors. Raw text (characters or words) must be encoded as vectors — either via lookup embeddings or tokenizer-assigned IDs — before processing."
+    },
+    {
+      "id": "nlp-q2",
+      "type": "mcq",
+      "question": "BPE (Byte-Pair Encoding) tokenization starts by treating each character as a token and then:",
+      "options": [
+        "Splits words at every vowel",
+        "Randomly merges pairs of tokens",
+        "Iteratively merges the most frequent adjacent pair of tokens into a new single token",
+        "Uses a dictionary lookup to replace words"
+      ],
+      "correct": 2,
+      "explanation": "BPE repeatedly finds the most common adjacent pair in the corpus and merges it into one token. After many merges, common words become single tokens while rare ones stay as subword pieces."
+    },
+    {
+      "id": "nlp-q3",
+      "type": "truefalse",
+      "question": "Subword tokenization (BPE, WordPiece) solves the out-of-vocabulary (OOV) problem because unknown words can always be split into known subword pieces.",
+      "correct": true,
+      "explanation": "Even a word the model has never seen whole can be broken into characters or known subwords. At worst you fall back to individual characters/bytes, which are always in vocabulary."
+    },
+    {
+      "id": "nlp-q4",
+      "type": "mcq",
+      "question": "Word2Vec 'king − man + woman ≈ queen' demonstrates that word embeddings:",
+      "options": [
+        "Can perform arithmetic on words",
+        "Encode semantic relationships as geometric directions in the embedding space",
+        "Are always exactly 300 dimensions",
+        "Were trained on the Wikipedia article about royalty"
+      ],
+      "correct": 1,
+      "explanation": "The gender direction (man→woman) is a consistent offset in the space. Subtracting 'man' and adding 'woman' moves along that direction, landing near 'queen'. This is semantic algebra."
+    },
+    {
+      "id": "nlp-q5",
+      "type": "mcq",
+      "question": "What does cosine similarity measure when comparing two word embeddings?",
+      "options": [
+        "The Euclidean distance between them",
+        "The angle between them, capturing directional similarity regardless of magnitude",
+        "Whether the words appear in the same sentence",
+        "The difference in their token IDs"
+      ],
+      "correct": 1,
+      "explanation": "Cosine similarity = (a·b) / (|a| |b|). It equals 1 for identical directions, 0 for orthogonal (unrelated), -1 for opposite. It ignores vector magnitude, focusing on direction."
+    },
+    {
+      "id": "nlp-q6",
+      "type": "mcq",
+      "question": "In the attention mechanism, what are Query, Key, and Value?",
+      "options": [
+        "Three separate neural networks",
+        "Three linear projections of the input: Q asks 'what do I need?', K says 'what do I contain?', V is what gets returned",
+        "The three layers of a transformer block",
+        "Named after database terminology — they have no specific meaning in attention"
+      ],
+      "correct": 1,
+      "explanation": "Attention(Q,K,V) = softmax(QKᵀ/√d) V. The Q-K dot product scores relevance; softmax makes them probabilities; then those weights sum the Values. Every token can attend to every other token."
+    },
+    {
+      "id": "nlp-q7",
+      "type": "truefalse",
+      "question": "Self-attention allows every token in a sequence to attend to (combine information from) every other token in the same sequence.",
+      "correct": true,
+      "explanation": "Unlike RNNs, which process tokens one at a time, self-attention computes interactions between ALL pairs of tokens simultaneously — enabling long-range dependencies without sequential processing."
+    },
+    {
+      "id": "nlp-q8",
+      "type": "mcq",
+      "question": "Why is the attention score divided by √d_k (square root of key dimension) in scaled dot-product attention?",
+      "options": [
+        "To speed up computation",
+        "To prevent the dot products from growing so large that softmax gradients become near-zero",
+        "To normalize the Query vectors",
+        "Because keys have different units from queries"
+      ],
+      "correct": 1,
+      "explanation": "With large d_k, QKᵀ values can be very large, pushing softmax into a nearly-saturated region with tiny gradients. Dividing by √d_k keeps the values in a reasonable range."
+    },
+    {
+      "id": "nlp-q9",
+      "type": "mcq",
+      "question": "Multi-head attention uses h separate Q, K, V projections because:",
+      "options": [
+        "It makes the model h times bigger in parameters",
+        "It allows the model to attend to different types of relationships simultaneously in different representation subspaces",
+        "It is required to maintain the same sequence length",
+        "It prevents gradient vanishing"
+      ],
+      "correct": 1,
+      "explanation": "Each attention head can specialize — one might focus on syntactic relationships, another on coreference, another on semantics. The heads are concatenated and projected back to the model dimension."
+    },
+    {
+      "id": "nlp-q10",
+      "type": "mcq",
+      "question": "BERT is pre-trained with Masked Language Modeling (MLM). What does this mean?",
+      "options": [
+        "Some tokens are replaced with [MASK] and the model predicts the original tokens",
+        "All tokens are masked and the model regenerates the entire sentence",
+        "The model predicts the next sentence given the current one",
+        "The model learns to ignore stop words"
+      ],
+      "correct": 0,
+      "explanation": "15% of tokens are randomly masked. BERT is trained to predict those masked tokens using context from both directions (bidirectional). This forces deep contextual understanding."
+    },
+    {
+      "id": "nlp-q11",
+      "type": "truefalse",
+      "question": "GPT is a decoder-only transformer trained with causal (left-to-right) language modeling — it predicts the next token given all previous tokens.",
+      "correct": true,
+      "explanation": "GPT uses a causal mask so each position can only attend to earlier positions. Pre-training is to predict token t+1 given tokens 1...t. This makes it natural for text generation."
+    },
+    {
+      "id": "nlp-q12",
+      "type": "mcq",
+      "question": "Positional encoding is added to token embeddings in transformers because:",
+      "options": [
+        "Self-attention is permutation invariant — without position info, 'cat sat on mat' and 'mat on sat cat' look identical to the model",
+        "It reduces the number of parameters",
+        "It replaces the Query-Key computation",
+        "It encodes the frequency of each token"
+      ],
+      "correct": 0,
+      "explanation": "Attention has no built-in notion of order. Without positional encoding, swapping tokens gives identical outputs. Positional encoding injects order information into the representation."
+    },
+    {
+      "id": "nlp-q13",
+      "type": "mcq",
+      "question": "Fine-tuning a pre-trained language model means:",
+      "options": [
+        "Training it from scratch on a new task",
+        "Continuing training on task-specific labeled data, adapting the pre-trained weights",
+        "Freezing all weights and only using the model for feature extraction",
+        "Changing the tokenizer to match the new task"
+      ],
+      "correct": 1,
+      "explanation": "Fine-tuning starts from pre-trained weights (which encode general language knowledge) and continues gradient updates on your task data. Far more efficient than training from scratch."
+    },
+    {
+      "id": "nlp-q14",
+      "type": "mcq",
+      "question": "What is the purpose of a [CLS] token in BERT?",
+      "options": [
+        "To mark the end of a sentence",
+        "Its final embedding aggregates information from the whole sequence and is used as input to classification heads",
+        "It separates two sentences in a sentence-pair task",
+        "It stores the attention mask"
+      ],
+      "correct": 1,
+      "explanation": "BERT prepends [CLS] (class) to every input. After the transformer layers, the [CLS] embedding is a pooled representation of the whole sequence, perfect for classification tasks."
+    },
+    {
+      "id": "nlp-q15",
+      "type": "truefalse",
+      "question": "Temperature in text generation (T > 1) makes the next-token probability distribution more uniform, increasing diversity but reducing coherence.",
+      "correct": true,
+      "explanation": "Temperature scales logits before softmax: logits/T. T > 1 flattens the distribution (more random). T < 1 sharpens it (more deterministic). T → 0 is greedy decoding."
+    },
+    {
+      "id": "nlp-q16",
+      "type": "mcq",
+      "question": "Transfer learning works for NLP because:",
+      "options": [
+        "Pre-trained models have memorized all possible text",
+        "A model trained on large amounts of text learns general linguistic structure and world knowledge that transfers to specific tasks with little data",
+        "All NLP tasks share the same labels",
+        "Pre-trained embeddings are always frozen during fine-tuning"
+      ],
+      "correct": 1,
+      "explanation": "Pre-training on web-scale text teaches syntax, semantics, facts, and reasoning patterns. Fine-tuning adapts this knowledge to your specific task and label set — even with just hundreds of examples."
+    },
+    {
+      "id": "nlp-q17",
+      "type": "mcq",
+      "question": "Which technique is most commonly used to efficiently fine-tune a large language model without updating all its parameters?",
+      "options": [
+        "Dropout",
+        "LoRA (Low-Rank Adaptation)",
+        "Batch Normalization",
+        "Knowledge Distillation"
+      ],
+      "correct": 1,
+      "explanation": "LoRA freezes the original weights and injects small low-rank adapter matrices. Only those are trained — dramatically reducing trainable parameters (sometimes by 99%) while maintaining quality."
+    },
+    {
+      "id": "nlp-q18",
+      "type": "mcq",
+      "question": "Beam search with beam size k in text generation keeps track of:",
+      "options": [
+        "The top k individual tokens at each step",
+        "The k highest-probability complete sequences generated so far",
+        "k random sequences for diversity",
+        "The top k attention heads"
+      ],
+      "correct": 1,
+      "explanation": "Beam search maintains k candidate sequences (beams) at each step, expanding each by one token and keeping the k overall best hypotheses. Greedy is beam size 1."
+    }
+  ]
+}
