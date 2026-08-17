@@ -198,6 +198,29 @@ In most classification tasks you only need self-attention (encoder).
 
 ---
 
+## 7. Sort the Attention Concepts
+
+```widget
+{
+  "type": "concept-sort",
+  "title": "Self-Attention or Cross-Attention?",
+  "categories": [
+    { "name": "Self-Attention", "color": "#5B5BD6" },
+    { "name": "Cross-Attention", "color": "#F97316" }
+  ],
+  "items": [
+    { "text": "Q, K, V all come from the same sequence", "category": "Self-Attention" },
+    { "text": "Q from decoder, K/V from encoder", "category": "Cross-Attention" },
+    { "text": "BERT encoder layers", "category": "Self-Attention" },
+    { "text": "Seq2seq translation — decoder attending to encoder", "category": "Cross-Attention" },
+    { "text": "GPT processing its own context window", "category": "Self-Attention" },
+    { "text": "T5 decoder attending to source text", "category": "Cross-Attention" }
+  ]
+}
+```
+
+---
+
 ## Summary
 
 | Concept | Key point |

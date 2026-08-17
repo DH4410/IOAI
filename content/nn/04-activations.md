@@ -285,6 +285,29 @@ Run this and read across each row. Notice: sigmoid and tanh flatten (saturate) a
 
 ---
 
+## Sort the Activations
+
+```widget
+{
+  "type": "concept-sort",
+  "title": "Where Does Each Activation Belong?",
+  "categories": [
+    { "name": "Hidden layers", "color": "#5B5BD6" },
+    { "name": "Output layer", "color": "#22C55E" }
+  ],
+  "items": [
+    { "text": "ReLU", "category": "Hidden layers" },
+    { "text": "Softmax (multiclass)", "category": "Output layer" },
+    { "text": "GELU (Transformer blocks)", "category": "Hidden layers" },
+    { "text": "Sigmoid (binary classifier)", "category": "Output layer" },
+    { "text": "Leaky ReLU", "category": "Hidden layers" },
+    { "text": "Linear / no activation (regression)", "category": "Output layer" }
+  ]
+}
+```
+
+---
+
 ## Summary
 
 - Activation functions add the **non-linearity** that lets deep networks model complex functions, and their **derivative** controls gradient flow.

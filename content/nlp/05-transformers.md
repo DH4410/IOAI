@@ -195,6 +195,29 @@ Mean pooling (average all token embeddings) often works better than just the `[C
 
 ---
 
+## Sort the Transformer Concepts
+
+```widget
+{
+  "type": "concept-sort",
+  "title": "BERT or GPT? Which model type for each task?",
+  "categories": [
+    { "name": "BERT (Encoder)", "color": "#5B5BD6" },
+    { "name": "GPT (Decoder)", "color": "#F97316" }
+  ],
+  "items": [
+    { "text": "Text classification (spam detection)", "category": "BERT (Encoder)" },
+    { "text": "Open-ended text generation", "category": "GPT (Decoder)" },
+    { "text": "Masked language modeling pretraining", "category": "BERT (Encoder)" },
+    { "text": "Causal language modeling (predict next token)", "category": "GPT (Decoder)" },
+    { "text": "Named entity recognition", "category": "BERT (Encoder)" },
+    { "text": "ChatGPT-style conversation", "category": "GPT (Decoder)" }
+  ]
+}
+```
+
+---
+
 ## Summary
 
 | Step | Code |

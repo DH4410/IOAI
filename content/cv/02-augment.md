@@ -223,6 +223,29 @@ Concretely, here is why augmentation earns you leaderboard points:
 
 ---
 
+## Sort These Augmentations
+
+```widget
+{
+  "type": "concept-sort",
+  "title": "Safe or Risky Augmentation for Medical Images?",
+  "categories": [
+    { "name": "Safe (preserves meaning)", "color": "#22C55E" },
+    { "name": "Risky (might break labels)", "color": "#EF4444" }
+  ],
+  "items": [
+    { "text": "Random horizontal flip", "category": "Safe (preserves meaning)" },
+    { "text": "Random brightness/contrast", "category": "Safe (preserves meaning)" },
+    { "text": "180° rotation (could flip top/bottom)", "category": "Risky (might break labels)" },
+    { "text": "Gaussian blur", "category": "Safe (preserves meaning)" },
+    { "text": "Mirroring left-right digits (6 becomes 9)", "category": "Risky (might break labels)" },
+    { "text": "Random crop and resize", "category": "Safe (preserves meaning)" }
+  ]
+}
+```
+
+---
+
 ## Summary
 
 - Augmentation creates new training examples by transforming existing images, fighting overfitting and teaching invariances — usually raising your validation score for almost no effort.

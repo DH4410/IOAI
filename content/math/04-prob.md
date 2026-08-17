@@ -305,6 +305,30 @@ So the arc is: probability describes uncertainty → models output probability d
 
 ---
 
+## Sort These Concepts
+
+```widget
+{
+  "type": "concept-sort",
+  "title": "Bayes' Theorem: Match the Term",
+  "categories": [
+    { "name": "Prior P(A)", "color": "#5B5BD6" },
+    { "name": "Likelihood P(B|A)", "color": "#F97316" },
+    { "name": "Posterior P(A|B)", "color": "#22C55E" }
+  ],
+  "items": [
+    { "text": "Your belief BEFORE seeing evidence", "category": "Prior P(A)" },
+    { "text": "Your belief AFTER seeing evidence", "category": "Posterior P(A|B)" },
+    { "text": "How probable the evidence is IF hypothesis is true", "category": "Likelihood P(B|A)" },
+    { "text": "1% disease prevalence in the population", "category": "Prior P(A)" },
+    { "text": "Test positive rate given you have the disease (99%)", "category": "Likelihood P(B|A)" },
+    { "text": "50% chance of disease given positive test", "category": "Posterior P(A|B)" }
+  ]
+}
+```
+
+---
+
 ## Summary
 
 - The **sample space** is all possible outcomes; an **event** is a subset; **probability** $P(A) \in [0, 1]$ measures likelihood. Over all outcomes, probabilities **sum to 1**.

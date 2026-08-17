@@ -195,6 +195,29 @@ model = AutoModelForSequenceClassification.from_pretrained('saved_model/')
 
 ---
 
+## Sort Fine-Tuning Decisions
+
+```widget
+{
+  "type": "concept-sort",
+  "title": "Full Fine-Tuning or Parameter-Efficient (PEFT)?",
+  "categories": [
+    { "name": "Full fine-tuning", "color": "#5B5BD6" },
+    { "name": "LoRA / PEFT", "color": "#22C55E" }
+  ],
+  "items": [
+    { "text": "You have a single A100 GPU for hours", "category": "Full fine-tuning" },
+    { "text": "7B parameter model on consumer hardware", "category": "LoRA / PEFT" },
+    { "text": "Update all model weights during training", "category": "Full fine-tuning" },
+    { "text": "Train only low-rank adapter matrices", "category": "LoRA / PEFT" },
+    { "text": "Best accuracy when compute is no constraint", "category": "Full fine-tuning" },
+    { "text": "Quick experimentation with minimal VRAM", "category": "LoRA / PEFT" }
+  ]
+}
+```
+
+---
+
 ## Summary
 
 | Component | Recommendation |

@@ -169,6 +169,30 @@ Always report mean ± std. A model with 0.91 ± 0.02 is more reliable than one w
 
 ---
 
+## 5. Sort These Metric Scenarios
+
+```widget
+{
+  "type": "concept-sort",
+  "title": "Which Metric? Match the Scenario",
+  "categories": [
+    { "name": "Use Accuracy", "color": "#22C55E" },
+    { "name": "Use F1 / AUC", "color": "#5B5BD6" },
+    { "name": "Use RMSE / MAE", "color": "#F97316" }
+  ],
+  "items": [
+    { "text": "Predicting house prices", "category": "Use RMSE / MAE" },
+    { "text": "MNIST digit recognition (balanced classes)", "category": "Use Accuracy" },
+    { "text": "Fraud detection (0.1% fraudulent transactions)", "category": "Use F1 / AUC" },
+    { "text": "Cancer diagnosis (FN is life-threatening)", "category": "Use F1 / AUC" },
+    { "text": "Predicting tomorrow's temperature in °C", "category": "Use RMSE / MAE" },
+    { "text": "Spam filter (balanced spam/ham dataset)", "category": "Use Accuracy" }
+  ]
+}
+```
+
+---
+
 ## Summary
 
 | Metric | Formula | When to use |

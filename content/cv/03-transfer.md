@@ -219,6 +219,29 @@ In the IOAI 2025 CV tasks — restroom icon matching, painting authentication �
 
 ---
 
+## Sort Transfer Learning Strategies
+
+```widget
+{
+  "type": "concept-sort",
+  "title": "Freeze or Fine-Tune?",
+  "categories": [
+    { "name": "Freeze backbone", "color": "#5B5BD6" },
+    { "name": "Fine-tune all layers", "color": "#F97316" }
+  ],
+  "items": [
+    { "text": "Your dataset is very small (<500 images)", "category": "Freeze backbone" },
+    { "text": "Large labeled dataset (>10k images)", "category": "Fine-tune all layers" },
+    { "text": "Use pretrained features as fixed extractors", "category": "Freeze backbone" },
+    { "text": "Use small lr (1e-5) to update all weights", "category": "Fine-tune all layers" },
+    { "text": "Train only the classification head", "category": "Freeze backbone" },
+    { "text": "Target domain very different from ImageNet", "category": "Fine-tune all layers" }
+  ]
+}
+```
+
+---
+
 ## Summary
 
 - Training big vision models from scratch needs millions of images and days of compute — impossible in a competition. **Start pretrained.**

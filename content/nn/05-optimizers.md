@@ -266,6 +266,29 @@ Run it and read the numbers: the rate climbs during warmup, peaks, then eases ba
 
 ---
 
+## Sort the Optimizer Properties
+
+```widget
+{
+  "type": "concept-sort",
+  "title": "Adam or SGD? Match the Property",
+  "categories": [
+    { "name": "Vanilla SGD", "color": "#F97316" },
+    { "name": "Adam / AdamW", "color": "#5B5BD6" }
+  ],
+  "items": [
+    { "text": "Same learning rate for every parameter", "category": "Vanilla SGD" },
+    { "text": "Per-parameter adaptive learning rates", "category": "Adam / AdamW" },
+    { "text": "Bias correction in early steps", "category": "Adam / AdamW" },
+    { "text": "Simple update: w -= lr * grad", "category": "Vanilla SGD" },
+    { "text": "Standard choice for training transformers", "category": "Adam / AdamW" },
+    { "text": "Can generalize better with careful tuning", "category": "Vanilla SGD" }
+  ]
+}
+```
+
+---
+
 ## Summary
 
 - An **optimizer** converts gradients into weight updates. Base rule: $w \leftarrow w - \eta\nabla L$ (gradient descent).
