@@ -226,6 +226,30 @@ print(kl_divergence(p, [0.99, 0.01])) # even bigger -> q is very wrong
 
 ---
 
+## Sort the Information Theory Concepts
+
+```widget
+{
+  "type": "concept-sort",
+  "title": "Entropy, Cross-Entropy, or KL Divergence?",
+  "categories": [
+    { "name": "Entropy H(p)", "color": "#5B5BD6" },
+    { "name": "Cross-Entropy H(p,q)", "color": "#F97316" },
+    { "name": "KL Divergence D_KL(p||q)", "color": "#22C55E" }
+  ],
+  "items": [
+    { "text": "Measures uncertainty of a single distribution", "category": "Entropy H(p)" },
+    { "text": "The standard classification loss function", "category": "Cross-Entropy H(p,q)" },
+    { "text": "Always ≥ 0, equals 0 when distributions match", "category": "KL Divergence D_KL(p||q)" },
+    { "text": "Fair coin flip = 1 bit", "category": "Entropy H(p)" },
+    { "text": "-log(probability of correct class)", "category": "Cross-Entropy H(p,q)" },
+    { "text": "H(p,q) - H(p): the extra cost of being wrong", "category": "KL Divergence D_KL(p||q)" }
+  ]
+}
+```
+
+---
+
 ## Summary
 
 - **Information / surprisal** of an event is $-\log_2 p$. Rare events (small $p$) are surprising and carry lots of information; certain events ($p = 1$) carry none. Using $\log_2$, the unit is the **bit** — one fair coin flip = 1 bit. The log is chosen because it makes independent information *add*.

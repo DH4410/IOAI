@@ -160,6 +160,29 @@ The `[CLS]` token embedding is commonly used as a fixed-size representation of t
 
 ---
 
+## Sort the Embedding Methods
+
+```widget
+{
+  "type": "concept-sort",
+  "title": "Static or Contextual Embeddings?",
+  "categories": [
+    { "name": "Static (Word2Vec / GloVe)", "color": "#F97316" },
+    { "name": "Contextual (BERT / GPT)", "color": "#5B5BD6" }
+  ],
+  "items": [
+    { "text": "One fixed vector per word regardless of context", "category": "Static (Word2Vec / GloVe)" },
+    { "text": "\"bank\" gets different vectors in different sentences", "category": "Contextual (BERT / GPT)" },
+    { "text": "king - man + woman ≈ queen arithmetic", "category": "Static (Word2Vec / GloVe)" },
+    { "text": "768-dimensional hidden states from a transformer", "category": "Contextual (BERT / GPT)" },
+    { "text": "Cheap to compute, no GPU needed at inference", "category": "Static (Word2Vec / GloVe)" },
+    { "text": "Best accuracy for most NLP tasks today", "category": "Contextual (BERT / GPT)" }
+  ]
+}
+```
+
+---
+
 ## Summary
 
 | Method | Dimensions | Context-aware? | When to use |
