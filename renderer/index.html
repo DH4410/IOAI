@@ -134,6 +134,20 @@
             <div id="qp-prompt"></div>
             <button id="btn-start-practice" class="btn-start-practice">Start Practice</button>
           </div>
+
+          <!-- AI Assistant panel -->
+          <div id="ai-panel">
+            <div class="panel-label">
+              AI Assistant
+              <span class="ai-status-dot" id="ai-dot" title="Ollama status"></span>
+            </div>
+            <div class="ai-chat-log" id="ai-chat-log"></div>
+            <div class="ai-input-row">
+              <textarea id="ai-input" class="ai-input" placeholder="Ask about this lesson…" rows="2"></textarea>
+              <button id="ai-send" class="ai-send-btn">↑</button>
+            </div>
+            <div class="ai-hint" id="ai-hint">Needs Ollama running locally</div>
+          </div>
         </aside>
       </div>
     </div>

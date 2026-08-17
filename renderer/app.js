@@ -841,6 +841,86 @@ async function openLesson(trackId, lessonId) {
 
   // Pre-warm Pyodide if lesson has Python
   if (!state.pyodideReady && body.includes('```python')) ensurePyodide();
+
+  // Wire up AI assistant panel
+  setupAIPanel(track.name, lesson.title);
+}
+
+// ─── AI Assistant (Ollama) ────────────────────────────────────────────────────
+let aiOnline = false;
+
+async function setupAIPanel(trackName, lessonTitle) {
+  const dot = document.getElementById('ai-dot');
+  const log = document.getElementById('ai-chat-log');
+  const input = document.getElementById('ai-input');
+  const send = document.getElementById('ai-send');
+  const hint = document.getElementById('ai-hint');
+
+  // Clear previous messages
+  log.innerHTML = '';
+
+  // Check Ollama availability
+  aiOnline = await window.api.ollamaCheck().catch(() => false);
+  dot.className = `ai-status-dot ${aiOnline ? 'online' : 'offline'}`;
+  hint.textContent = aiOnline
+    ? 'AI ready — ask anything about this lesson'
+    : 'Offline: install Ollama + run: ollama pull llama3.2:1b';
+
+  if (aiOnline && log.children.length === 0) {
+    const welcome = document.createElement('div');
+    welcome.className = 'ai-msg ai';
+    welcome.textContent = `Hi! I'm here to help with "${lessonTitle}". Ask me to explain any concept, give an example, or quiz you.`;
+    log.appendChild(welcome);
+  }
+
+  // Remove old listeners by cloning
+  const newSend = send.cloneNode(true);
+  send.parentNode.replaceChild(newSend, send);
+  const newInput = input.cloneNode(true);
+  input.parentNode.replaceChild(newInput, input);
+
+  const sendMsg = async () => {
+    const q = newInput.value.trim();
+    if (!q) return;
+    if (!aiOnline) { hint.textContent = 'Ollama not running. Install from ollama.com'; return; }
+
+    const userEl = document.createElement('div');
+    userEl.className = 'ai-msg user';
+    userEl.textContent = q;
+    log.appendChild(userEl);
+    newInput.value = '';
+    newSend.disabled = true;
+
+    const thinkEl = document.createElement('div');
+    thinkEl.className = 'ai-msg ai';
+    thinkEl.textContent = '…';
+    log.appendChild(thinkEl);
+    log.scrollTop = log.scrollHeight;
+
+    const systemPrompt = `You are a helpful tutor for the IOAI (International Olympiad in AI) learning platform. The student is studying "${lessonTitle}" in the "${trackName}" track. Give short, clear, friendly explanations. If they ask for code, keep it concise. Max 3 paragraphs.`;
+
+    const result = await window.api.ollamaChat({
+      model: 'llama3.2:1b',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: q },
+      ],
+    }).catch(() => ({ ok: false, error: 'Connection failed' }));
+
+    if (result.ok) {
+      thinkEl.textContent = result.content;
+    } else {
+      thinkEl.className = 'ai-msg error';
+      thinkEl.textContent = result.error;
+    }
+    newSend.disabled = false;
+    log.scrollTop = log.scrollHeight;
+  };
+
+  newSend.addEventListener('click', sendMsg);
+  newInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); }
+  });
 }
 
 // ─── Home Dashboard ───────────────────────────────────────────────────────────
