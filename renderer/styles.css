@@ -2242,6 +2242,48 @@ html.dark .kern-cell { background: var(--accent); }
 
 .loading-pulse { color: var(--text4); font-size: 14px; padding: 20px; }
 
+/* ─── Concept Sort widget ───────────────────────────────── */
+.cs-layout { display: flex; flex-direction: column; gap: 10px; }
+.cs-pool-label { font-size: 12px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; }
+.cs-pool { display: flex; flex-wrap: wrap; gap: 8px; min-height: 40px; padding: 8px; background: var(--muted); border-radius: var(--radius-sm); border: 1.5px dashed var(--border); }
+.cs-categories { display: flex; gap: 12px; flex-wrap: wrap; }
+.cs-cat { flex: 1; min-width: 140px; border: 2px solid var(--cat-color, var(--border)); border-radius: var(--radius); overflow: hidden; }
+.cs-cat-name { font-size: 12px; font-weight: 700; padding: 7px 12px; background: var(--cat-color, var(--border)); color: #fff; }
+.cs-drop-zone { min-height: 60px; padding: 8px; display: flex; flex-wrap: wrap; gap: 6px; transition: background 0.15s; }
+.cs-drop-zone.drag-over { background: rgba(91,91,214,0.08); }
+.cs-pool.drag-over { background: rgba(91,91,214,0.08); }
+.cs-chip {
+  padding: 6px 12px; border-radius: 20px;
+  background: var(--white); border: 1.5px solid var(--border);
+  font-size: 13px; cursor: grab; user-select: none;
+  transition: box-shadow 0.15s, opacity 0.15s;
+  white-space: nowrap;
+}
+.cs-chip:active { cursor: grabbing; }
+.cs-chip.dragging { opacity: 0.5; }
+.cs-chip.cs-correct { background: var(--green-lt); border-color: var(--green); color: var(--green); }
+.cs-chip.cs-wrong { background: var(--red-lt); border-color: var(--red); color: var(--red); }
+.cs-feedback { padding: 10px 14px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; }
+.cs-fb-pass { background: var(--green-lt); color: var(--green); }
+.cs-fb-fail { background: var(--red-lt); color: var(--red); }
+
+/* ─── Decision Boundary widget ──────────────────────────── */
+.db-layout { display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-start; }
+.db-controls { flex: 1; min-width: 180px; }
+.db-canvas { border-radius: var(--radius-sm); border: 1px solid var(--border); display: block; max-width: 100%; }
+.db-ds-btn {
+  padding: 4px 10px; border-radius: 20px;
+  border: 1.5px solid var(--border); background: var(--white);
+  font-size: 12px; font-weight: 600; cursor: pointer; color: var(--text3);
+  transition: all 0.15s;
+}
+.db-ds-btn.active, .db-ds-btn:hover { background: var(--blue); border-color: var(--blue); color: #fff; }
+.db-legend { display: flex; gap: 14px; font-size: 12px; color: var(--text3); margin-bottom: 10px; align-items: center; }
+.db-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 4px; vertical-align: middle; }
+.db-dot.blue { background: #5B5BD6; }
+.db-dot.orange { background: #F97316; }
+.db-insight { font-size: 12px; color: var(--text3); margin-top: 6px; line-height: 1.5; min-height: 32px; }
+
 /* ─── Kai Mascot ─────────────────────────────────────────── */
 .kai-card {
   display: flex; align-items: center; gap: 16px;

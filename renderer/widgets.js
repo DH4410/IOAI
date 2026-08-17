@@ -36,7 +36,9 @@ function buildWidget(config) {
     case 'attention-heatmap': return attentionHeatmap(config);
     case 'tokenizer-live':    return tokenizerLive(config);
     case 'conv-stepper':      return convStepper(config);
-    case 'neuron-diagram':    return neuronDiagram(config);
+    case 'neuron-diagram':      return neuronDiagram(config);
+    case 'concept-sort':        return conceptSort(config);
+    case 'decision-boundary':   return decisionBoundary(config);
     default: return null;
   }
 }
@@ -779,5 +781,273 @@ function neuronDiagram(config) {
   ).join('');
 
   drawNet(-1);
+  return div;
+}
+
+// ── Widget: Concept Sort ──────────────────────────────────────────────────────
+// Config: { title, categories: [{name, color}], items: [{text, category}] }
+function conceptSort(config) {
+  const categories = config.categories || [{ name: 'Supervised', color: '#5B5BD6' }, { name: 'Unsupervised', color: '#22C55E' }];
+  const allItems = (config.items || []).sort(() => Math.random() - 0.5);
+
+  const div = makeWidget(config.title || 'Concept Sort', '🗂️', `
+    <div class="cs-layout">
+      <div class="cs-pool-label">Drag items to the correct category:</div>
+      <div class="cs-pool" id="cs-pool">
+        ${allItems.map((item, i) => `
+          <div class="cs-chip" draggable="true" data-idx="${i}" data-correct="${item.category}">
+            ${item.text}
+          </div>`).join('')}
+      </div>
+      <div class="cs-categories" id="cs-categories">
+        ${categories.map(cat => `
+          <div class="cs-cat" data-cat="${cat.name}" style="--cat-color:${cat.color}">
+            <div class="cs-cat-name">${cat.name}</div>
+            <div class="cs-drop-zone" data-cat="${cat.name}"></div>
+          </div>`).join('')}
+      </div>
+      <div class="widget-btn-row" style="margin-top:12px">
+        <button class="widget-btn" id="cs-check">Check Answers</button>
+        <button class="widget-btn widget-btn-sec" id="cs-reset">Reset</button>
+      </div>
+      <div class="cs-feedback" id="cs-feedback" style="display:none"></div>
+    </div>
+  `);
+
+  let dragging = null;
+
+  div.querySelectorAll('.cs-chip').forEach(chip => {
+    chip.addEventListener('dragstart', e => {
+      dragging = chip;
+      chip.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    chip.addEventListener('dragend', () => {
+      chip.classList.remove('dragging');
+      dragging = null;
+    });
+  });
+
+  div.querySelectorAll('.cs-drop-zone, #cs-pool').forEach(zone => {
+    zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+    zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+    zone.addEventListener('drop', e => {
+      e.preventDefault();
+      zone.classList.remove('drag-over');
+      if (dragging) {
+        zone.appendChild(dragging);
+        dragging.classList.remove('cs-correct', 'cs-wrong');
+        div.querySelector('#cs-feedback').style.display = 'none';
+      }
+    });
+  });
+
+  div.querySelector('#cs-check').addEventListener('click', () => {
+    let correct = 0, total = 0;
+    div.querySelectorAll('.cs-drop-zone').forEach(zone => {
+      const cat = zone.dataset.cat;
+      zone.querySelectorAll('.cs-chip').forEach(chip => {
+        total++;
+        const isCorrect = chip.dataset.correct === cat;
+        chip.classList.toggle('cs-correct', isCorrect);
+        chip.classList.toggle('cs-wrong', !isCorrect);
+        if (isCorrect) correct++;
+      });
+    });
+    const fb = div.querySelector('#cs-feedback');
+    fb.style.display = 'block';
+    if (correct === total && total > 0) {
+      fb.className = 'cs-feedback cs-fb-pass';
+      fb.textContent = `Perfect! All ${total} items sorted correctly. `;
+    } else {
+      fb.className = 'cs-feedback cs-fb-fail';
+      fb.textContent = `${correct} of ${total} correct. Red items are misplaced — try moving them.`;
+    }
+  });
+
+  div.querySelector('#cs-reset').addEventListener('click', () => {
+    const pool = div.querySelector('#cs-pool');
+    div.querySelectorAll('.cs-chip').forEach(chip => {
+      chip.classList.remove('cs-correct', 'cs-wrong');
+      pool.appendChild(chip);
+    });
+    div.querySelector('#cs-feedback').style.display = 'none';
+  });
+
+  return div;
+}
+
+// ── Widget: Decision Boundary ─────────────────────────────────────────────────
+// Config: { title, dataset: "xor"|"linear"|"moons", showComplexity: true }
+function decisionBoundary(config) {
+  const datasets = {
+    linear: () => {
+      const pts = [];
+      for (let i = 0; i < 60; i++) {
+        const x = Math.random() * 2 - 1, y = Math.random() * 2 - 1;
+        pts.push({ x, y, label: (y > 0.5 * x + 0.1 + (Math.random() - 0.5) * 0.4) ? 1 : 0 });
+      }
+      return pts;
+    },
+    xor: () => {
+      const pts = [];
+      for (let i = 0; i < 60; i++) {
+        const x = Math.random() * 2 - 1, y = Math.random() * 2 - 1;
+        pts.push({ x, y, label: ((x > 0) === (y > 0)) ? 1 : 0 });
+      }
+      return pts;
+    },
+    moons: () => {
+      const pts = [];
+      for (let i = 0; i < 60; i++) {
+        const t = Math.PI * (i / 60);
+        const noise = () => (Math.random() - 0.5) * 0.25;
+        if (i < 30) pts.push({ x: Math.cos(t) + noise(), y: Math.sin(t) + noise(), label: 0 });
+        else pts.push({ x: 1 - Math.cos(t) + noise(), y: 0.5 - Math.sin(t) + noise(), label: 1 });
+      }
+      // normalise
+      const xs = pts.map(p => p.x), ys = pts.map(p => p.y);
+      const minX = Math.min(...xs), maxX = Math.max(...xs), minY = Math.min(...ys), maxY = Math.max(...ys);
+      pts.forEach(p => { p.x = ((p.x - minX) / (maxX - minX)) * 2 - 1; p.y = ((p.y - minY) / (maxY - minY)) * 2 - 1; });
+      return pts;
+    }
+  };
+
+  const datasetNames = ['linear', 'xor', 'moons'];
+  let currentDataset = config.dataset || 'linear';
+  let currentDegree = 1;
+  let points = datasets[currentDataset]?.() || datasets.linear();
+
+  const div = makeWidget(config.title || 'Decision Boundary Explorer', '🗺️', `
+    <div class="db-layout">
+      <div class="db-controls">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+          <span class="ctrl-label">Dataset:</span>
+          ${datasetNames.map(n => `<button class="db-ds-btn ${n === currentDataset ? 'active' : ''}" data-ds="${n}">${n}</button>`).join('')}
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+          <span class="ctrl-label">Complexity (degree):</span>
+          <input type="range" class="ctrl-range" id="db-degree" min="1" max="5" value="1" style="flex:1">
+          <span id="db-degree-val" style="font-size:12px;font-family:var(--mono);width:16px">1</span>
+        </div>
+        <div class="db-legend">
+          <span><span class="db-dot blue"></span> Class A</span>
+          <span><span class="db-dot orange"></span> Class B</span>
+        </div>
+        <div class="db-insight" id="db-insight"></div>
+      </div>
+      <canvas id="db-canvas" class="db-canvas" width="240" height="240"></canvas>
+    </div>
+  `);
+
+  const canvas = div.querySelector('#db-canvas');
+  const ctx = canvas.getContext('2d');
+  const W = 240, H = 240;
+
+  function toCanvas(x, y) {
+    return [(x + 1) / 2 * (W - 20) + 10, (1 - (y + 1) / 2) * (H - 20) + 10];
+  }
+
+  function polyFeatures(x, y, degree) {
+    const feats = [1];
+    for (let d = 1; d <= degree; d++) {
+      for (let j = 0; j <= d; j++) {
+        feats.push(Math.pow(x, d - j) * Math.pow(y, j));
+      }
+    }
+    return feats;
+  }
+
+  function sigmoid(z) { return 1 / (1 + Math.exp(-z)); }
+
+  function trainLR(pts, degree, iters = 500, lr = 0.1) {
+    const X = pts.map(p => polyFeatures(p.x, p.y, degree));
+    const y = pts.map(p => p.label);
+    const nFeats = X[0].length;
+    let w = new Array(nFeats).fill(0);
+    for (let it = 0; it < iters; it++) {
+      const grads = new Array(nFeats).fill(0);
+      X.forEach((xi, i) => {
+        const pred = sigmoid(xi.reduce((s, v, j) => s + v * w[j], 0));
+        const err = pred - y[i];
+        xi.forEach((v, j) => { grads[j] += err * v; });
+      });
+      w = w.map((wi, j) => wi - lr * grads[j] / pts.length);
+    }
+    return w;
+  }
+
+  function draw() {
+    const dark = isDark();
+    const bg = dark ? '#1C1F2E' : '#F8F8FF';
+    const gridC = dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)';
+
+    const weights = trainLR(points, currentDegree);
+
+    // Draw background decision regions
+    const step = 6;
+    for (let px = 0; px < W; px += step) {
+      for (let py = 0; py < H; py += step) {
+        const x = (px / W) * 2 - 1;
+        const y = 1 - (py / H) * 2;
+        const feats = polyFeatures(x, y, currentDegree);
+        const prob = sigmoid(feats.reduce((s, v, j) => s + v * weights[j], 0));
+        ctx.fillStyle = `rgba(${prob < 0.5 ? '91,91,214' : '249,115,22'},${Math.abs(prob - 0.5) * 0.6 + 0.05})`;
+        ctx.fillRect(px, py, step, step);
+      }
+    }
+
+    // Grid lines
+    ctx.strokeStyle = gridC;
+    ctx.lineWidth = 0.5;
+    for (let g = 0; g <= 5; g++) {
+      const gx = 10 + g * (W - 20) / 5;
+      const gy = 10 + g * (H - 20) / 5;
+      ctx.beginPath(); ctx.moveTo(gx, 10); ctx.lineTo(gx, H - 10); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(10, gy); ctx.lineTo(W - 10, gy); ctx.stroke();
+    }
+
+    // Data points
+    points.forEach(p => {
+      const [cx, cy] = toCanvas(p.x, p.y);
+      ctx.beginPath();
+      ctx.arc(cx, cy, 5, 0, Math.PI * 2);
+      ctx.fillStyle = p.label === 0 ? '#5B5BD6' : '#F97316';
+      ctx.fill();
+      ctx.strokeStyle = dark ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.8)';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    });
+
+    // Insight text
+    const insight = div.querySelector('#db-insight');
+    const deg = currentDegree;
+    insight.textContent = deg === 1
+      ? 'Degree 1: linear boundary — fast, interpretable, may underfit.'
+      : deg <= 3
+        ? `Degree ${deg}: polynomial boundary — more flexible, fits curves.`
+        : `Degree ${deg}: very complex boundary — may overfit! Watch out.`;
+    insight.style.color = deg >= 4 ? 'var(--red)' : 'var(--text3)';
+  }
+
+  div.querySelector('#db-degree').addEventListener('input', e => {
+    currentDegree = parseInt(e.target.value);
+    div.querySelector('#db-degree-val').textContent = currentDegree;
+    draw();
+  });
+
+  div.querySelectorAll('.db-ds-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentDataset = btn.dataset.ds;
+      points = datasets[currentDataset]();
+      currentDegree = 1;
+      div.querySelector('#db-degree').value = 1;
+      div.querySelector('#db-degree-val').textContent = 1;
+      div.querySelectorAll('.db-ds-btn').forEach(b => b.classList.toggle('active', b === btn));
+      draw();
+    });
+  });
+
+  draw();
   return div;
 }

@@ -2,166 +2,239 @@
 title: Logistic Regression
 track: ml
 order: 4
-estimatedTime: 35
+estimatedTime: 40
 difficulty: intermediate
 ---
 
 # Logistic Regression
 
-Logistic regression is a classification model. Despite the name, it does not regress - it classifies. It is simple, fast, and often a good baseline before trying anything more complex.
+Despite the name, logistic regression is a **classifier**, not a regressor. It predicts the probability that an input belongs to a class. It's fast, interpretable, and often the right first model to try before anything fancier.
 
 ---
 
-## 1. The Core Idea
+## 1. The Sigmoid Function
 
-Linear regression predicts a number. Logistic regression predicts a **probability** between 0 and 1.
+Logistic regression builds on linear regression by squashing the output into a probability:
 
-The trick: take the linear output (`w * x + b`) and squash it through the **sigmoid function**:
+$$\hat{p} = \sigma(\mathbf{w}^T \mathbf{x} + b) = \frac{1}{1 + e^{-(\mathbf{w}^T \mathbf{x} + b)}}$$
 
-```
-sigmoid(z) = 1 / (1 + e^(-z))
-```
-
-This turns any number into a value between 0 and 1. If the output is > 0.5, predict class 1. If < 0.5, predict class 0.
+The sigmoid $\sigma(z)$ maps any real number to $(0, 1)$:
 
 ```python
 import numpy as np
+import matplotlib.pyplot as plt
 
 def sigmoid(z):
     return 1 / (1 + np.exp(-z))
 
-print(sigmoid(0))    # 0.5 - right on the boundary
-print(sigmoid(3))    # ~0.95 - confident class 1
-print(sigmoid(-3))   # ~0.05 - confident class 0
+# Properties:
+print(sigmoid(0))    # 0.5  — exactly on the boundary
+print(sigmoid(5))    # 0.993 — very confident class 1
+print(sigmoid(-5))   # 0.007 — very confident class 0
+print(sigmoid(100))  # ≈ 1.0
+print(sigmoid(-100)) # ≈ 0.0
+
+z = np.linspace(-6, 6, 100)
+plt.plot(z, sigmoid(z))
+plt.axhline(0.5, color='red', linestyle='--', alpha=0.5, label='decision boundary')
+plt.title('Sigmoid Function')
+plt.xlabel('z = w·x + b')
+plt.ylabel('P(class=1)')
+plt.legend()
+plt.grid(True, alpha=0.3)
+plt.show()
 ```
 
-**Quick check:** The model outputs sigmoid(2.5) = 0.92. What is the predicted class?
-> Class 1 (0.92 > 0.5). The model is quite confident.
+**Decision rule:** If $\hat{p} > 0.5$, predict class 1; otherwise predict class 0. (The 0.5 threshold can be adjusted for different precision/recall tradeoffs.)
 
 ---
 
-## 2. Training: Binary Cross-Entropy Loss
+## 2. The Loss Function: Binary Cross-Entropy
 
-MSE does not work well for classification because sigmoid makes it non-convex. Instead, logistic regression uses **binary cross-entropy**:
+We can't use MSE for classification (it creates a non-convex loss surface). Instead, we use **binary cross-entropy (log loss)**:
 
+$$\mathcal{L} = -\frac{1}{n} \sum_{i=1}^{n} \left[ y_i \log(\hat{p}_i) + (1 - y_i) \log(1 - \hat{p}_i) \right]$$
+
+**Why this makes sense:**
+- If $y = 1$ and $\hat{p} = 0.99$: loss = $-\log(0.99) \approx 0.01$ (tiny — correct prediction)
+- If $y = 1$ and $\hat{p} = 0.01$: loss = $-\log(0.01) \approx 4.6$ (huge — wrong and confident)
+
+```python
+def binary_cross_entropy(y_true, y_pred, eps=1e-9):
+    # eps prevents log(0) which is undefined
+    y_pred = np.clip(y_pred, eps, 1 - eps)
+    return -np.mean(y_true * np.log(y_pred) + (1 - y_true) * np.log(1 - y_pred))
+
+# Good model vs bad model
+good_preds = np.array([0.95, 0.05, 0.90, 0.10])  # high confidence, correct
+bad_preds  = np.array([0.55, 0.45, 0.60, 0.40])  # barely above/below threshold
+true       = np.array([1, 0, 1, 0])
+
+print(f"Good model loss: {binary_cross_entropy(true, good_preds):.4f}")  # low
+print(f"Bad model loss:  {binary_cross_entropy(true, bad_preds):.4f}")   # higher
 ```
-Loss = -(1/n) * sum( y * log(p) + (1-y) * log(1-p) )
-```
-
-Where `y` is the true label (0 or 1) and `p` is the predicted probability.
-
-When `y=1`: the loss is `-log(p)`. If p=0.99, loss is tiny. If p=0.01, loss is huge.
-When `y=0`: the loss is `-log(1-p)`. Penalizes high predicted probability for a 0-class sample.
-
-The model minimizes this with gradient descent, just like linear regression.
 
 ---
 
-## 3. From Scratch
+## 3. From Scratch (Gradient Descent)
 
 ```python
 import numpy as np
+from sklearn.datasets import make_classification
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
 
-class LogisticRegression:
-    def __init__(self, lr=0.1, epochs=100):
+class LogisticRegressionScratch:
+    def __init__(self, lr=0.1, epochs=500):
         self.lr = lr
         self.epochs = epochs
-        self.w = None
-        self.b = 0
 
     def fit(self, X, y):
-        n, d = X.shape
-        self.w = np.zeros(d)
+        n, f = X.shape
+        self.w = np.zeros(f)
+        self.b = 0.0
+        self.losses = []
 
         for _ in range(self.epochs):
-            z = X @ self.w + self.b
-            p = 1 / (1 + np.exp(-z))         # sigmoid
-
-            dw = (X.T @ (p - y)) / n
-            db = (p - y).mean()
-
-            self.w -= self.lr * dw
-            self.b -= self.lr * db
+            z     = X @ self.w + self.b
+            p     = 1 / (1 + np.exp(-z))
+            error = p - y                          # gradient of log loss
+            self.w -= self.lr * (X.T @ error) / n
+            self.b -= self.lr * error.mean()
+            loss = -np.mean(y * np.log(p + 1e-9) + (1 - y) * np.log(1 - p + 1e-9))
+            self.losses.append(loss)
 
     def predict_proba(self, X):
-        z = X @ self.w + self.b
-        return 1 / (1 + np.exp(-z))
+        return 1 / (1 + np.exp(-(X @ self.w + self.b)))
 
-    def predict(self, X):
-        return (self.predict_proba(X) >= 0.5).astype(int)
-
+    def predict(self, X, threshold=0.5):
+        return (self.predict_proba(X) >= threshold).astype(int)
 
 # Test
-np.random.seed(42)
-X = np.random.randn(200, 2)
-y = (X[:, 0] + X[:, 1] > 0).astype(int)
+X, y = make_classification(n_samples=500, n_features=5, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
 
-model = LogisticRegression(lr=0.5, epochs=200)
-model.fit(X, y)
-preds = model.predict(X)
-print(f'Accuracy: {(preds == y).mean():.2%}')
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test  = scaler.transform(X_test)
+
+model = LogisticRegressionScratch(lr=0.5, epochs=300)
+model.fit(X_train, y_train)
+
+preds = model.predict(X_test)
+acc   = np.mean(preds == y_test)
+print(f"Test accuracy: {acc:.2%}")
 ```
 
 ---
 
-## 4. Using Scikit-Learn
+## 4. Using scikit-learn
 
 ```python
 from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score, classification_report
+from sklearn.metrics import accuracy_score, classification_report, roc_auc_score
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
-model = LogisticRegression()
+# C = 1/λ — the inverse of regularization strength
+# Higher C = less regularization = more complex model
+model = LogisticRegression(C=1.0, max_iter=1000, random_state=42)
 model.fit(X_train, y_train)
+
 preds = model.predict(X_test)
+proba = model.predict_proba(X_test)[:, 1]  # probability of class 1
 
-print(f'Accuracy: {accuracy_score(y_test, preds):.2%}')
-print(classification_report(y_test, preds))
+print(f"Accuracy:  {accuracy_score(y_test, preds):.2%}")
+print(f"AUC-ROC:   {roc_auc_score(y_test, proba):.4f}")
+print("\n", classification_report(y_test, preds))
 ```
-
-`classification_report` shows precision, recall, and F1 for each class.
-
-**Quick check:** Your model gets 90% accuracy but the dataset has 90% class-0 samples. Is this a good model?
-> Not necessarily. A model that always predicts class 0 also gets 90% accuracy. Check the F1 score and recall for class 1.
 
 ---
 
-## 5. Multi-Class Classification
+## 5. Adjusting the Decision Threshold
 
-For more than 2 classes, scikit-learn handles it automatically with `multi_class='auto'`. The two main strategies:
+The default threshold is 0.5, but you can change it to trade precision for recall:
 
-**One-vs-Rest (OvR):** Train one binary classifier per class ("is this class A or not?"). Pick the class with the highest confidence.
+```python
+# Example: medical diagnosis where missing a positive (recall) is worse
+threshold = 0.3   # lower threshold = more positives predicted = higher recall
 
-**Softmax (Multinomial):** One model outputs a probability for each class. Probabilities sum to 1.
+preds_strict = (proba >= threshold).astype(int)
+
+from sklearn.metrics import precision_score, recall_score, f1_score
+print(f"Threshold: {threshold}")
+print(f"Precision: {precision_score(y_test, preds_strict):.3f}")
+print(f"Recall:    {recall_score(y_test, preds_strict):.3f}")
+print(f"F1:        {f1_score(y_test, preds_strict):.3f}")
+```
+
+In competition settings, the optimal threshold often isn't 0.5. Use your validation set to search for the best value.
+
+---
+
+## 6. Multiclass Classification
+
+For more than 2 classes, logistic regression uses **softmax** (also called multinomial logistic regression):
+
+$$\hat{p}_k = \frac{e^{z_k}}{\sum_{j=1}^{K} e^{z_j}}$$
+
+Each class gets a score, and softmax converts them to probabilities that sum to 1.
 
 ```python
 from sklearn.linear_model import LogisticRegression
 from sklearn.datasets import load_iris
 
-X, y = load_iris(return_X_y=True)   # 3 classes
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+X, y = load_iris(return_X_y=True)  # 3 classes
 
-model = LogisticRegression(max_iter=200)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratify=y)
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test  = scaler.transform(X_test)
+
+# multi_class='auto' uses softmax for 3+ classes
+model = LogisticRegression(multi_class='auto', max_iter=1000)
 model.fit(X_train, y_train)
-print(f'Accuracy: {model.score(X_test, y_test):.2%}')
+print(f"Accuracy: {model.score(X_test, y_test):.2%}")
 
-# Probabilities for each class
-proba = model.predict_proba(X_test[:3])
-print(proba)  # each row sums to 1
+# Predicted probabilities: one column per class
+proba = model.predict_proba(X_test)  # shape: (n_test, 3)
+print("First test sample probabilities:", proba[0].round(3))
 ```
 
 ---
 
-## 6. The Decision Boundary
+## 7. Feature Importance
 
-Logistic regression draws a **straight line** (or hyperplane in higher dimensions) between classes. Everything on one side is predicted class 1, everything on the other is class 0.
+Unlike tree models, logistic regression gives you **weights per feature**, directly interpretable as importance:
 
-This means it cannot separate classes that are not linearly separable (like two concentric circles). For those cases, you need either feature engineering or a different model.
+```python
+feature_names = ['sepal_len', 'sepal_wid', 'petal_len', 'petal_wid']
+for i, name in enumerate(feature_names):
+    print(f"{name:15s} → weights: {model.coef_[:, i].round(3)}")
+```
 
-**Quick check:** Your data has two features and the classes are arranged in concentric circles. Will logistic regression work well?
-> No. The decision boundary is a straight line, and no straight line can separate circles. Try a kernel SVM or a neural network.
+A large absolute weight (positive or negative) means that feature strongly influences the prediction.
+
+---
+
+## 8. Classify These Scenarios
+
+```widget
+{
+  "type": "concept-sort",
+  "title": "Choose the Right Output",
+  "categories": [
+    { "name": "Use sigmoid (binary)", "color": "#5B5BD6" },
+    { "name": "Use softmax (multiclass)", "color": "#F97316" }
+  ],
+  "items": [
+    { "text": "Spam / Not spam", "category": "Use sigmoid (binary)" },
+    { "text": "Cat, Dog, or Bird?", "category": "Use softmax (multiclass)" },
+    { "text": "Disease present or absent", "category": "Use sigmoid (binary)" },
+    { "text": "Digit 0-9 recognition", "category": "Use softmax (multiclass)" },
+    { "text": "Click or no-click prediction", "category": "Use sigmoid (binary)" },
+    { "text": "Sentiment: positive/neutral/negative", "category": "Use softmax (multiclass)" }
+  ]
+}
+```
 
 ---
 
@@ -169,10 +242,11 @@ This means it cannot separate classes that are not linearly separable (like two 
 
 | Concept | Key point |
 |---|---|
-| Output | Probability via sigmoid function |
-| Loss | Binary cross-entropy |
-| Decision boundary | A straight line (linear) |
-| Multi-class | OvR or softmax, handled automatically |
-| When to use | Fast baseline, interpretable, works when classes are linearly separable |
+| Sigmoid | Squashes linear output to (0, 1) — the predicted probability |
+| Decision boundary | The hyperplane where $\sigma(\mathbf{w}^T\mathbf{x} + b) = 0.5$ |
+| Log loss | Penalizes confident wrong predictions harshly |
+| C parameter | `C = 1/λ` — higher C = less regularization |
+| Threshold | Default is 0.5 — tune on val set for precision/recall tradeoff |
+| Softmax | Generalization of sigmoid to K classes — outputs sum to 1 |
 
-In competition, logistic regression is often your first baseline. If it gets 85%, you know a good model can probably reach 90-95%. If it gets 55%, the task is hard or the features need work.
+Logistic regression is your fastest, most interpretable classification baseline. If it works well, don't overcomplicate. If not, move to trees or neural networks.
