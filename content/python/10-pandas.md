@@ -198,6 +198,29 @@ df = pd.get_dummies(df, columns=['city'], dtype=int)
 
 ---
 
+## Sort Pandas Operations
+
+```widget
+{
+  "type": "concept-sort",
+  "title": "Use loc/iloc or Boolean Mask?",
+  "categories": [
+    { "name": "Use iloc (position-based)", "color": "#5B5BD6" },
+    { "name": "Use Boolean mask (condition-based)", "color": "#F97316" }
+  ],
+  "items": [
+    { "text": "Get rows 5 through 10 by row number", "category": "Use iloc (position-based)" },
+    { "text": "Keep only rows where age > 18", "category": "Use Boolean mask (condition-based)" },
+    { "text": "Select the first 3 columns", "category": "Use iloc (position-based)" },
+    { "text": "Filter rows where salary > 50000 AND city == 'London'", "category": "Use Boolean mask (condition-based)" },
+    { "text": "Get cell at row 2, column 4", "category": "Use iloc (position-based)" },
+    { "text": "Remove rows with missing target values", "category": "Use Boolean mask (condition-based)" }
+  ]
+}
+```
+
+---
+
 ## Summary
 
 | Task | Code |

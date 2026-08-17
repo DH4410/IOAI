@@ -200,6 +200,29 @@ print(v1 @ v2)   # 1*4 + 2*5 + 3*6 = 32
 
 ---
 
+## Sort NumPy Operations
+
+```widget
+{
+  "type": "concept-sort",
+  "title": "Element-wise or Reduction? Which Operation?",
+  "categories": [
+    { "name": "Element-wise (same shape output)", "color": "#5B5BD6" },
+    { "name": "Reduction (collapses dimension)", "color": "#F97316" }
+  ],
+  "items": [
+    { "text": "a * 2 (multiply all values by 2)", "category": "Element-wise (same shape output)" },
+    { "text": "a.sum(axis=0) (sum down columns)", "category": "Reduction (collapses dimension)" },
+    { "text": "np.sqrt(a) (square root each value)", "category": "Element-wise (same shape output)" },
+    { "text": "a.mean() (one average number)", "category": "Reduction (collapses dimension)" },
+    { "text": "a + b (broadcast-add two arrays)", "category": "Element-wise (same shape output)" },
+    { "text": "a.max(axis=1) (max per row)", "category": "Reduction (collapses dimension)" }
+  ]
+}
+```
+
+---
+
 ## Summary
 
 | What you need | How to do it |
