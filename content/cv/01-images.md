@@ -323,6 +323,29 @@ Every competition CV notebook you will ever write starts with some version of th
 
 ---
 
+## Sort Image Format Pitfalls
+
+```widget
+{
+  "type": "concept-sort",
+  "title": "PIL/NumPy vs PyTorch Convention?",
+  "categories": [
+    { "name": "PIL / NumPy (H, W, C)", "color": "#5B5BD6" },
+    { "name": "PyTorch (N, C, H, W)", "color": "#F97316" }
+  ],
+  "items": [
+    { "text": "Image from PIL.Image.open() → np.array()", "category": "PIL / NumPy (H, W, C)" },
+    { "text": "torch.FloatTensor after torchvision.transforms", "category": "PyTorch (N, C, H, W)" },
+    { "text": "Shape (480, 640, 3) — height first, channels last", "category": "PIL / NumPy (H, W, C)" },
+    { "text": "Shape (1, 3, 480, 640) — batch, channels, height, width", "category": "PyTorch (N, C, H, W)" },
+    { "text": "cv2.imread() returns HWC (in BGR order)", "category": "PIL / NumPy (H, W, C)" },
+    { "text": "Model input tensor requires batch dim unsqueeze(0)", "category": "PyTorch (N, C, H, W)" }
+  ]
+}
+```
+
+---
+
 ## Summary
 
 - A digital image is a grid of pixels; each pixel is one or more numbers.
