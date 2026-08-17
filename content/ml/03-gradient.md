@@ -46,6 +46,20 @@ You do not need to derive this by hand. You need to understand the update rule.
 
 ---
 
+```widget
+{
+  "type": "gradient-slider",
+  "title": "See gradient descent move toward the minimum"
+}
+```
+
+Try these experiments:
+- Set learning rate to **0.90** — watch it overshoot and bounce
+- Set it to **0.05** — watch it creep slowly
+- Set it to **0.30** — the sweet spot
+
+---
+
 ## 3. Implementation from Scratch
 
 ```python
@@ -99,11 +113,20 @@ Watch the loss curve. It should go down quickly at first, then flatten out. If i
 
 The learning rate is the most important setting (hyperparameter) in gradient descent.
 
-**Too high:** The steps are so big you jump over the minimum and the loss bounces around or goes up.
+**Too high:** Steps are so big you jump over the minimum — loss bounces or goes up.
 
-**Too low:** The steps are tiny and it takes thousands of epochs to converge. You might run out of time.
+**Too low:** Steps are tiny — takes forever to converge.
 
-**Just right:** Loss decreases smoothly and flattens after enough epochs.
+**Just right:** Loss decreases smoothly and flattens out.
+
+```widget
+{
+  "type": "overfit-curve",
+  "title": "How model complexity affects train vs validation accuracy"
+}
+```
+
+This isn't directly the learning rate — but notice the same shape: too simple = underfit, too complex = overfit. The "just right" zone in the middle is what you're always aiming for.
 
 ```python
 # Compare learning rates

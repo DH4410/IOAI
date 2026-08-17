@@ -116,6 +116,21 @@ print(step(np.array([-2.0, -0.1, 0.0, 0.5, 3.0])))
 
 ---
 
+## Try it: Build your own perceptron
+
+Drag the input and weight sliders and watch the output change in real time. Try to find weights that make the output fire (=1) only when x₁ > 0.
+
+```widget
+{
+  "type": "perceptron-demo",
+  "title": "Perceptron Playground — change weights and see the output change"
+}
+```
+
+**Challenge:** Set w₁=1, w₂=1, b=−1.5 with the step activation. When does it output 1? This is actually an AND gate.
+
+---
+
 ## What does a perceptron actually compute? A concrete example
 
 Imagine you're deciding whether to go outside for a run. You care about two things:

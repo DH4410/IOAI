@@ -1,6 +1,7 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 const fs = require('fs');
+const http = require('http');
 
 function createWindow() {
   const win = new BrowserWindow({
@@ -58,6 +59,47 @@ ipcMain.handle('save-data', (_, json) => {
   } catch (_) {
     return false;
   }
+});
+
+// Ollama local AI — proxied from main process so CSP is not an issue
+ipcMain.handle('ollama-chat', async (_, { model, messages }) => {
+  return new Promise((resolve) => {
+    const body = JSON.stringify({ model: model || 'llama3.2:1b', messages, stream: false });
+    const req = http.request({
+      hostname: '127.0.0.1',
+      port: 11434,
+      path: '/api/chat',
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) },
+      timeout: 30000,
+    }, (res) => {
+      let data = '';
+      res.on('data', chunk => { data += chunk; });
+      res.on('end', () => {
+        try {
+          const parsed = JSON.parse(data);
+          resolve({ ok: true, content: parsed.message?.content || '' });
+        } catch (e) {
+          resolve({ ok: false, error: 'Bad response from Ollama' });
+        }
+      });
+    });
+    req.on('error', () => resolve({ ok: false, error: 'Ollama not running. Install from ollama.com and run: ollama pull llama3.2:1b' }));
+    req.on('timeout', () => { req.destroy(); resolve({ ok: false, error: 'Ollama timed out (>30s)' }); });
+    req.write(body);
+    req.end();
+  });
+});
+
+// Check if Ollama is available
+ipcMain.handle('ollama-check', async () => {
+  return new Promise((resolve) => {
+    const req = http.request({ hostname: '127.0.0.1', port: 11434, path: '/', method: 'GET', timeout: 2000 },
+      (res) => resolve(res.statusCode < 500));
+    req.on('error', () => resolve(false));
+    req.on('timeout', () => { req.destroy(); resolve(false); });
+    req.end();
+  });
 });
 
 app.whenReady().then(createWindow);
