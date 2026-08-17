@@ -214,6 +214,30 @@ In deep learning you usually just set a fixed number of epochs and optionally us
 
 ---
 
+## Sort the Gradient Descent Variants
+
+```widget
+{
+  "type": "concept-sort",
+  "title": "Full Batch, Mini-Batch, or SGD?",
+  "categories": [
+    { "name": "Full Batch GD", "color": "#5B5BD6" },
+    { "name": "Mini-Batch GD", "color": "#22C55E" },
+    { "name": "SGD (1 sample)", "color": "#F97316" }
+  ],
+  "items": [
+    { "text": "Most stable gradient estimate", "category": "Full Batch GD" },
+    { "text": "Standard in modern deep learning (batch_size=32-256)", "category": "Mini-Batch GD" },
+    { "text": "Very noisy updates, one sample at a time", "category": "SGD (1 sample)" },
+    { "text": "Too slow for large datasets", "category": "Full Batch GD" },
+    { "text": "Best balance of speed and stability", "category": "Mini-Batch GD" },
+    { "text": "Can escape local optima more easily", "category": "SGD (1 sample)" }
+  ]
+}
+```
+
+---
+
 ## Summary
 
 | Concept | Key point |

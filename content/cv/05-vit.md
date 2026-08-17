@@ -223,6 +223,29 @@ A practical decision guide:
 
 ---
 
+## Sort CNN vs ViT Properties
+
+```widget
+{
+  "type": "concept-sort",
+  "title": "CNN or Vision Transformer?",
+  "categories": [
+    { "name": "CNN strength", "color": "#5B5BD6" },
+    { "name": "ViT strength", "color": "#F97316" }
+  ],
+  "items": [
+    { "text": "Works well with less data (inductive bias)", "category": "CNN strength" },
+    { "text": "Captures global relationships between patches", "category": "ViT strength" },
+    { "text": "Translational equivariance built in", "category": "CNN strength" },
+    { "text": "Scales better with more data and compute", "category": "ViT strength" },
+    { "text": "Fewer parameters needed for small datasets", "category": "CNN strength" },
+    { "text": "Flexible sequence length (variable image sizes)", "category": "ViT strength" }
+  ]
+}
+```
+
+---
+
 ## Summary
 
 - A **ViT treats an image as a sequence of patches** (visual "words") and feeds them to a standard Transformer.

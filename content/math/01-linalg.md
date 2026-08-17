@@ -480,6 +480,29 @@ When people say "matrix multiplication" in AI, they almost always mean `@`. But 
 
 ---
 
+## Sort the Operations
+
+```widget
+{
+  "type": "concept-sort",
+  "title": "Element-wise (*) or Matrix Multiply (@)?",
+  "categories": [
+    { "name": "Element-wise (*)", "color": "#F97316" },
+    { "name": "Matrix multiply (@)", "color": "#5B5BD6" }
+  ],
+  "items": [
+    { "text": "Linear layer: W @ x + b", "category": "Matrix multiply (@)" },
+    { "text": "Applying attention mask to scores", "category": "Element-wise (*)" },
+    { "text": "Computing Q @ K^T in attention", "category": "Matrix multiply (@)" },
+    { "text": "Gating mechanism: gate * value", "category": "Element-wise (*)" },
+    { "text": "Embedding lookup × positional encoding sum", "category": "Element-wise (*)" },
+    { "text": "Transforming hidden states between layers", "category": "Matrix multiply (@)" }
+  ]
+}
+```
+
+---
+
 ## Summary
 
 - A **vector** is a list of numbers. Picture it as an arrow with a direction and a length, or as a point in space. In AI, data becomes vectors (word embeddings, flattened images, feature rows).
