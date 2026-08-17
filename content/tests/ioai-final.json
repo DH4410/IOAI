@@ -1,0 +1,334 @@
+{
+  "id": "ioai-final",
+  "title": "IOAI Final Practice",
+  "description": "Comprehensive 25-question exam covering all IOAI topics — ML, NN, NLP, CV, and competition strategy",
+  "timeLimit": 1800,
+  "passMark": 75,
+  "questions": [
+    {
+      "id": "f1",
+      "text": "You receive a tabular dataset with 50 features and 10,000 rows for a classification task. What should be your FIRST model?",
+      "type": "mcq",
+      "options": [
+        "LightGBM or XGBoost with default parameters",
+        "A deep neural network (5+ layers)",
+        "SVM with RBF kernel",
+        "Nearest neighbor (k=5)"
+      ],
+      "answer": 0,
+      "explanation": "Gradient boosting (LightGBM, XGBoost) dominates tabular ML competitions. Start with a working boosting model before exploring neural networks. You get a strong baseline quickly, and it's easy to improve incrementally."
+    },
+    {
+      "id": "f2",
+      "text": "Your model scores 0.95 on the training set and 0.62 on the validation set. What is the MOST effective fix?",
+      "type": "mcq",
+      "options": [
+        "Add regularization (dropout, L2) or reduce model capacity",
+        "Train for more epochs",
+        "Increase the learning rate",
+        "Switch to a smaller dataset"
+      ],
+      "answer": 0,
+      "explanation": "A large train/val gap (0.95 vs 0.62) is classic overfitting — the model memorized training noise. Fix: reduce complexity (fewer layers/trees, lower max_depth), add regularization (dropout, L2 weight decay), or gather more training data."
+    },
+    {
+      "id": "f3",
+      "text": "In cross-validation, why do we use k-fold instead of a single train/val split?",
+      "type": "mcq",
+      "options": [
+        "More reliable score estimate — every example is validated exactly once",
+        "It's faster to train",
+        "It prevents overfitting automatically",
+        "It creates more training data"
+      ],
+      "answer": 0,
+      "explanation": "A single split can give misleading results if you got lucky (or unlucky) with which samples ended up in validation. K-fold uses every example exactly once for validation, giving a much more reliable estimate of true performance."
+    },
+    {
+      "id": "f4",
+      "text": "Early stopping in gradient boosting means:",
+      "type": "mcq",
+      "options": [
+        "Stop adding trees when validation loss hasn't improved for N rounds",
+        "Stop training when training loss reaches zero",
+        "Stop when the learning rate gets below a threshold",
+        "Stop after a fixed number of iterations regardless of performance"
+      ],
+      "answer": 0,
+      "explanation": "Early stopping monitors a validation metric and stops adding trees (rounds) when it doesn't improve for 'early_stopping_rounds' consecutive rounds. This finds the optimal number of trees automatically — you set n_estimators=1000 and let early stopping find the sweet spot."
+    },
+    {
+      "id": "f5",
+      "text": "The scaled dot-product attention formula is: Attention(Q,K,V) = softmax(QK^T / √d_k) × V. Why divide by √d_k?",
+      "type": "mcq",
+      "options": [
+        "To prevent the dot products from growing too large and saturating softmax",
+        "To normalize the output to unit length",
+        "To make attention weights sum to d_k instead of 1",
+        "To match the scale of the value vectors"
+      ],
+      "answer": 0,
+      "explanation": "Without scaling, when d_k is large, the dot products QK^T can get very large in magnitude. Large inputs to softmax push it into regions of very small gradients (saturation), causing vanishing gradients. Dividing by √d_k keeps the variance stable at 1."
+    },
+    {
+      "id": "f6",
+      "text": "You want to classify 100,000 images into 200 fine-grained categories. You have 100 labeled examples per class. What's the best approach?",
+      "type": "mcq",
+      "options": [
+        "Fine-tune a pretrained ResNet or EfficientNet (transfer learning)",
+        "Train a CNN from scratch on your 20,000 examples",
+        "Use only the pretrained backbone with no fine-tuning",
+        "Use logistic regression on raw pixel values"
+      ],
+      "answer": 0,
+      "explanation": "With 100 examples per class (limited data), training from scratch will massively overfit. Transfer learning from a model pretrained on ImageNet gives you powerful features for free. Fine-tune the final layers (or carefully fine-tune all with a small lr)."
+    },
+    {
+      "id": "f7",
+      "text": "BERT uses masked language modeling (MLM) as its pretraining objective. This means:",
+      "type": "mcq",
+      "options": [
+        "It randomly masks 15% of tokens and predicts them from context in both directions",
+        "It predicts the next token given all previous tokens",
+        "It computes contrastive loss between positive and negative sentence pairs",
+        "It reconstructs corrupted tokens using an encoder-decoder architecture"
+      ],
+      "answer": 0,
+      "explanation": "BERT masks ~15% of input tokens and trains the model to predict the masked tokens using context from BOTH left and right. This bidirectional context is what makes BERT an encoder (unlike GPT which only sees left context)."
+    },
+    {
+      "id": "f8",
+      "text": "Temperature in language model generation controls:",
+      "type": "mcq",
+      "options": [
+        "How peaked or flat the next-token probability distribution is",
+        "The maximum number of tokens generated",
+        "The learning rate during fine-tuning",
+        "The beam width in beam search"
+      ],
+      "answer": 0,
+      "explanation": "Temperature T scales logits before softmax: softmax(logits/T). T < 1 sharpens the distribution (more deterministic), T > 1 flattens it (more creative/random). T=0 is greedy (always pick the most likely token); T=1 is standard sampling."
+    },
+    {
+      "id": "f9",
+      "text": "IoU (Intersection over Union) of 0.0 means:",
+      "type": "mcq",
+      "options": [
+        "The predicted box and ground truth box do not overlap at all",
+        "The predicted box is identical to the ground truth",
+        "The boxes share 50% of their area",
+        "The prediction is completely inside the ground truth"
+      ],
+      "answer": 0,
+      "explanation": "IoU = area of overlap / area of union. When there's no overlap, intersection = 0, so IoU = 0/union = 0. IoU = 1.0 means perfect overlap (identical boxes). Detection is typically counted as correct when IoU ≥ 0.5."
+    },
+    {
+      "id": "f10",
+      "text": "In the PyTorch training loop, what MUST you call before loss.backward()?",
+      "type": "mcq",
+      "options": [
+        "optimizer.zero_grad()",
+        "model.eval()",
+        "scheduler.step()",
+        "torch.no_grad()"
+      ],
+      "answer": 0,
+      "explanation": "PyTorch accumulates gradients by default. If you don't call optimizer.zero_grad() before each backward pass, gradients from previous batches add up, causing incorrect weight updates. This is the single most common beginner bug in PyTorch."
+    },
+    {
+      "id": "f11",
+      "text": "Which activation function should you use in hidden layers of a transformer (like GPT or BERT)?",
+      "type": "mcq",
+      "options": [
+        "GELU",
+        "Sigmoid",
+        "Tanh",
+        "Softmax"
+      ],
+      "answer": 0,
+      "explanation": "Transformers use GELU (Gaussian Error Linear Unit) in their feed-forward blocks — it's a smooth, differentiable approximation of ReLU. Sigmoid and Tanh saturate (vanishing gradients). Softmax is for output distributions, not hidden layers."
+    },
+    {
+      "id": "f12",
+      "text": "Your text classification task has severely imbalanced classes (90% class 0, 10% class 1). Which metric is MOST appropriate?",
+      "type": "mcq",
+      "options": [
+        "F1-score or AUC-ROC",
+        "Accuracy",
+        "RMSE",
+        "R²"
+      ],
+      "answer": 0,
+      "explanation": "With 90/10 imbalance, a model that always predicts class 0 gets 90% accuracy — but that's useless. F1-score and AUC-ROC both handle imbalance: F1 rewards both precision and recall, AUC measures class separation regardless of threshold."
+    },
+    {
+      "id": "f13",
+      "text": "What is the purpose of NMS (Non-Maximum Suppression) in object detection?",
+      "type": "mcq",
+      "options": [
+        "Remove duplicate overlapping bounding boxes for the same object",
+        "Normalize the confidence scores to sum to 1",
+        "Suppress low-resolution feature maps",
+        "Filter out bounding boxes below a size threshold"
+      ],
+      "answer": 0,
+      "explanation": "Detection models predict many overlapping boxes for each object. NMS keeps only the highest-confidence box for overlapping predictions (IoU > threshold), removing duplicates. Without NMS, you'd get 10 boxes for the same chicken in the IOAI 2025 problem."
+    },
+    {
+      "id": "f14",
+      "text": "AdamW vs Adam: what does the 'W' stand for and why does it matter?",
+      "type": "mcq",
+      "options": [
+        "Weight decay — it decouples weight decay from the adaptive gradient, applying it directly to weights",
+        "Warm start — it warms up the learning rate for the first few steps",
+        "Wider — it uses a wider gradient window for momentum",
+        "Weighted — it uses a weighted average of all gradients"
+      ],
+      "answer": 0,
+      "explanation": "AdamW decouples weight decay from the adaptive gradient update. In vanilla Adam, L2 regularization is applied to the gradient (not ideal — the adaptive rate scales it). AdamW applies weight decay directly to the weights, which is the correct way and usually gives better generalization."
+    },
+    {
+      "id": "f15",
+      "text": "What does 'data leakage' mean in a competition?",
+      "type": "mcq",
+      "options": [
+        "Information from the test set accidentally influences model training",
+        "The model's weights are too large and overflow memory",
+        "Training data is distributed across multiple GPUs",
+        "Private data from another competition is used"
+      ],
+      "answer": 0,
+      "explanation": "Data leakage occurs when test-set information 'leaks' into training — e.g., fitting a scaler on all data (train+test), including future data in time-series features, or using target-encoded features computed from the whole dataset. It gives unrealistically high CV scores that don't generalize."
+    },
+    {
+      "id": "f16",
+      "text": "ViT (Vision Transformer) divides an image into:",
+      "type": "mcq",
+      "options": [
+        "Fixed-size patches that are flattened into a sequence",
+        "Random crops of varying sizes",
+        "Multi-scale feature pyramids",
+        "Overlapping convolution windows"
+      ],
+      "answer": 0,
+      "explanation": "ViT splits the image into NxN patches (e.g., 16×16 pixels each), flattens each patch into a vector, and feeds them as a sequence to a standard Transformer. For a 224×224 image with 16×16 patches: (224/16)² = 196 patches → 196 tokens + 1 CLS token."
+    },
+    {
+      "id": "f17",
+      "text": "CLIP was trained with which objective?",
+      "type": "mcq",
+      "options": [
+        "Contrastive loss: maximize similarity for matching image-text pairs, minimize for non-matching",
+        "Masked image modeling (predict masked patches)",
+        "Next sentence prediction (is text B the caption of image A?)",
+        "Cross-entropy classification on ImageNet labels"
+      ],
+      "answer": 0,
+      "explanation": "CLIP uses contrastive learning on 400M image-text pairs. It builds an N×N similarity matrix and trains the diagonal (true pairs) to have high similarity and off-diagonal (non-matching pairs) to have low similarity. This gives CLIP zero-shot transfer capability."
+    },
+    {
+      "id": "f18",
+      "text": "In batch normalization, what happens differently during inference vs training?",
+      "type": "mcq",
+      "options": [
+        "At inference, stored running mean/std from training is used instead of batch statistics",
+        "At inference, batch size is forced to 1",
+        "At inference, the gamma and beta parameters are set to 0",
+        "Batch normalization is disabled at inference"
+      ],
+      "answer": 0,
+      "explanation": "During training, BatchNorm normalizes using the current mini-batch statistics. At inference, there may be only one sample, so batch statistics are unreliable. PyTorch's BatchNorm tracks exponential moving averages of mean and variance during training, then uses those at inference time."
+    },
+    {
+      "id": "f19",
+      "text": "What is one-hot encoding and when is it problematic?",
+      "type": "mcq",
+      "options": [
+        "A binary vector with a 1 for the category; problematic for high-cardinality features (many categories)",
+        "A technique to encode words using their frequency; problematic for rare words",
+        "Normalizing features to [0, 1]; problematic for skewed distributions",
+        "Replacing missing values with a special token; problematic for numerical features"
+      ],
+      "answer": 0,
+      "explanation": "One-hot encoding creates a binary column per category. With 10,000 unique categories (e.g., zip codes), you get 10,000 sparse columns — very wide, slow, and most entries are 0. Use target encoding or embedding lookup for high-cardinality categoricals instead."
+    },
+    {
+      "id": "f20",
+      "text": "What is the correct order of steps in the PyTorch training loop?",
+      "type": "mcq",
+      "options": [
+        "zero_grad → forward pass → loss → backward → clip gradients → optimizer.step",
+        "forward pass → zero_grad → loss → backward → optimizer.step",
+        "backward → zero_grad → forward pass → loss → optimizer.step",
+        "zero_grad → backward → forward pass → loss → optimizer.step"
+      ],
+      "answer": 0,
+      "explanation": "The correct loop: (1) zero_grad — clear old gradients, (2) forward pass — compute predictions, (3) loss — measure error, (4) backward — compute new gradients, (5) clip (optional) — cap gradient norms, (6) optimizer.step — update weights."
+    },
+    {
+      "id": "f21",
+      "text": "Stacking (StackingClassifier) improves performance by:",
+      "type": "mcq",
+      "options": [
+        "Training a meta-model on the out-of-fold predictions of base models",
+        "Training the same model multiple times with different random seeds",
+        "Adding all predictions with equal weights",
+        "Using bootstrap samples like Random Forest"
+      ],
+      "answer": 0,
+      "explanation": "Stacking trains base models (level 0), generates out-of-fold predictions on training data (avoiding leakage), then trains a meta-model (level 1) on those predictions. The meta-model learns how to best combine base model outputs. Often adds 1-3% over the best single model."
+    },
+    {
+      "id": "f22",
+      "text": "BPE (Byte Pair Encoding) tokenization is preferred over word-level tokenization because:",
+      "type": "mcq",
+      "options": [
+        "It handles rare/unseen words by breaking them into subword units",
+        "It produces fewer tokens for the same text",
+        "It preserves word boundaries exactly",
+        "It requires no vocabulary — every character is a token"
+      ],
+      "answer": 0,
+      "explanation": "Word-level tokenization fails on out-of-vocabulary words (OOV problem). BPE learns common subword units (like 'un-', '-ing', 'pre-') and can decompose any word into known pieces. 'Tokenization' → 'Token', 'ization'. This eliminates OOV completely."
+    },
+    {
+      "id": "f23",
+      "text": "What does 'Recall@5' mean in an information retrieval context?",
+      "type": "mcq",
+      "options": [
+        "The fraction of relevant items found in the top-5 retrieved results",
+        "The precision of the 5th result",
+        "The model retrieved exactly 5 results per query",
+        "The model recalled training data from 5 epochs ago"
+      ],
+      "answer": 0,
+      "explanation": "Recall@K asks: 'Of all truly relevant items, what fraction did we find in the top K results?' If there are 3 relevant items and 2 appear in the top 5, Recall@5 = 2/3 ≈ 67%. This is the metric used in IOAI 2026's image-text retrieval task."
+    },
+    {
+      "id": "f24",
+      "text": "During an IOAI competition, when should you build your first working submission?",
+      "type": "mcq",
+      "options": [
+        "Within the first 30-60 minutes, using the simplest possible working model",
+        "Only after fully exploring the data for 2-3 hours",
+        "After your best model is ready, near the end of the competition",
+        "After running at least 50 Optuna trials"
+      ],
+      "answer": 0,
+      "explanation": "Competition strategy rule #1: get a working submission as fast as possible. Use a simple baseline (LightGBM with defaults, or logistic regression for NLP). This guarantees a score even if everything else fails, and gives you a benchmark to improve from."
+    },
+    {
+      "id": "f25",
+      "text": "Gradient clipping (nn.utils.clip_grad_norm_) is used to prevent:",
+      "type": "mcq",
+      "options": [
+        "Exploding gradients — large gradient magnitudes that destabilize training",
+        "Vanishing gradients — gradients that shrink to zero",
+        "Overfitting — the model memorizing the training set",
+        "Data leakage — information from test set influencing training"
+      ],
+      "answer": 0,
+      "explanation": "Gradient clipping caps the gradient norm at a maximum value (typically 1.0). When gradients explode (e.g., in RNNs or very deep networks), uncapped updates cause weights to become huge or NaN. Clipping prevents this by scaling down the update when it's too large."
+    }
+  ]
+}

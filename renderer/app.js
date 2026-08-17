@@ -1633,10 +1633,12 @@ function renderSettings() {
 
 // ─── Mid-Term Test Engine ─────────────────────────────────────────────────────
 const TEST_REGISTRY = [
-  { id: 'ml-test',  file: 'content/tests/ml-test.json'  },
-  { id: 'nn-test',  file: 'content/tests/nn-test.json'  },
-  { id: 'nlp-test', file: 'content/tests/nlp-test.json' },
-  { id: 'cv-test',  file: 'content/tests/cv-test.json'  },
+  { id: 'ml-test',    file: 'content/tests/ml-test.json'    },
+  { id: 'nn-test',    file: 'content/tests/nn-test.json'    },
+  { id: 'nlp-test',   file: 'content/tests/nlp-test.json'   },
+  { id: 'cv-test',    file: 'content/tests/cv-test.json'    },
+  { id: 'math-test',  file: 'content/tests/math-test.json'  },
+  { id: 'ioai-final', file: 'content/tests/ioai-final.json' },
 ];
 
 function fmtTime(secs) {

@@ -1,0 +1,243 @@
+{
+  "id": "math-test",
+  "title": "Math Foundations",
+  "description": "Linear algebra, calculus, probability, and information theory for IOAI",
+  "timeLimit": 1200,
+  "passMark": 70,
+  "questions": [
+    {
+      "id": "m1",
+      "text": "A matrix $A$ has shape (4, 3) and matrix $B$ has shape (3, 5). What is the shape of $A \\times B$?",
+      "type": "mcq",
+      "options": [
+        "(4, 5)",
+        "(3, 3)",
+        "(4, 3)",
+        "(3, 5)"
+      ],
+      "answer": 0,
+      "explanation": "Matrix multiplication (m×n) × (n×p) = (m×p). Here (4×3) × (3×5) = (4×5). The inner dimensions (3) must match and disappear from the result."
+    },
+    {
+      "id": "m2",
+      "text": "In the equation $y = Wx + b$ for a neural network layer, what is the dimension of $W$ if the input $x$ has 512 features and the output has 256 features?",
+      "type": "mcq",
+      "options": [
+        "(256, 512)",
+        "(512, 256)",
+        "(256, 256)",
+        "(512, 512)"
+      ],
+      "answer": 0,
+      "explanation": "The weight matrix W transforms 512 inputs to 256 outputs. Since y = Wx + b where x is (512,) and y is (256,), W must be (256, 512) to make the shapes work: (256, 512) @ (512,) = (256,)."
+    },
+    {
+      "id": "m3",
+      "text": "What does a positive dot product between two vectors tell you?",
+      "type": "mcq",
+      "options": [
+        "They point in similar directions (angle < 90°)",
+        "They are identical",
+        "They are perpendicular",
+        "One vector is longer than the other"
+      ],
+      "answer": 0,
+      "explanation": "The dot product a·b = |a||b|cos(θ). When the angle θ < 90°, cos(θ) > 0, so the dot product is positive. This means the vectors point roughly in the same direction — which is exactly what cosine similarity measures."
+    },
+    {
+      "id": "m4",
+      "text": "The derivative of sigmoid $\\sigma(x) = 1/(1+e^{-x})$ is:",
+      "type": "mcq",
+      "options": [
+        "$\\sigma(x)(1 - \\sigma(x))$",
+        "$1 / (1 + e^{-x})^2$",
+        "$e^{-x}$",
+        "$\\sigma(x)^2$"
+      ],
+      "answer": 0,
+      "explanation": "The sigmoid derivative is σ(x)(1 - σ(x)). This is why sigmoid vanishes: its maximum derivative is 0.25 (at x=0), and it falls toward 0 for large |x|. This causes the vanishing gradient problem in deep networks."
+    },
+    {
+      "id": "m5",
+      "text": "What does the gradient of a function point toward?",
+      "type": "mcq",
+      "options": [
+        "The direction of steepest increase",
+        "The direction of steepest decrease",
+        "The nearest local minimum",
+        "The average of all partial derivatives"
+      ],
+      "answer": 0,
+      "explanation": "The gradient ∇f points in the direction of steepest INCREASE. That's why gradient DESCENT moves in the NEGATIVE gradient direction — we go downhill by going opposite to the gradient."
+    },
+    {
+      "id": "m6",
+      "text": "A fair coin is flipped 3 times. What is the probability of getting exactly 2 heads?",
+      "type": "mcq",
+      "options": [
+        "3/8",
+        "1/4",
+        "1/2",
+        "1/8"
+      ],
+      "answer": 0,
+      "explanation": "C(3,2) × (0.5)² × (0.5)¹ = 3 × 0.25 × 0.5 = 3/8. The three arrangements are HHT, HTH, THH — each with probability 1/8, totaling 3/8."
+    },
+    {
+      "id": "m7",
+      "text": "Bayes' theorem: P(A|B) = P(B|A) × P(A) / P(B). In ML terms, P(class|data) involves multiplying the __ by the __.",
+      "type": "mcq",
+      "options": [
+        "likelihood × prior",
+        "posterior × evidence",
+        "prior × posterior",
+        "evidence × likelihood"
+      ],
+      "answer": 0,
+      "explanation": "P(class|data) ∝ P(data|class) × P(class). P(data|class) is the likelihood (how probable the data is given the class), and P(class) is the prior (baseline class probability). The posterior P(class|data) = likelihood × prior / evidence."
+    },
+    {
+      "id": "m8",
+      "text": "A disease affects 1% of the population. A test is 95% accurate (95% true positive rate, 5% false positive rate). What is the probability you actually have the disease if you test positive?",
+      "type": "mcq",
+      "options": [
+        "About 16%",
+        "About 95%",
+        "About 50%",
+        "About 1%"
+      ],
+      "answer": 0,
+      "explanation": "P(pos) = 0.95×0.01 + 0.05×0.99 = 0.0095 + 0.0495 = 0.059. P(disease|pos) = (0.95×0.01)/0.059 ≈ 16%. The low base rate (1%) means most positives are false alarms even with a 95% accurate test."
+    },
+    {
+      "id": "m9",
+      "text": "Which distribution would you use to model the number of heads in 100 coin flips?",
+      "type": "mcq",
+      "options": [
+        "Binomial",
+        "Gaussian",
+        "Uniform",
+        "Bernoulli"
+      ],
+      "answer": 0,
+      "explanation": "Binomial counts successes in n independent Bernoulli trials. Each flip is Bernoulli; the total count across 100 flips is Binomial(n=100, p=0.5). By the CLT, it's approximately Gaussian for large n, but exactly Binomial."
+    },
+    {
+      "id": "m10",
+      "text": "The entropy H(p) is HIGHEST when:",
+      "type": "mcq",
+      "options": [
+        "The distribution is uniform (all outcomes equally likely)",
+        "One outcome has probability 1.0",
+        "The distribution is Gaussian",
+        "There are only 2 possible outcomes"
+      ],
+      "answer": 0,
+      "explanation": "Entropy measures uncertainty. Maximum uncertainty occurs when all outcomes are equally likely — a uniform distribution. When one outcome is certain (p=1), entropy = -1×log(1) = 0. Entropy increases with number of outcomes AND with uniformity."
+    },
+    {
+      "id": "m11",
+      "text": "Binary cross-entropy loss for a single prediction is -log(p_correct). If your model assigns probability 0.01 to the correct class, the loss is approximately:",
+      "type": "mcq",
+      "options": [
+        "4.6 (very high)",
+        "0.01 (very low)",
+        "1.0 (moderate)",
+        "0.99 (nearly 1)"
+      ],
+      "answer": 0,
+      "explanation": "-log(0.01) = log(100) ≈ 4.6. This is a very high loss because the model is confidently wrong — it gave only 1% probability to the correct answer. Compare: -log(0.99) ≈ 0.01, which is tiny because the model was nearly certain and correct."
+    },
+    {
+      "id": "m12",
+      "text": "KL divergence D_KL(p||q) equals 0 when:",
+      "type": "mcq",
+      "options": [
+        "p and q are identical distributions",
+        "q is the uniform distribution",
+        "p has higher entropy than q",
+        "both p and q are Gaussian"
+      ],
+      "answer": 0,
+      "explanation": "D_KL(p||q) = H(p,q) - H(p) ≥ 0, with equality only when p = q. KL divergence measures the extra cost of using q when the true distribution is p. If q matches p exactly, there's no extra cost, so KL = 0."
+    },
+    {
+      "id": "m13",
+      "text": "The chain rule says d/dx f(g(x)) = ?",
+      "type": "mcq",
+      "options": [
+        "f'(g(x)) · g'(x)",
+        "f'(x) · g'(x)",
+        "f(g'(x))",
+        "f'(x) + g'(x)"
+      ],
+      "answer": 0,
+      "explanation": "The chain rule: to differentiate a composition, differentiate the outer function at the inner function's value, then multiply by the inner function's derivative. This is exactly how backpropagation works — it chains partial derivatives from output to input."
+    },
+    {
+      "id": "m14",
+      "text": "StandardScaler transforms features so that each feature has mean=0 and std=1. When should you fit the scaler?",
+      "type": "mcq",
+      "options": [
+        "Only on training data, then transform both train and test",
+        "Separately on both training and test data",
+        "On all data combined (train + test) for consistency",
+        "Only on test data to avoid data leakage"
+      ],
+      "answer": 0,
+      "explanation": "Always fit only on training data. If you fit on test data (or all data), test statistics 'leak' into your normalization — the model has seen information about the test set. Use scaler.fit_transform(X_train) then scaler.transform(X_test)."
+    },
+    {
+      "id": "m15",
+      "text": "Cosine similarity between two vectors is defined as:",
+      "type": "mcq",
+      "options": [
+        "(a · b) / (||a|| × ||b||)",
+        "||a - b||",
+        "a · b",
+        "(a · b)²"
+      ],
+      "answer": 0,
+      "explanation": "Cosine similarity normalizes the dot product by both magnitudes, giving a value in [-1, 1]. It measures the angle between vectors regardless of their length — making it ideal for comparing embeddings where magnitude can vary."
+    },
+    {
+      "id": "m16",
+      "text": "True or False: Two random variables with correlation r = 0 must be independent.",
+      "type": "mcq",
+      "options": [
+        "False — correlation only measures linear relationships",
+        "True — r = 0 means no relationship",
+        "True — if r = 0, they are orthogonal and independent",
+        "False — only if both are Gaussian"
+      ],
+      "answer": 0,
+      "explanation": "Correlation measures ONLY linear relationships. Variables can have r = 0 (no linear relationship) while having a strong non-linear relationship. Example: y = x² for symmetric x has r = 0 but is perfectly predictable from x."
+    },
+    {
+      "id": "m17",
+      "text": "The Central Limit Theorem says that the mean of a large number of independent random samples, regardless of their distribution, will be approximately:",
+      "type": "mcq",
+      "options": [
+        "Normally distributed",
+        "Uniformly distributed",
+        "Exponentially distributed",
+        "Identically distributed to the original"
+      ],
+      "answer": 0,
+      "explanation": "The CLT: for large n, the sample mean is approximately Normal(μ, σ²/n) regardless of the original distribution. This explains why Gaussian distributions appear so often in nature and in ML — many processes are sums of many small independent contributions."
+    },
+    {
+      "id": "m18",
+      "text": "L2 normalization of a vector divides it by its norm. After L2 normalization, what is the magnitude of the vector?",
+      "type": "mcq",
+      "options": [
+        "1.0 (unit vector)",
+        "0.0",
+        "The original magnitude divided by 2",
+        "Unchanged"
+      ],
+      "answer": 0,
+      "explanation": "L2 normalization: x_norm = x / ||x||. The magnitude of the result is ||x|| / ||x|| = 1. L2-normalized vectors lie on the unit sphere. CLIP uses L2-normalized embeddings so that cosine similarity = dot product (no need to divide by magnitudes)."
+    }
+  ]
+}
