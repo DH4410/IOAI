@@ -266,6 +266,29 @@ Run it. You'll see `doc_C` and `doc_A` score highest (they point the same way as
 
 ---
 
+## Sort These Dot Product Applications
+
+```widget
+{
+  "type": "concept-sort",
+  "title": "Where Is the Dot Product Used?",
+  "categories": [
+    { "name": "Similarity / Scoring", "color": "#5B5BD6" },
+    { "name": "Linear Transformation", "color": "#F97316" }
+  ],
+  "items": [
+    { "text": "Attention scores Q · K^T", "category": "Similarity / Scoring" },
+    { "text": "Neural network layer: W @ x + b", "category": "Linear Transformation" },
+    { "text": "Cosine similarity between word embeddings", "category": "Similarity / Scoring" },
+    { "text": "Projecting input into a new feature space", "category": "Linear Transformation" },
+    { "text": "CLIP image-text matching score", "category": "Similarity / Scoring" },
+    { "text": "Computing class logits from hidden state", "category": "Linear Transformation" }
+  ]
+}
+```
+
+---
+
 ## Summary
 
 - The **dot product** $\vec{a} \cdot \vec{b} = \sum_i a_i b_i$ multiplies matching positions and adds them up. Two vectors in, one number out.

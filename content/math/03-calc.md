@@ -322,6 +322,29 @@ The numerical gradient is too *slow* to use for actual training (it needs two fu
 
 ---
 
+## Sort Calculus Concepts
+
+```widget
+{
+  "type": "concept-sort",
+  "title": "Derivative or Gradient? Match the Description",
+  "categories": [
+    { "name": "Derivative (1D)", "color": "#5B5BD6" },
+    { "name": "Gradient (multi-D)", "color": "#F97316" }
+  ],
+  "items": [
+    { "text": "df/dx — one input, one output", "category": "Derivative (1D)" },
+    { "text": "∇f = [∂f/∂x₁, ∂f/∂x₂, ...] — vector of partial derivatives", "category": "Gradient (multi-D)" },
+    { "text": "Tells you the slope at a point on a curve", "category": "Derivative (1D)" },
+    { "text": "Points in the direction of steepest ascent", "category": "Gradient (multi-D)" },
+    { "text": "Chain rule: d/dx f(g(x)) = f'(g(x))·g'(x)", "category": "Derivative (1D)" },
+    { "text": "Used in backpropagation for all model weights", "category": "Gradient (multi-D)" }
+  ]
+}
+```
+
+---
+
 ## Summary
 
 - A **derivative** is a *rate of change* — the slope of a function. Positive slope = going up, negative = going down, zero = flat (a peak or valley bottom).
