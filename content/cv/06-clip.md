@@ -262,6 +262,29 @@ Every concept in this lesson maps directly onto that task. Master CLIP and you m
 
 ---
 
+## Sort CLIP vs Traditional Classification
+
+```widget
+{
+  "type": "concept-sort",
+  "title": "Zero-Shot CLIP or Standard Classifier?",
+  "categories": [
+    { "name": "Use CLIP (zero-shot)", "color": "#5B5BD6" },
+    { "name": "Use standard classifier", "color": "#F97316" }
+  ],
+  "items": [
+    { "text": "Need to classify 1000+ classes, no training data per class", "category": "Use CLIP (zero-shot)" },
+    { "text": "Fixed set of 10 classes with thousands of labeled examples", "category": "Use standard classifier" },
+    { "text": "Adding new categories without retraining", "category": "Use CLIP (zero-shot)" },
+    { "text": "Maximum accuracy on a well-defined task", "category": "Use standard classifier" },
+    { "text": "Image-text retrieval across large galleries", "category": "Use CLIP (zero-shot)" },
+    { "text": "Specialized domain with available labeled data", "category": "Use standard classifier" }
+  ]
+}
+```
+
+---
+
 ## Summary
 
 - **CLIP** learns a **shared embedding space** for images and text via **two encoders** (a ViT image encoder + a text Transformer), so matching image and caption get nearly identical, L2-normalized vectors compared by **cosine similarity**.

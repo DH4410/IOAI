@@ -176,6 +176,30 @@ classifier = CLIPClassifier(model, num_classes=5)
 
 ---
 
+## Sort the VLM Tasks
+
+```widget
+{
+  "type": "concept-sort",
+  "title": "CLIP, BLIP Captioning, or BLIP VQA?",
+  "categories": [
+    { "name": "CLIP", "color": "#5B5BD6" },
+    { "name": "BLIP (Captioning)", "color": "#22C55E" },
+    { "name": "BLIP (VQA)", "color": "#F97316" }
+  ],
+  "items": [
+    { "text": "Given image, generate a text description", "category": "BLIP (Captioning)" },
+    { "text": "\"Is there a cat in this image?\" → yes/no", "category": "BLIP (VQA)" },
+    { "text": "Find the most similar image to this text query", "category": "CLIP" },
+    { "text": "Zero-shot classification via text prompts", "category": "CLIP" },
+    { "text": "Auto-annotate images for a dataset", "category": "BLIP (Captioning)" },
+    { "text": "Visual question answering with text output", "category": "BLIP (VQA)" }
+  ]
+}
+```
+
+---
+
 ## Summary
 
 | Model | Task | Key use |

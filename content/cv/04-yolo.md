@@ -268,6 +268,30 @@ The broader lesson: detection at IOAI is rarely about inventing architectures. I
 
 ---
 
+## Sort Detection Concepts
+
+```widget
+{
+  "type": "concept-sort",
+  "title": "Classification, Detection, or Segmentation?",
+  "categories": [
+    { "name": "Image Classification", "color": "#22C55E" },
+    { "name": "Object Detection", "color": "#5B5BD6" },
+    { "name": "Segmentation", "color": "#F97316" }
+  ],
+  "items": [
+    { "text": "One label for the entire image", "category": "Image Classification" },
+    { "text": "Bounding box + class for each object", "category": "Object Detection" },
+    { "text": "Per-pixel class label across the whole image", "category": "Segmentation" },
+    { "text": "IoU used to judge correctness", "category": "Object Detection" },
+    { "text": "Counting chickens in a field", "category": "Object Detection" },
+    { "text": "Labeling road vs car vs pedestrian", "category": "Segmentation" }
+  ]
+}
+```
+
+---
+
 ## Summary
 
 - **Detection** finds *what is where* — a labeled bounding box per object — unlike classification (one label) or segmentation (per-pixel masks). Counting objects requires detection.
