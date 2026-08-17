@@ -223,6 +223,29 @@ Both are regularization/stabilization tools, and both appear in real architectur
 
 ---
 
+## Sort BatchNorm vs Dropout
+
+```widget
+{
+  "type": "concept-sort",
+  "title": "BatchNorm or Dropout? Match the Description",
+  "categories": [
+    { "name": "Batch Normalization", "color": "#5B5BD6" },
+    { "name": "Dropout", "color": "#F97316" }
+  ],
+  "items": [
+    { "text": "Normalizes activations to mean=0, std=1", "category": "Batch Normalization" },
+    { "text": "Randomly zeros neurons during training", "category": "Dropout" },
+    { "text": "Fights internal covariate shift", "category": "Batch Normalization" },
+    { "text": "Forces network to not rely on single neurons", "category": "Dropout" },
+    { "text": "Has learnable gamma and beta parameters", "category": "Batch Normalization" },
+    { "text": "At inference, scales outputs by (1-p) implicitly", "category": "Dropout" }
+  ]
+}
+```
+
+---
+
 ## Summary
 
 - Deep nets suffer from shifting input distributions (**internal covariate shift**) that slow training.

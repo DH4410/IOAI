@@ -179,6 +179,29 @@ The "was missing" indicator sometimes has predictive power — whether a value i
 
 ---
 
+## Sort These Feature Engineering Choices
+
+```widget
+{
+  "type": "concept-sort",
+  "title": "Encoding Strategy: Numerical or Categorical?",
+  "categories": [
+    { "name": "For numerical features", "color": "#5B5BD6" },
+    { "name": "For categorical features", "color": "#F97316" }
+  ],
+  "items": [
+    { "text": "StandardScaler (mean=0, std=1)", "category": "For numerical features" },
+    { "text": "One-hot encoding", "category": "For categorical features" },
+    { "text": "Log transform for skewed data", "category": "For numerical features" },
+    { "text": "Label encoding (ordinal)", "category": "For categorical features" },
+    { "text": "MinMaxScaler ([0, 1] range)", "category": "For numerical features" },
+    { "text": "Target encoding (mean of target per category)", "category": "For categorical features" }
+  ]
+}
+```
+
+---
+
 ## Summary
 
 | Step | Purpose | Key tool |

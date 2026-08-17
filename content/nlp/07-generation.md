@@ -168,6 +168,29 @@ print(result[0]['summary_text'])
 
 ---
 
+## Sort the Generation Strategies
+
+```widget
+{
+  "type": "concept-sort",
+  "title": "More Creative or More Accurate?",
+  "categories": [
+    { "name": "Deterministic / Accurate", "color": "#5B5BD6" },
+    { "name": "Creative / Diverse", "color": "#F97316" }
+  ],
+  "items": [
+    { "text": "Greedy decoding", "category": "Deterministic / Accurate" },
+    { "text": "Temperature > 1.0", "category": "Creative / Diverse" },
+    { "text": "Beam search (num_beams=4)", "category": "Deterministic / Accurate" },
+    { "text": "Top-p sampling (p=0.9)", "category": "Creative / Diverse" },
+    { "text": "Temperature = 0 (argmax)", "category": "Deterministic / Accurate" },
+    { "text": "Top-k sampling (k=50)", "category": "Creative / Diverse" }
+  ]
+}
+```
+
+---
+
 ## Summary
 
 | Strategy | When to use |
