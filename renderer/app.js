@@ -1,3 +1,5 @@
+import { preprocessWidgets, renderWidgets } from './widgets.js';
+
 // ─── State ───────────────────────────────────────────────────────────────────
 const state = {
   courses: null,
@@ -12,6 +14,8 @@ const state = {
   darkMode: false,
   sidebarCollapsed: false,
   lastLesson: null,
+  // Spaced repetition: { [questionKey]: { ef: float, interval: days, due: ISO-date, correct: int, total: int } }
+  sr: {},
 };
 
 // ─── Storage ─────────────────────────────────────────────────────────────────
@@ -25,6 +29,7 @@ function progressToJSON() {
     darkMode: state.darkMode,
     sidebarCollapsed: state.sidebarCollapsed,
     lastLesson: state.lastLesson,
+    sr: state.sr,
   });
 }
 
@@ -41,7 +46,32 @@ function applyProgressJSON(json) {
     if (d.darkMode != null) state.darkMode = d.darkMode;
     if (d.sidebarCollapsed != null) state.sidebarCollapsed = d.sidebarCollapsed;
     if (d.lastLesson) state.lastLesson = d.lastLesson;
+    if (d.sr) state.sr = d.sr;
   } catch (_) {}
+}
+
+// ─── Spaced Repetition (SM-2 simplified) ──────────────────────────────────────
+function srUpdate(key, correct) {
+  const now = state.sr[key] || { ef: 2.5, interval: 1, correct: 0, total: 0 };
+  now.total = (now.total || 0) + 1;
+  if (correct) {
+    now.correct = (now.correct || 0) + 1;
+    now.interval = now.interval < 1 ? 1 : now.interval < 6 ? 6 : Math.round(now.interval * now.ef);
+    now.ef = Math.max(1.3, now.ef + 0.1 - (1 - 1) * (0.08 + (1 - 1) * 0.02));
+  } else {
+    now.interval = 1;
+    now.ef = Math.max(1.3, now.ef - 0.2);
+  }
+  const due = new Date();
+  due.setDate(due.getDate() + now.interval);
+  now.due = due.toISOString().slice(0, 10);
+  state.sr[key] = now;
+  saveProgress();
+}
+
+function srDueCount() {
+  const today = new Date().toISOString().slice(0, 10);
+  return Object.values(state.sr).filter(v => v.due && v.due <= today).length;
 }
 
 function saveProgress() {
@@ -469,13 +499,17 @@ function renderQuiz(quizData, container) {
       opt.addEventListener('click', () => {
         if (opt.classList.contains('disabled')) return;
         const chosen = parseInt(opt.dataset.idx);
+        const correct = chosen === q.correct;
         opts.forEach(o => {
           o.classList.add('disabled');
           if (parseInt(o.dataset.idx) === q.correct) o.classList.add('correct');
         });
-        if (chosen !== q.correct) opt.classList.add('wrong');
+        if (!correct) opt.classList.add('wrong');
         explanation.classList.add('visible');
-        if (chosen === q.correct) { state.xp += 5; saveProgress(); celebrate(opt); showXPGain(5, opt); }
+        // Spaced repetition tracking
+        const qKey = `quiz_${encodeURIComponent(q.question.slice(0,40))}`;
+        srUpdate(qKey, correct);
+        if (correct) { state.xp += 5; saveProgress(); celebrate(opt); showXPGain(5, opt); }
       });
     });
 
@@ -754,7 +788,9 @@ async function openLesson(trackId, lessonId) {
   }
 
   const { body } = parseMarkdownMeta(mdRaw);
-  contentEl.innerHTML = marked.parse(body);
+  const processedBody = preprocessWidgets(body);
+  contentEl.innerHTML = marked.parse(processedBody);
+  renderWidgets(contentEl);
   enhanceCodeBlocks(contentEl);
   renderMath(contentEl);
   addGlossaryTooltips(contentEl);
@@ -883,6 +919,7 @@ function renderHome() {
   const ICON_SUN = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
 
   const dailyGoalDone = Math.min(state.completed.size, 3);
+  const dueReviews = srDueCount();
 
   view.innerHTML = `
     <div class="home-wrap">
@@ -948,6 +985,14 @@ function renderHome() {
                 <div class="plan-val">${dailyGoalDone} of 3 lessons</div>
               </div>
             </div>
+            ${dueReviews > 0 ? `
+            <div class="plan-row review-due-row" id="btn-home-review">
+              <div class="plan-icon" style="background:var(--purple-lt)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
+              <div class="plan-text">
+                <div class="plan-name" style="color:var(--purple)">Reviews Due</div>
+                <div class="plan-val">${dueReviews} question${dueReviews!==1?'s':''} to review today</div>
+              </div>
+            </div>` : ''}
           </div>
           <div class="progress-circle-wrap">
             <svg class="progress-circle-svg" viewBox="0 0 92 92">
