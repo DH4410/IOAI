@@ -835,6 +835,22 @@ html.dark .rec-icon.amber { background: rgba(245,158,11,0.18); color: #FCD34D; }
 .btn-mark-complete:hover:not(.done) { border-color: var(--green); color: var(--green); background: var(--green-lt); }
 .btn-mark-complete.done { background: var(--green-lt); border-color: var(--green-lt2); color: var(--green); font-weight: 600; }
 
+.btn-not-studied {
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--text4);
+  border-radius: var(--radius-sm);
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.btn-not-studied:hover:not(.active) { border-color: var(--orange,#f97316); color: var(--orange,#f97316); background: #fff7ed; }
+.btn-not-studied.active { background: #fff7ed; border-color: var(--orange,#f97316); color: var(--orange,#f97316); font-weight: 600; }
+.new-to-me-badge { font-size: 10px; font-weight: 600; background: #fff7ed; color: var(--orange,#f97316); border-radius: 10px; padding: 1px 7px; vertical-align: middle; }
+.lesson-card.not-studied { border-color: #fed7aa; }
+
 /* Lesson 3-column layout */
 #lesson-layout {
   display: grid;
@@ -2144,12 +2160,24 @@ html.dark .kern-cell { background: var(--accent); }
   font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em;
   color: var(--blue); background: var(--blue-lt); padding: 3px 10px; border-radius: 20px;
 }
+.test-q-top-right { display: flex; gap: 8px; align-items: center; }
 .test-flag-btn {
   background: none; border: 1px solid var(--border);
   color: var(--text4); font-size: 12px; padding: 4px 10px;
   border-radius: var(--radius-sm); cursor: pointer; transition: all 0.15s;
 }
 .test-flag-btn.flagged { background: var(--amber-lt,#fef3c7); color: var(--orange); border-color: var(--orange); }
+.test-hint-btn {
+  background: none; border: 1px solid var(--border);
+  color: var(--text4); font-size: 12px; padding: 4px 10px;
+  border-radius: var(--radius-sm); cursor: pointer; transition: all 0.15s;
+}
+.test-hint-btn:hover, .test-hint-btn.active { background: #fefce8; color: #854d0e; border-color: #fbbf24; }
+.test-hint-box {
+  background: #fefce8; border: 1px solid #fbbf24; border-radius: var(--radius);
+  padding: 10px 14px; font-size: 13px; color: #713f12; line-height: 1.5;
+  margin-bottom: 16px;
+}
 .test-q-text {
   font-size: 17px; font-weight: 600; line-height: 1.55;
   color: var(--text); margin-bottom: 20px;

@@ -18,6 +18,8 @@ const state = {
   sr: {},
   // Mid-term test results: { [testId]: { score, total, pct, date, timeTaken } }
   testResults: {},
+  // Lessons the user flagged as "haven't studied this yet"
+  notStudied: new Set(),
   // Active test session (in-memory only, not persisted)
   activeTest: null,
 };
@@ -35,6 +37,7 @@ function progressToJSON() {
     lastLesson: state.lastLesson,
     sr: state.sr,
     testResults: state.testResults,
+    notStudied: [...state.notStudied],
   });
 }
 
@@ -53,6 +56,7 @@ function applyProgressJSON(json) {
     if (d.lastLesson) state.lastLesson = d.lastLesson;
     if (d.sr) state.sr = d.sr;
     if (d.testResults) state.testResults = d.testResults;
+    if (d.notStudied) state.notStudied = new Set(d.notStudied);
   } catch (_) {}
 }
 
@@ -740,6 +744,7 @@ async function openLesson(trackId, lessonId) {
   const btnPrev = document.getElementById('btn-prev-lesson');
   const btnNext = document.getElementById('btn-next-lesson');
   const btnMark = document.getElementById('btn-mark-complete');
+  const btnNotStudied = document.getElementById('btn-not-studied');
 
   btnPrev.disabled = !prev;
   btnNext.disabled = !next;
@@ -753,6 +758,21 @@ async function openLesson(trackId, lessonId) {
     if (done) setLessonProgress(100);
   }
   refreshMarkBtn();
+
+  function refreshNotStudiedBtn() {
+    const flagged = state.notStudied.has(lessonId);
+    btnNotStudied.textContent = flagged ? '📚 New to me ✓' : '📚 New to me';
+    btnNotStudied.className = flagged ? 'btn-not-studied active' : 'btn-not-studied';
+  }
+  refreshNotStudiedBtn();
+
+  btnNotStudied.onclick = () => {
+    if (state.notStudied.has(lessonId)) state.notStudied.delete(lessonId);
+    else state.notStudied.add(lessonId);
+    saveProgress();
+    refreshNotStudiedBtn();
+    renderCurriculum();
+  };
 
   btnMark.onclick = () => {
     if (!state.completed.has(lessonId)) {
@@ -1364,11 +1384,12 @@ function renderLessonsBrowser() {
 
     track.lessons.forEach(lesson => {
       const isDone = state.completed.has(lesson.id);
+      const isNew = state.notStudied.has(lesson.id);
       const card = document.createElement('div');
-      card.className = `lesson-card${isDone ? ' completed' : ''}`;
+      card.className = `lesson-card${isDone ? ' completed' : ''}${isNew ? ' not-studied' : ''}`;
       card.innerHTML = `
         <div class="lesson-card-icon">${isDone ? '✅' : track.icon}</div>
-        <div class="lesson-card-track">${track.name}</div>
+        <div class="lesson-card-track">${track.name}${isNew ? ' <span class="new-to-me-badge">📚 New to me</span>' : ''}</div>
         <div class="lesson-card-title">${lesson.title}</div>
         <div class="lesson-card-meta">
           <span>⏱ ${lesson.estimatedTime}m</span>
@@ -1646,6 +1667,16 @@ function fmtTime(secs) {
   return `${m}:${String(s).padStart(2, '0')}`;
 }
 
+function getHint(q) {
+  // Use explicit hint field if present, otherwise derive a nudge from the explanation
+  if (q.hint) return q.hint;
+  if (!q.explanation) return 'Think about the core concept this question tests.';
+  // Take the first sentence as a nudge — enough to jog memory, not a full spoiler
+  const first = q.explanation.split(/\.\s+/)[0].replace(/\.$/, '');
+  // Redact the answer option letters from the hint so it's not too direct
+  return first.length > 120 ? first.slice(0, 120) + '…' : first;
+}
+
 async function renderTestsView() {
   const view = document.getElementById('view-tests');
   view.innerHTML = `
@@ -1738,17 +1769,26 @@ function openTestLobby(testData) {
 }
 
 function startTest(testData) {
-  // Shuffle questions order for variety on retakes
-  const questions = [...testData.questions].sort(() => Math.random() - 0.5);
+  // Normalize questions to canonical format (support both old and new JSON schemas)
+  const normalise = q => ({
+    ...q,
+    question: q.question ?? q.text,
+    correct:  q.correct  ?? q.answer,
+    options:  q.options  ?? [],
+  });
+  const questions = [...testData.questions]
+    .map(normalise)
+    .sort(() => Math.random() - 0.5);
   state.activeTest = {
     testData,
     questions,
-    answers: new Array(questions.length).fill(null), // null = unanswered
-    flagged: new Set(),
-    currentIdx: 0,
-    startTime: Date.now(),
+    answers:     new Array(questions.length).fill(null),
+    flagged:     new Set(),
+    hintShown:   new Set(),
+    currentIdx:  0,
+    startTime:   Date.now(),
     secondsLeft: testData.timeLimit,
-    timerId: null,
+    timerId:     null,
   };
   renderTestQuestion();
   // Start timer
@@ -1797,10 +1837,16 @@ function renderTestQuestion() {
       <div class="test-question-area">
         <div class="test-q-top">
           <span class="test-q-type-badge">${isTF ? 'True / False' : 'Multiple Choice'}</span>
-          <button id="test-flag" class="test-flag-btn ${isFlagged ? 'flagged' : ''}" title="Flag for review">
-            ${isFlagged ? '🚩 Flagged' : '⚑ Flag'}
-          </button>
+          <div class="test-q-top-right">
+            <button id="test-hint" class="test-hint-btn ${at.hintShown.has(at.currentIdx) ? 'active' : ''}" title="Get a hint">
+              💡 ${at.hintShown.has(at.currentIdx) ? 'Hide Hint' : 'Hint'}
+            </button>
+            <button id="test-flag" class="test-flag-btn ${isFlagged ? 'flagged' : ''}" title="Flag for review">
+              ${isFlagged ? '🚩 Flagged' : '⚑ Flag'}
+            </button>
+          </div>
         </div>
+        ${at.hintShown.has(at.currentIdx) ? `<div class="test-hint-box">💡 ${getHint(q)}</div>` : ''}
         <div class="test-q-text">${q.question}</div>
         <div class="test-options">
           ${options.map((opt, i) => `
@@ -1845,6 +1891,12 @@ function renderTestQuestion() {
     clearInterval(at.timerId);
     state.activeTest = null;
     renderTestsView();
+  });
+
+  view.querySelector('#test-hint')?.addEventListener('click', () => {
+    if (at.hintShown.has(at.currentIdx)) at.hintShown.delete(at.currentIdx);
+    else at.hintShown.add(at.currentIdx);
+    renderTestQuestion();
   });
 
   view.querySelector('#test-flag')?.addEventListener('click', () => {
