@@ -368,6 +368,29 @@ Trace through it. `HonorStudent` reuses `__init__`, `average`, and `__str__` fro
 
 ---
 
+## Sort OOP Concepts
+
+```widget
+{
+  "type": "concept-sort",
+  "title": "Class Attribute or Instance Attribute?",
+  "categories": [
+    { "name": "Class attribute (shared by all instances)", "color": "#5B5BD6" },
+    { "name": "Instance attribute (unique per object)", "color": "#F97316" }
+  ],
+  "items": [
+    { "text": "Defined directly in the class body (outside __init__)", "category": "Class attribute (shared by all instances)" },
+    { "text": "self.x = ... in __init__", "category": "Instance attribute (unique per object)" },
+    { "text": "Changing it affects all objects of that class", "category": "Class attribute (shared by all instances)" },
+    { "text": "Each object stores its own copy", "category": "Instance attribute (unique per object)" },
+    { "text": "Dog.species = 'Canis lupus' (same for all dogs)", "category": "Class attribute (shared by all instances)" },
+    { "text": "self.name = name (each dog has its own name)", "category": "Instance attribute (unique per object)" }
+  ]
+}
+```
+
+---
+
 ## Summary
 
 - **OOP** bundles related data and behavior into **objects**, keeping large programs organized. This bundling is called **encapsulation**.
