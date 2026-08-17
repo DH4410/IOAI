@@ -308,6 +308,29 @@ That train-vs-validation gap is the thing you watch during *every* model you eve
 
 ---
 
+## Sort These Statistical Concepts
+
+```widget
+{
+  "type": "concept-sort",
+  "title": "Mean or Median? Which to Use?",
+  "categories": [
+    { "name": "Use Mean", "color": "#5B5BD6" },
+    { "name": "Use Median", "color": "#F97316" }
+  ],
+  "items": [
+    { "text": "Symmetric data with no outliers (test scores)", "category": "Use Mean" },
+    { "text": "House prices (a few billionaire mansions skew data)", "category": "Use Median" },
+    { "text": "Standardization (mean=0, std=1 scaling)", "category": "Use Mean" },
+    { "text": "Income distribution in a country", "category": "Use Median" },
+    { "text": "Normally distributed noise", "category": "Use Mean" },
+    { "text": "Outlier-robust evaluation metric", "category": "Use Median" }
+  ]
+}
+```
+
+---
+
 ## Summary
 
 - **Center:** the **mean** is the average (sensitive to outliers); the **median** is the middle value (robust to outliers); the **mode** is the most common value. Use the median for skewed/outlier-heavy data.

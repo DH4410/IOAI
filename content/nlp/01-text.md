@@ -182,6 +182,29 @@ print(f'Accuracy: {accuracy_score(y_test, preds):.2%}')
 
 ---
 
+## Sort NLP Preprocessing Steps
+
+```widget
+{
+  "type": "concept-sort",
+  "title": "TF-IDF Baseline or BERT? When to Use Each",
+  "categories": [
+    { "name": "TF-IDF + ML (fast baseline)", "color": "#F97316" },
+    { "name": "BERT / Transformer (best accuracy)", "color": "#5B5BD6" }
+  ],
+  "items": [
+    { "text": "Quick first submission in a competition", "category": "TF-IDF + ML (fast baseline)" },
+    { "text": "Low-resource setting with <500 training examples", "category": "TF-IDF + ML (fast baseline)" },
+    { "text": "Captures word order and context", "category": "BERT / Transformer (best accuracy)" },
+    { "text": "No GPU required, runs on CPU in seconds", "category": "TF-IDF + ML (fast baseline)" },
+    { "text": "Highest accuracy for most text tasks", "category": "BERT / Transformer (best accuracy)" },
+    { "text": "Treats each word independently (bag-of-words)", "category": "TF-IDF + ML (fast baseline)" }
+  ]
+}
+```
+
+---
+
 ## Summary
 
 | Step | Purpose | Tool |

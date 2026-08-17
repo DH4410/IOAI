@@ -190,6 +190,30 @@ val_loader   = DataLoader(val_dataset,   batch_size=32, shuffle=False, num_worke
 
 ---
 
+## Sort CNN Layer Types
+
+```widget
+{
+  "type": "concept-sort",
+  "title": "What Does Each CNN Layer Do?",
+  "categories": [
+    { "name": "Conv2d (feature extraction)", "color": "#5B5BD6" },
+    { "name": "MaxPool2d (downsampling)", "color": "#F97316" },
+    { "name": "Linear (classification)", "color": "#22C55E" }
+  ],
+  "items": [
+    { "text": "Detects edges, textures, and patterns", "category": "Conv2d (feature extraction)" },
+    { "text": "Halves spatial dimensions, reduces computation", "category": "MaxPool2d (downsampling)" },
+    { "text": "Produces final class scores from flat features", "category": "Linear (classification)" },
+    { "text": "Learns weight-shared filters across the image", "category": "Conv2d (feature extraction)" },
+    { "text": "Takes the maximum in each 2x2 window", "category": "MaxPool2d (downsampling)" },
+    { "text": "Fully connected: every input to every output", "category": "Linear (classification)" }
+  ]
+}
+```
+
+---
+
 ## Summary
 
 | Concept | What it does |

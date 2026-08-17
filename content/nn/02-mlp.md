@@ -283,6 +283,29 @@ print("TOTAL:", count_params([784, 256, 128, 10]))
 
 ---
 
+## Sort MLP Concepts
+
+```widget
+{
+  "type": "concept-sort",
+  "title": "Width or Depth? Which Property?",
+  "categories": [
+    { "name": "Relates to Width (neurons/layer)", "color": "#5B5BD6" },
+    { "name": "Relates to Depth (num layers)", "color": "#F97316" }
+  ],
+  "items": [
+    { "text": "More neurons in a single hidden layer", "category": "Relates to Width (neurons/layer)" },
+    { "text": "Hierarchical feature learning", "category": "Relates to Depth (num layers)" },
+    { "text": "Universal approximation theorem guarantee", "category": "Relates to Width (neurons/layer)" },
+    { "text": "ResNet has 50 layers (deep)", "category": "Relates to Depth (num layers)" },
+    { "text": "1024-unit hidden layer vs 512-unit", "category": "Relates to Width (neurons/layer)" },
+    { "text": "Requires gradient flow across many steps", "category": "Relates to Depth (num layers)" }
+  ]
+}
+```
+
+---
+
 ## Summary
 
 - An **MLP** stacks layers of neurons; every neuron connects to all neurons in the next layer (**fully connected**).
