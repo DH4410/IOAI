@@ -16,6 +16,23 @@ The answer is **backpropagation** ("backprop" for short). It's the algorithm tha
 
 ---
 
+## See the network first
+
+Before diving into the math, watch how a forward pass moves through a network. Click "Animate" to see activations flow layer by layer:
+
+```widget
+{
+  "type": "neuron-diagram",
+  "title": "Forward pass — signals flow from input to output",
+  "layers": [3, 4, 4, 1],
+  "labels": ["Input", "Hidden 1", "Hidden 2", "Output"]
+}
+```
+
+Backpropagation is the **reverse** of this — gradients flow from output back to input, one layer at a time.
+
+---
+
 ## The core problem: assigning blame
 
 Imagine your network makes a wrong prediction. The final error came from *thousands* of weights all contributing a little. To improve, you need to know, for **each individual weight**: *"If I nudge you up a tiny bit, does the error go up or down, and how strongly?"*

@@ -42,6 +42,26 @@ Output = sum of (Weight * Value) for all positions
 
 The division by `sqrt(d_k)` keeps the dot products from getting too large.
 
+Click each word below to see its attention pattern — which other words it "looks at":
+
+```widget
+{
+  "type": "attention-heatmap",
+  "title": "Attention weights — click a word to see where it attends",
+  "words": ["The", "cat", "sat", "on", "the", "mat"],
+  "weights": [
+    [0.60, 0.12, 0.08, 0.07, 0.08, 0.05],
+    [0.10, 0.55, 0.18, 0.07, 0.06, 0.04],
+    [0.06, 0.28, 0.42, 0.09, 0.10, 0.05],
+    [0.05, 0.06, 0.10, 0.68, 0.07, 0.04],
+    [0.12, 0.10, 0.08, 0.12, 0.48, 0.10],
+    [0.07, 0.28, 0.12, 0.08, 0.08, 0.37]
+  ]
+}
+```
+
+Notice: "on" (a preposition) attends heavily to itself (0.68) — it's a function word that mostly anchors itself. "sat" attends strongly to "cat" (0.28) — the verb connects to its subject.
+
 ```python
 import torch
 import torch.nn.functional as F

@@ -36,7 +36,19 @@ The idea: break rare words into pieces, keep common words whole.
 
 The `##` prefix means "this piece continues the previous token without a space."
 
-This way the vocabulary stays small (30,000-50,000 pieces is enough) and unknown words can still be represented.
+This way the vocabulary stays small (30,000–50,000 pieces is enough) and unknown words can still be represented.
+
+Try it live — type any sentence and see how it gets split into tokens:
+
+```widget
+{
+  "type": "tokenizer-live",
+  "title": "Live tokenizer — type text to see subword splitting",
+  "default": "machine learning is amazing for IOAI"
+}
+```
+
+Notice how uncommon words get split into pieces (shown with `##`), while common words like "is" stay whole. Real tokenizers (like BPE used in GPT) use more sophisticated splitting — but this shows the core idea.
 
 ---
 

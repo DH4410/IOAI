@@ -16,9 +16,16 @@ Regular neural networks treat an image as a flat list of pixel values. A 224x224
 
 A convolution slides a small **filter** (or kernel) across the image and produces a new image called a **feature map**.
 
-Imagine a 3x3 filter sliding over a 5x5 image:
-- The filter looks at a 3x3 patch, multiplies element-wise, sums everything up, and records one number.
-- Then it slides one step and repeats.
+Step through it yourself before reading the code:
+
+```widget
+{
+  "type": "conv-stepper",
+  "title": "Watch a 3×3 filter slide across a 5×5 input"
+}
+```
+
+Each step: the filter looks at a 3×3 patch, multiplies element-wise, sums everything up → one output number. Then it moves one step right.
 
 ```python
 import torch
