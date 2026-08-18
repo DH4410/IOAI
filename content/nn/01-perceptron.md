@@ -401,6 +401,32 @@ Master the perceptron, and the rest of the Neural Networks track is a series of 
 
 ---
 
+## Which Perceptron Concept Is This?
+
+```widget
+{
+  "type": "concept-sort",
+  "title": "Perceptron: Match the Symbol to the Meaning",
+  "categories": [
+    { "name": "Input / Data", "color": "#5B5BD6" },
+    { "name": "Learned Parameter", "color": "#F97316" },
+    { "name": "Computation / Output", "color": "#22C55E" }
+  ],
+  "items": [
+    { "text": "x — the feature values for one example", "category": "Input / Data" },
+    { "text": "w — determines how much each feature matters", "category": "Learned Parameter" },
+    { "text": "ŷ — the neuron's final prediction (0 or 1)", "category": "Computation / Output" },
+    { "text": "b — shifts the activation threshold up or down", "category": "Learned Parameter" },
+    { "text": "z = w·x + b — the pre-activation weighted sum", "category": "Computation / Output" },
+    { "text": "Training examples (x, y) — what the model learns from", "category": "Input / Data" },
+    { "text": "η (learning rate) — controls how big each weight update is", "category": "Learned Parameter" },
+    { "text": "step(z) — hard threshold that converts z to 0 or 1", "category": "Computation / Output" }
+  ]
+}
+```
+
+---
+
 ## Summary
 
 - The **perceptron** (Rosenblatt, 1958) is a single artificial neuron: inputs → weights → sum + bias → activation → output.

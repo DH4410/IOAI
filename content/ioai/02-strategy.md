@@ -552,6 +552,33 @@ The teams that improve most across competitions are the ones that debrief thorou
 
 ---
 
+## Which Phase is This?
+
+```widget
+{
+  "type": "concept-sort",
+  "title": "Match the Action to the Competition Phase",
+  "categories": [
+    { "name": "EDA (first 45 min)", "color": "#5B5BD6" },
+    { "name": "Baseline (first 60 min)", "color": "#22C55E" },
+    { "name": "Iteration (middle 135 min)", "color": "#F97316" },
+    { "name": "Final 15 min", "color": "#EF4444" }
+  ],
+  "items": [
+    { "text": "Check class imbalance and missing value counts", "category": "EDA (first 45 min)" },
+    { "text": "Submit a working LightGBM model with default params", "category": "Baseline (first 60 min)" },
+    { "text": "Add target-encoded categoricals and measure CV improvement", "category": "Iteration (middle 135 min)" },
+    { "text": "Choose best CV submission and verify file format matches sample_submission.csv", "category": "Final 15 min" },
+    { "text": "Check the target distribution and confirm evaluation metric", "category": "EDA (first 45 min)" },
+    { "text": "Generate your first valid submission file — the safety net", "category": "Baseline (first 60 min)" },
+    { "text": "Average LightGBM + XGBoost predictions for ensemble", "category": "Iteration (middle 135 min)" },
+    { "text": "Do NOT make untested code changes with less than 15 minutes left", "category": "Final 15 min" }
+  ]
+}
+```
+
+---
+
 ## 11. Summary: The 10 Rules of IOAI Strategy
 
 1. **Get a working submission before you optimize anything.**

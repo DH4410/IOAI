@@ -505,6 +505,33 @@ If you can implement a metric from its formula, you truly understand it.
 
 ---
 
+## Sort the Metrics
+
+```widget
+{
+  "type": "concept-sort",
+  "title": "Which Metric for Which Situation?",
+  "categories": [
+    { "name": "AUC-ROC", "color": "#5B5BD6" },
+    { "name": "Macro F1", "color": "#F97316" },
+    { "name": "RMSE", "color": "#22C55E" },
+    { "name": "Log Loss", "color": "#EF4444" }
+  ],
+  "items": [
+    { "text": "Binary classification — you want threshold-independent ranking quality", "category": "AUC-ROC" },
+    { "text": "Multi-class problem with severe class imbalance — minority classes matter equally", "category": "Macro F1" },
+    { "text": "Regression — large prediction errors should be penalized more than small ones", "category": "RMSE" },
+    { "text": "Probabilistic output — model must output well-calibrated probabilities", "category": "Log Loss" },
+    { "text": "Medical diagnosis with rare disease: missing any case is unacceptable", "category": "Macro F1" },
+    { "text": "House price prediction with some extreme outlier properties", "category": "RMSE" },
+    { "text": "You need to compare two models without committing to a threshold", "category": "AUC-ROC" },
+    { "text": "Language model output probabilities for next-token prediction quality", "category": "Log Loss" }
+  ]
+}
+```
+
+---
+
 ## 11. Summary
 
 The five most important metric insights for IOAI:
