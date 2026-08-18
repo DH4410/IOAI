@@ -226,6 +226,19 @@ At IOAI, the problem statement tells you the metric. **Optimize for that metric 
 
 ---
 
+## Practice Questions
+
+**Quick check:** A dataset has 1000 train examples and 200 test examples. You fit a StandardScaler on all 1200 examples, then train on 1000. Is this valid? Why?
+> **No — this is data leakage.** The scaler learned statistics (mean, std) from the 200 test examples too. The model benefits from information about test distribution that it shouldn't have access to. Always `fit_transform` on train only, then `transform` on test.
+
+**Quick check:** Your model achieves 99% accuracy on a medical test where 99% of patients are healthy. Is this a good model?
+> **No.** A trivial model that always predicts "healthy" also gets 99% accuracy. The model likely learned to always predict the majority class. Use F1 or recall to evaluate performance on the rare disease-positive class — what actually matters clinically.
+
+**Quick check:** What's the difference between unsupervised and supervised learning? Give an example of each.
+> **Supervised**: labeled data, learns a mapping — e.g., email (features) → spam/not-spam (label). **Unsupervised**: no labels, finds structure — e.g., k-means clustering customers into groups without any predefined group labels. IOAI competitions are mostly supervised (you're given labels and must predict test labels).
+
+---
+
 ## Summary
 
 | Concept | Remember this |

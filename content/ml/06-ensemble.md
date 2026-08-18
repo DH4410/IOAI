@@ -333,6 +333,19 @@ print(f"CV OOF accuracy: {accuracy_score(y_train, oof_preds):.4f}")
 
 ---
 
+## Practice Questions
+
+**Quick check:** XGBoost uses boosting. LightGBM uses boosting too but is faster. What is the key algorithmic difference that makes LightGBM faster?
+> LightGBM uses **leaf-wise** tree growth (growing the leaf that reduces loss the most at each step), while XGBoost uses level-wise growth (expanding all leaves at the same depth level). Leaf-wise achieves better accuracy with fewer leaves. LightGBM also uses histogram-based splitting and doesn't sort features at every split — making it much faster on large datasets.
+
+**Quick check:** Why do you use out-of-fold (OOF) predictions for stacking rather than training base models on the full training set and predicting?
+> To avoid **leakage**. If a base model trained on all data predicts its own training examples, those predictions are trivially perfect (the model memorized them). OOF predictions are made by a model that never saw that fold during training — so they're honest estimates. The meta-model then learns from reliable predictions.
+
+**Quick check:** Optuna suggests using `n_estimators=1000` with `early_stopping_rounds=50`. What's the point of setting n_estimators so large if you're using early stopping?
+> Early stopping watches validation loss and stops adding trees when it hasn't improved for 50 consecutive rounds. Setting n_estimators=1000 is just an upper bound — you never expect to actually use all 1000 trees. Early stopping finds the optimal number automatically and stops before overfitting.
+
+---
+
 ## Summary
 
 | Method | How | When to use |
