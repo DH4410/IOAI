@@ -449,6 +449,32 @@ Given everything above, here is a structured preparation framework:
 
 ---
 
+## IOAI Format Knowledge Check
+
+```widget
+{
+  "type": "concept-sort",
+  "title": "Theoretical Exam or Practical Exam?",
+  "categories": [
+    { "name": "Theoretical exam", "color": "#5B5BD6" },
+    { "name": "Practical exam", "color": "#22C55E" },
+    { "name": "Both exams", "color": "#F97316" }
+  ],
+  "items": [
+    { "text": "Multiple-choice questions on gradient descent concepts", "category": "Theoretical exam" },
+    { "text": "Train a model and submit predictions on a test set", "category": "Practical exam" },
+    { "text": "Evaluated on cross-validation score and leaderboard", "category": "Practical exam" },
+    { "text": "Short-answer question: derive the chain rule application", "category": "Theoretical exam" },
+    { "text": "Apply competition strategy (EDA → baseline → iterate)", "category": "Practical exam" },
+    { "text": "Academic integrity rules apply", "category": "Both exams" },
+    { "text": "Need to know evaluation metrics deeply", "category": "Both exams" },
+    { "text": "Questions on AI ethics and societal impact", "category": "Theoretical exam" }
+  ]
+}
+```
+
+---
+
 ## 14. Summary
 
 IOAI is a dual-format competition: a theoretical examination testing ML knowledge, math, and ethics; and a practical examination that is a compressed Kaggle-style data challenge. It was founded in 2024, held in Bulgaria for its first edition, and has grown rapidly.

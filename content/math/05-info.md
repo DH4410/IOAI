@@ -250,6 +250,19 @@ print(kl_divergence(p, [0.99, 0.01])) # even bigger -> q is very wrong
 
 ---
 
+## Practice Questions
+
+**Quick check:** A model predicts [0.7, 0.2, 0.1] for a 3-class problem. The true class is class 0. What is the cross-entropy loss?
+> Cross-entropy = -log(0.7) ≈ **0.357**. Only the log of the true class's probability counts — the other outputs don't matter. A perfect prediction of [1, 0, 0] would give -log(1) = 0.
+
+**Quick check:** A model confidently predicts P(cat) = 0.01 for an image that is actually a cat. What is the cross-entropy loss, and what does the large value mean for training?
+> -log(0.01) ≈ **4.6** — a very large loss. The gradient will be large, causing a big weight update. Cross-entropy's design is exactly this: confident wrong predictions get punished severely, encouraging the model to learn fast from its biggest mistakes.
+
+**Quick check:** When KL divergence D_KL(p||q) = 0, what does that mean?
+> The two distributions are identical: q = p for all x. KL divergence is always ≥ 0, and equals 0 only when the distributions match perfectly. Minimizing cross-entropy during training drives KL divergence toward 0 — pulling the model's predicted distribution toward the true distribution.
+
+---
+
 ## Summary
 
 - **Information / surprisal** of an event is $-\log_2 p$. Rare events (small $p$) are surprising and carry lots of information; certain events ($p = 1$) carry none. Using $\log_2$, the unit is the **bit** — one fair coin flip = 1 bit. The log is chosen because it makes independent information *add*.
