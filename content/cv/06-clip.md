@@ -285,6 +285,22 @@ Every concept in this lesson maps directly onto that task. Master CLIP and you m
 
 ---
 
+## Practice Questions
+
+**Quick check:** You're computing CLIP cosine similarity between image embeddings A and text embeddings B. A has shape (1000, 512) — 1000 images. B has shape (5000, 512) — 5000 captions. What shape is the similarity matrix, and what does entry [i, j] represent?
+> Shape **(1000, 5000)**. Entry [i, j] = cosine similarity between image i and caption j. To find the best caption for image i, take `argmax` along row i.
+
+**Quick check:** Two CLIP image embeddings have cosine similarity 0.95. What does this mean in practical terms?
+> The images are very semantically similar — they likely show the same type of scene or object. CLIP embeddings capture semantic meaning (what's in the image), not pixel-level similarity. Two photos of cats taken from different angles could have cosine similarity ~0.9.
+
+**Quick check:** CLIP's text encoder has a 77-token limit. You have product descriptions averaging 200 tokens. How should you handle this for IOAI retrieval?
+> Don't blindly truncate — you'd lose the end of descriptions. Options: (1) **chunk** each description into overlapping 77-token segments and average their embeddings, (2) use only the first sentence (often most informative), or (3) summarize with an LLM first. Validate each approach on your metric.
+
+**Quick check:** The IOAI 2026 metric is MRR² (mean reciprocal rank squared). Why does this metric almost exclusively reward getting the answer at rank 1?
+> MRR² = (1/Q)·Σ(1/r²). If r=1: score = 1. If r=2: score = 0.25. If r=3: score = 0.11. The r² denominator makes rank 2 worth only ¼ of rank 1 — getting the right answer second is devastating. Optimize your retrieval to always put the true item first.
+
+---
+
 ## Summary
 
 - **CLIP** learns a **shared embedding space** for images and text via **two encoders** (a ViT image encoder + a text Transformer), so matching image and caption get nearly identical, L2-normalized vectors compared by **cosine similarity**.

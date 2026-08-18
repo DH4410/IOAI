@@ -292,6 +292,19 @@ The broader lesson: detection at IOAI is rarely about inventing architectures. I
 
 ---
 
+## Practice Questions
+
+**Quick check:** A YOLO model predicts 15 bounding boxes around the same chicken. After NMS with IoU threshold 0.5, how many boxes remain?
+> **1 box** (the highest-confidence one). NMS removes all boxes that overlap with the top box by more than 50% IoU, leaving exactly one detection per cluster of overlapping predictions.
+
+**Quick check:** Two bounding boxes. Box A: top-left (100,100), bottom-right (200,200). Box B: top-left (150,150), bottom-right (250,250). What is the IoU?
+> Intersection: (150,150) to (200,200) = 50×50 = 2500 px². Box A area = 10000, Box B area = 10000. Union = 10000 + 10000 - 2500 = 17500. IoU = 2500/17500 ≈ **0.143**. The boxes barely overlap — IoU < 0.5 means this prediction would be scored as wrong at mAP@0.5.
+
+**Quick check:** For IOAI chicken counting, would you optimize for mAP or for count error? What's the difference?
+> **Count error** (the task's actual metric). mAP measures bounding box accuracy across thresholds — a model can have high mAP but still recount objects if NMS thresholds are wrong. Directly minimize |predicted_count - true_count| by tuning confidence and NMS thresholds on your validation set.
+
+---
+
 ## Summary
 
 - **Detection** finds *what is where* — a labeled bounding box per object — unlike classification (one label) or segmentation (per-pixel masks). Counting objects requires detection.
