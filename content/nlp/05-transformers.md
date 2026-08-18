@@ -218,6 +218,19 @@ Mean pooling (average all token embeddings) often works better than just the `[C
 
 ---
 
+## Practice Questions
+
+**Quick check:** How many parameters does `bert-base-uncased` have, and what does "base" vs "large" mean?
+> BERT-base has ~110 million parameters (12 layers, 768 hidden, 12 heads). BERT-large has ~340M (24 layers, 1024 hidden, 16 heads). "Large" is slower to fine-tune but generally scores higher.
+
+**Quick check:** What learning rate should you use to fine-tune BERT, and why is it so small?
+> 2e-5 to 5e-5. Much smaller than training from scratch because BERT's weights are already good — you're nudging them, not relearning. A larger rate destroys the pretrained features (called "catastrophic forgetting").
+
+**Quick check:** Your BERT fine-tune gets 0.95 train F1 but 0.72 validation F1 after epoch 5. What should you do?
+> It's overfitting. Try: fewer epochs (stop at epoch 2-3), stronger weight decay, smaller learning rate, or a larger dropout. For small datasets, freeze the first 6 layers and only fine-tune the last 6.
+
+---
+
 ## Summary
 
 | Step | Code |

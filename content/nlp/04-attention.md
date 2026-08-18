@@ -30,6 +30,26 @@ Attention says: when processing "it", look back at ALL words and decide which on
 
 For each word (query), attention computes a weighted sum of all other words (values), where the weights depend on similarity between the query and each word (key).
 
+**Visual diagram of one attention step:**
+
+```
+Input tokens: [  "The"     "cat"     "sat"  ]
+                   |          |          |
+             [W_Q] [W_K] [W_V]  (3 learned projections)
+                   |          |          |
+                   Q          K          V
+                   |          |
+                   Q · Kᵀ / √d_k    (dot-product similarity, shape: seq×seq)
+                         |
+                     softmax          (turn scores → weights summing to 1)
+                         |
+                   weights @ V        (weighted blend of all values)
+                         |
+                      Output          (same shape as input)
+```
+
+The key insight: **every output token is a blend of ALL input tokens**, weighted by how relevant each is.
+
 ```
 Query: the word we are currently processing ("it")
 Keys:  every word in the sequence
@@ -221,14 +241,32 @@ In most classification tasks you only need self-attention (encoder).
 
 ---
 
+## Practice Questions
+
+**Quick check:** A transformer has `d_model=768` and `num_heads=12`. What is the dimension of each head's Q, K, V vectors?
+> 768 / 12 = **64**. Each head works in 64-dimensional space. The outputs are concatenated back to 768.
+
+**Quick check:** Why do we divide attention scores by √d_k before softmax?
+> With large d_k, dot products grow large in magnitude, pushing softmax into regions of near-zero gradients (saturation). Dividing by √d_k keeps the variance stable at 1, maintaining healthy gradients.
+
+**Quick check:** In BERT's encoder, is the attention self-attention or cross-attention?
+> Self-attention — Q, K, V all come from the same token sequence. BERT is an encoder-only model with no cross-attention.
+
+**Quick check:** What happens if you apply a causal mask (upper-triangular mask) to attention scores?
+> Positions are only allowed to attend to earlier positions (and themselves), never future ones. This is how GPT works — each token can only "see" the tokens before it, enabling autoregressive generation.
+
+---
+
 ## Summary
 
 | Concept | Key point |
 |---|---|
 | Attention | Compute weighted sum of all positions; weights from query-key similarity |
-| Multi-head | Run 8 attention heads in parallel, each learns different relationships |
+| Scaled dot-product | Divide by √d_k to prevent softmax saturation |
+| Multi-head | Run h heads in parallel (each d_model/h dims), each learns different relationships |
 | Positional encoding | Add position info so the model knows word order |
-| Self-attention | Sequence attends to itself (BERT) |
-| Cross-attention | One sequence attends to another (translation, T5) |
+| Self-attention | Sequence attends to itself — Q, K, V from same input (BERT, GPT) |
+| Cross-attention | Q from decoder, K/V from encoder (translation, T5) |
+| Causal mask | Block future positions — used in GPT-style decoders |
 
 You don't need to implement attention from scratch in competition. But understanding it helps you use models correctly and debug when things go wrong. The next lesson builds a full transformer using these pieces.

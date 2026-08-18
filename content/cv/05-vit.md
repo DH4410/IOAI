@@ -246,6 +246,22 @@ A practical decision guide:
 
 ---
 
+## Practice Questions
+
+**Quick check:** A 384×384 image with patch size 16 produces how many tokens (before adding CLS)?
+> (384/16)² = 24² = **576 patches** → 577 tokens including [CLS].
+
+**Quick check:** Why do ViTs need positional embeddings but CNNs don't?
+> Attention has no concept of position — shuffling patches would give the same output. Positional embeddings inject location information. CNNs encode position implicitly through the receptive field's spatial structure.
+
+**Quick check:** You only have 500 labeled images. Should you train a ViT from scratch or use a pretrained ViT?
+> **Use a pretrained ViT** (e.g., from timm with ImageNet weights). ViTs trained from scratch need huge datasets (ImageNet-scale). Pretrained weights already encode rich visual features — you just fine-tune the head.
+
+**Quick check:** What advantage does ViT have over CNN for understanding the relationship between a person in the top-left and a sign in the bottom-right of an image?
+> ViT uses global self-attention from layer 1 — every patch attends to every other patch. CNNs build up context gradually through stacked local convolutions, making it hard to capture long-range relationships in early layers.
+
+---
+
 ## Summary
 
 - A **ViT treats an image as a sequence of patches** (visual "words") and feeds them to a standard Transformer.
