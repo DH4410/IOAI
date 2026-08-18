@@ -694,6 +694,32 @@ The students who internalize this process — not just the sklearn APIs, but the
 
 ---
 
+## Pre-Competition Knowledge Check
+
+```widget
+{
+  "type": "concept-sort",
+  "title": "IOAI Readiness: Which Category Does Each Skill Belong To?",
+  "categories": [
+    { "name": "Must do FIRST (before optimizing)", "color": "#22C55E" },
+    { "name": "Critical — but easy to forget under pressure", "color": "#EF4444" },
+    { "name": "Advanced — do only if time permits", "color": "#5B5BD6" }
+  ],
+  "items": [
+    { "text": "Submit a working baseline with default LightGBM parameters", "category": "Must do FIRST (before optimizing)" },
+    { "text": "Set random seeds at the top of the notebook", "category": "Critical — but easy to forget under pressure" },
+    { "text": "Verify submission columns match sample_submission.csv exactly", "category": "Critical — but easy to forget under pressure" },
+    { "text": "Implement the exact competition metric from the problem statement", "category": "Must do FIRST (before optimizing)" },
+    { "text": "Stacking with a meta-learner on out-of-fold predictions", "category": "Advanced — do only if time permits" },
+    { "text": "Pseudo-labeling high-confidence test samples", "category": "Advanced — do only if time permits" },
+    { "text": "Check for NaN values before training: assert not X.isnull().any().any()", "category": "Critical — but easy to forget under pressure" },
+    { "text": "Keep a backup single-model submission in case ensemble has a bug", "category": "Critical — but easy to forget under pressure" }
+  ]
+}
+```
+
+---
+
 ## Final Summary
 
 You are ready for IOAI if you can answer yes to every item on this list:

@@ -222,6 +222,32 @@ Notice: the loss curve is **convex** (bowl-shaped). No local minima — gradient
 
 ---
 
+## Match the Concept
+
+```widget
+{
+  "type": "concept-sort",
+  "title": "Linear Regression: What Does Each Term Do?",
+  "categories": [
+    { "name": "Ridge (L2)", "color": "#5B5BD6" },
+    { "name": "Lasso (L1)", "color": "#F97316" },
+    { "name": "No regularization", "color": "#22C55E" }
+  ],
+  "items": [
+    { "text": "Can set some feature weights to exactly zero", "category": "Lasso (L1)" },
+    { "text": "Shrinks all weights toward zero but keeps all features", "category": "Ridge (L2)" },
+    { "text": "Best when you have many features and suspect most are irrelevant", "category": "Lasso (L1)" },
+    { "text": "Adds λ·Σwᵢ² to the loss function", "category": "Ridge (L2)" },
+    { "text": "Exact solution via normal equation: w = (XᵀX)⁻¹Xᵀy", "category": "No regularization" },
+    { "text": "Good default when features are all potentially useful", "category": "Ridge (L2)" },
+    { "text": "Performs automatic feature selection", "category": "Lasso (L1)" },
+    { "text": "Minimizes only MSE with no extra penalty term", "category": "No regularization" }
+  ]
+}
+```
+
+---
+
 ## Summary
 
 | Concept | Key point |

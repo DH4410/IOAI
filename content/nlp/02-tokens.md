@@ -178,6 +178,31 @@ A larger vocabulary = more tokens are kept whole = shorter sequences but bigger 
 
 ---
 
+## Sort the Tokenization Concepts
+
+```widget
+{
+  "type": "concept-sort",
+  "title": "Tokenizer Concepts: True or Word-Level Problem?",
+  "categories": [
+    { "name": "Advantage of subword tokenization", "color": "#22C55E" },
+    { "name": "Problem with word-level tokenization", "color": "#EF4444" },
+    { "name": "Required for model input", "color": "#5B5BD6" }
+  ],
+  "items": [
+    { "text": "Unknown words replaced with [UNK], losing all information", "category": "Problem with word-level tokenization" },
+    { "text": "Vocabulary of 500k+ words is too expensive to store", "category": "Problem with word-level tokenization" },
+    { "text": "Rare words split into known subpieces — nothing is truly unknown", "category": "Advantage of subword tokenization" },
+    { "text": "Vocabulary stays manageable at ~30k–50k pieces", "category": "Advantage of subword tokenization" },
+    { "text": "attention_mask marks real tokens vs. padding positions", "category": "Required for model input" },
+    { "text": "All sequences padded to the same length in a batch", "category": "Required for model input" },
+    { "text": "[CLS] token at the start for sentence-level classification", "category": "Required for model input" }
+  ]
+}
+```
+
+---
+
 ## Summary
 
 | Concept | Key point |

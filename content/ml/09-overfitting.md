@@ -151,6 +151,32 @@ print(f'Val:   {accuracy_score(y_val, model.predict(X_val)):.3f}')
 
 ---
 
+## Diagnose the Training Problem
+
+```widget
+{
+  "type": "concept-sort",
+  "title": "Is This Overfitting, Underfitting, or Good Fit?",
+  "categories": [
+    { "name": "Overfitting", "color": "#EF4444" },
+    { "name": "Underfitting", "color": "#F97316" },
+    { "name": "Good fit", "color": "#22C55E" }
+  ],
+  "items": [
+    { "text": "Train accuracy 99%, validation accuracy 62%", "category": "Overfitting" },
+    { "text": "Train accuracy 71%, validation accuracy 70%", "category": "Underfitting" },
+    { "text": "Train accuracy 89%, validation accuracy 87%", "category": "Good fit" },
+    { "text": "Train loss keeps falling but validation loss starts rising", "category": "Overfitting" },
+    { "text": "Both train and validation loss are high and plateau early", "category": "Underfitting" },
+    { "text": "Train loss 0.12, validation loss 0.65 — huge gap", "category": "Overfitting" },
+    { "text": "Adding more layers makes both train and val loss worse", "category": "Underfitting" },
+    { "text": "CV score 0.91, test leaderboard score 0.90 — consistent", "category": "Good fit" }
+  ]
+}
+```
+
+---
+
 ## Summary
 
 | Problem | Sign | Fix |

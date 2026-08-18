@@ -384,6 +384,31 @@ This ties together `.split()` from the strings lesson, the `.get()` counting pat
 
 ---
 
+## Dict vs. List: Which Data Structure?
+
+```widget
+{
+  "type": "concept-sort",
+  "title": "Dictionary or List — Which Would You Use?",
+  "categories": [
+    { "name": "Dictionary (lookup by name/key)", "color": "#5B5BD6" },
+    { "name": "List (access by position/order)", "color": "#22C55E" }
+  ],
+  "items": [
+    { "text": "Store 1000 training losses — one per epoch", "category": "List (access by position/order)" },
+    { "text": "Map class index 0→'cat', 1→'dog', 2→'bird'", "category": "Dictionary (lookup by name/key)" },
+    { "text": "Count how many times each word appears in a text", "category": "Dictionary (lookup by name/key)" },
+    { "text": "Store the batch of 32 images as tensors", "category": "List (access by position/order)" },
+    { "text": "Config: {'lr': 0.001, 'epochs': 50, 'batch_size': 32}", "category": "Dictionary (lookup by name/key)" },
+    { "text": "The sequence of tokens in a sentence", "category": "List (access by position/order)" },
+    { "text": "Look up a word's embedding vector by its word string", "category": "Dictionary (lookup by name/key)" },
+    { "text": "Track the 5 validation scores across CV folds", "category": "List (access by position/order)" }
+  ]
+}
+```
+
+---
+
 ## Summary
 
 - A **dictionary** (`dict`) stores **key-value pairs**. Look up values by key: `d["name"]`, not by numeric position.

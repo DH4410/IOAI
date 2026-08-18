@@ -454,6 +454,32 @@ This one program uses a `for` loop, `if`/`elif`/`else`, comparison operators, a 
 
 ---
 
+## Sort the Control Flow Concepts
+
+```widget
+{
+  "type": "concept-sort",
+  "title": "Which Control Flow Tool Fits?",
+  "categories": [
+    { "name": "if / elif / else", "color": "#5B5BD6" },
+    { "name": "for loop", "color": "#22C55E" },
+    { "name": "while loop", "color": "#F97316" }
+  ],
+  "items": [
+    { "text": "Run code a fixed number of times (e.g., 100 training epochs)", "category": "for loop" },
+    { "text": "Keep training until validation loss stops improving", "category": "while loop" },
+    { "text": "Apply a different learning rate depending on epoch number", "category": "if / elif / else" },
+    { "text": "Iterate over every row in a dataset", "category": "for loop" },
+    { "text": "Poll a server until it returns a response", "category": "while loop" },
+    { "text": "Check if accuracy > 0.95 and save the model", "category": "if / elif / else" },
+    { "text": "[x*2 for x in range(10)] — list comprehension", "category": "for loop" },
+    { "text": "Grade a score as A / B / C / D / F based on ranges", "category": "if / elif / else" }
+  ]
+}
+```
+
+---
+
 ## Summary
 
 - **Control flow** decides which lines run and how many times.

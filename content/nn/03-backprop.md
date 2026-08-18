@@ -335,6 +335,32 @@ If the two agree to ~6 decimal places, your backprop is almost certainly right. 
 
 ---
 
+## Sort These Backprop Concepts
+
+```widget
+{
+  "type": "concept-sort",
+  "title": "Forward Pass or Backward Pass?",
+  "categories": [
+    { "name": "Forward pass", "color": "#5B5BD6" },
+    { "name": "Backward pass", "color": "#F97316" },
+    { "name": "Both / neither (setup)", "color": "#22C55E" }
+  ],
+  "items": [
+    { "text": "Compute predictions ŷ from input x", "category": "Forward pass" },
+    { "text": "Apply chain rule to propagate dL/dw through layers", "category": "Backward pass" },
+    { "text": "Store intermediate activations for later use", "category": "Forward pass" },
+    { "text": "Call optimizer.zero_grad() to clear old gradients", "category": "Both / neither (setup)" },
+    { "text": "Compute loss L = MSE(ŷ, y)", "category": "Forward pass" },
+    { "text": "Update weights: w ← w − η·(dL/dw)", "category": "Backward pass" },
+    { "text": "Call loss.backward() in PyTorch", "category": "Backward pass" },
+    { "text": "Call optimizer.step() to apply updates", "category": "Both / neither (setup)" }
+  ]
+}
+```
+
+---
+
 ## Summary
 
 - Training means computing $\frac{\partial L}{\partial w}$ for **every** weight, then doing gradient descent $w \leftarrow w - \eta\frac{\partial L}{\partial w}$.

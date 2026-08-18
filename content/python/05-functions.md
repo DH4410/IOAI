@@ -411,6 +411,32 @@ Notice how `report` calls `average` and `grade` — small functions combining in
 
 ---
 
+## Function Concepts Sorter
+
+```widget
+{
+  "type": "concept-sort",
+  "title": "Which Python Function Concept Is This?",
+  "categories": [
+    { "name": "Parameters & return", "color": "#5B5BD6" },
+    { "name": "Scope", "color": "#F97316" },
+    { "name": "Advanced (args/lambda/recursion)", "color": "#22C55E" }
+  ],
+  "items": [
+    { "text": "def add(a, b=0): — b has a default value", "category": "Parameters & return" },
+    { "text": "Variables defined inside a function vanish when it ends", "category": "Scope" },
+    { "text": "return result — hands a value back to the caller", "category": "Parameters & return" },
+    { "text": "sorted(names, key=lambda x: x.lower())", "category": "Advanced (args/lambda/recursion)" },
+    { "text": "def f(*args): — collect any number of positional arguments", "category": "Advanced (args/lambda/recursion)" },
+    { "text": "A function calling itself with a smaller input until a base case", "category": "Advanced (args/lambda/recursion)" },
+    { "text": "A function with no return statement gives back None", "category": "Parameters & return" },
+    { "text": "Reading a global variable inside a function is fine; modifying it is risky", "category": "Scope" }
+  ]
+}
+```
+
+---
+
 ## Summary
 
 - A **function** is reusable, named code. Define it with `def name(...):` and run it by calling `name(...)`.
