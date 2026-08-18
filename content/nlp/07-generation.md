@@ -191,6 +191,19 @@ print(result[0]['summary_text'])
 
 ---
 
+## Practice Questions
+
+**Quick check:** What does temperature=0.1 produce compared to temperature=2.0 from the same model?
+> **Temperature=0.1**: very "peaked" distribution — the highest-probability token is chosen almost deterministically every time. Very predictable, repetitive output. **Temperature=2.0**: very "flat" distribution — many tokens have similar probability. Output is creative, diverse, and sometimes nonsensical. Temperature=1.0 is standard sampling.
+
+**Quick check:** Beam search with num_beams=4 keeps track of 4 candidate sequences at each step. Why might it produce worse output than top-p sampling for open-ended creative text?
+> Beam search optimizes for the most probable sequence — which tends to produce repetitive, generic text ("the the the the"). It can get stuck in local optima. Sampling (especially top-p) introduces randomness that allows exploration of diverse, creative continuations that would have low probability at each individual step.
+
+**Quick check:** You're fine-tuning T5 for summarization. What's the input and output format, and which loss is used?
+> **Input**: `"summarize: " + full_article_text` (encoder input). **Output**: the summary (decoder target). Loss is **cross-entropy** over the target tokens — the model is trained to predict each summary token given the article (encoder) and previous summary tokens (decoder). This is standard seq2seq training.
+
+---
+
 ## Summary
 
 | Strategy | When to use |

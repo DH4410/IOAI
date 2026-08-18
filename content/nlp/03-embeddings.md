@@ -183,6 +183,19 @@ The `[CLS]` token embedding is commonly used as a fixed-size representation of t
 
 ---
 
+## Practice Questions
+
+**Quick check:** Word2Vec produces a vector for "king" minus "man" plus "woman" that's closest to "queen." What does this demonstrate about word embeddings?
+> Word embeddings capture **semantic relationships as vector arithmetic**. The directions in embedding space correspond to meaningful attributes — e.g., the "royalty" direction, the "gender" direction. This means the model learned analogies purely from co-occurrence statistics without any explicit supervision about gender or royalty concepts.
+
+**Quick check:** You use `sentence_embedding = embeddings[:, 0, :]` to get the sentence embedding from BERT. What token is at position 0, and why is it chosen?
+> Position 0 is the `[CLS]` (classification) token that BERT always prepends to every input. During pretraining, BERT trains the `[CLS]` token to aggregate information from the whole sequence for next-sentence prediction. So its final hidden state acts as a summary of the entire input — making it the standard choice for sentence-level embeddings.
+
+**Quick check:** When should you use a static Word2Vec embedding instead of a contextual BERT embedding?
+> Static embeddings win when: (1) **compute is extremely limited** — Word2Vec is a tiny lookup table, while BERT requires a full transformer forward pass; (2) **you have very little training data** — fine-tuning BERT risks overfitting on tiny datasets; (3) **inference latency matters** — serving millions of requests per second. For IOAI competitions where accuracy matters most, use BERT.
+
+---
+
 ## Summary
 
 | Method | Dimensions | Context-aware? | When to use |

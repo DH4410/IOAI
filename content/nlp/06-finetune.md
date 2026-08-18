@@ -218,6 +218,19 @@ model = AutoModelForSequenceClassification.from_pretrained('saved_model/')
 
 ---
 
+## Practice Questions
+
+**Quick check:** You fine-tune BERT for sentiment classification with a learning rate of 1e-3. Validation loss explodes in epoch 1. What happened?
+> The learning rate is **100× too high** for fine-tuning a pretrained model. Large updates destroy the representations BERT learned during pretraining — a phenomenon called catastrophic forgetting. Standard fine-tuning uses 2e-5 to 5e-5. With 1e-3, you're essentially training from scratch but with bad initialization.
+
+**Quick check:** Your BERT model scores 92% on the training set but 71% on the validation set after 5 epochs. What are two things to try?
+> 1. **Reduce epochs** — BERT fine-tunes fast; 3 epochs is often enough. More epochs overfit. 2. **Add warmup + weight decay** — a linear warmup schedule and weight_decay=0.01 act as regularization, preventing the model from memorizing training examples.
+
+**Quick check:** Why do you freeze all BERT layers except the last 2 encoder layers and the classifier when you have only 500 labeled training examples?
+> With only 500 examples, **full fine-tuning would overfit** — there isn't enough signal to update all ~110M BERT parameters without memorizing the training set. Freezing lower layers preserves general language representations (which transfer well). You only update the upper layers that need to specialize for your specific task. This is especially important for small datasets.
+
+---
+
 ## Summary
 
 | Component | Recommendation |

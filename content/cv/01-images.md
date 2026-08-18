@@ -346,6 +346,19 @@ Every competition CV notebook you will ever write starts with some version of th
 
 ---
 
+## Practice Questions
+
+**Quick check:** You open an image with PIL, print `img.size` and get `(640, 480)`. What shape does `np.array(img)` have?
+> **`(480, 640, 3)`**. PIL's `.size` returns `(width, height)`, but NumPy arrays follow `(height, width, channels)` — the order flips. So 640 wide × 480 tall becomes `(480, 640, 3)`. This PIL/NumPy swap is one of the most common sources of shape bugs in CV code.
+
+**Quick check:** You try to feed a single preprocessed image of shape `(3, 224, 224)` to a PyTorch model and get an error about "expected 4D tensor." What do you add and why?
+> You need to **add a batch dimension**: `tensor.unsqueeze(0)` converts `(3, 224, 224)` → `(1, 3, 224, 224)`. PyTorch models always expect a batch dimension as the first axis `(N, C, H, W)` — even for a single image. `N=1` tells the model you're processing a batch of one.
+
+**Quick check:** Your image from OpenCV looks blue-tinted when you display it with PIL or matplotlib. What's the cause and fix?
+> OpenCV (`cv2.imread()`) loads images in **BGR** order (blue-green-red), while PIL and matplotlib expect **RGB**. Fix: `img_rgb = img_bgr[:, :, ::-1]` to reverse the channel axis, or use `cv2.cvtColor(img, cv2.COLOR_BGR2RGB)`. This is one of the most common CV competition bugs.
+
+---
+
 ## Summary
 
 - A digital image is a grid of pixels; each pixel is one or more numbers.
