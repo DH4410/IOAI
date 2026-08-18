@@ -345,6 +345,22 @@ The numerical gradient is too *slow* to use for actual training (it needs two fu
 
 ---
 
+## Practice Questions
+
+**Quick check:** The loss function is L(w) = (w - 3)². What is dL/dw, and what weight value minimizes it?
+> dL/dw = 2(w - 3). Set to zero: 2(w - 3) = 0 → **w = 3** minimizes the loss. The gradient is zero at the minimum, and gradient descent would converge there.
+
+**Quick check:** During backpropagation through a sigmoid activation, what problem arises and why?
+> The sigmoid derivative σ'(x) = σ(x)(1-σ(x)) ≤ 0.25. Multiplying many such values together (through deep layers) makes the gradient exponentially small — the **vanishing gradient** problem. This is why ReLU (derivative = 1 for x > 0) is preferred in deep networks.
+
+**Quick check:** Gradient descent updates weights as w ← w − α·∇L. If α is too large, what happens?
+> The steps overshoot the minimum — the loss bounces up and down and may diverge to infinity (NaN). The right α makes steady progress toward the minimum without overshooting.
+
+**Quick check:** Apply the chain rule: if L = (a - y)² and a = w·x, what is dL/dw?
+> By chain rule: dL/dw = (dL/da)·(da/dw) = 2(a-y)·x = **2(wx - y)·x**. This is the gradient of MSE with respect to a weight — the core update rule for linear regression.
+
+---
+
 ## Summary
 
 - A **derivative** is a *rate of change* — the slope of a function. Positive slope = going up, negative = going down, zero = flat (a peak or valley bottom).

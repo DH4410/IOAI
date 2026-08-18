@@ -503,6 +503,22 @@ When people say "matrix multiplication" in AI, they almost always mean `@`. But 
 
 ---
 
+## Practice Questions
+
+**Quick check:** A weight matrix W has shape (256, 128) and an input vector x has shape (128,). What shape is the output W @ x?
+> **(256,)**. The rule: (m×n) @ (n,) → (m,). The inner dimension (128) cancels; you get a vector of 256 outputs. In a neural network, this means 256 neurons each producing one output.
+
+**Quick check:** You have a batch of 32 images, each represented as a flat vector of 784 values. What shape is the data matrix X, and how do you apply weight matrix W (shape 256×784) to it?
+> X has shape **(32, 784)**. To apply W: `X @ W.T` gives (32, 256) — one 256-dimensional output per image. Or equivalently `(W @ X.T).T`. The batch dimension stays separate.
+
+**Quick check:** Is matrix multiplication commutative? Does A @ B equal B @ A?
+> **No.** Matrix multiplication is not commutative. A@B and B@A have different shapes when A is (m×n) and B is (n×k) (A@B is m×k, B@A requires k=m and gives n×n). Even when shapes allow both, the results are generally different matrices.
+
+**Quick check:** A linear layer has weight matrix W of shape (512, 768). How many trainable parameters does it have (not counting the bias)?
+> 512 × 768 = **393,216** parameters. Each of the 512 output neurons has a 768-dimensional weight vector connecting it to the 768-dimensional input.
+
+---
+
 ## Summary
 
 - A **vector** is a list of numbers. Picture it as an arrow with a direction and a length, or as a point in space. In AI, data becomes vectors (word embeddings, flattened images, feature rows).
