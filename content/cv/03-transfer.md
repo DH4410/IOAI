@@ -242,6 +242,19 @@ In the IOAI 2025 CV tasks — restroom icon matching, painting authentication �
 
 ---
 
+## Practice Questions
+
+**Quick check:** You have 200 images of rare butterfly species, 10 per class, 20 classes. Which transfer learning strategy should you use and why?
+> **Freeze backbone, train head only.** With only 200 images, fine-tuning all layers will massively overfit — the model will memorize the 200 training images. Freezing the backbone uses ImageNet features as a fixed, powerful extractor and only learns to map those features to your 20 classes. Consider also heavy augmentation.
+
+**Quick check:** When you replace ResNet's final `model.fc = nn.Linear(512, num_classes)`, what happens to the weights of the rest of the model?
+> They remain as pretrained ImageNet weights — nothing is reset. Only the new `fc` layer has randomly initialized weights. You're attaching a fresh classification head to a pre-learned feature extractor.
+
+**Quick check:** Why do you use a 10x smaller learning rate when fine-tuning all layers compared to training the head only?
+> The pretrained backbone's weights already encode rich, useful features. A normal LR would destroy them through large updates — this is called **catastrophic forgetting**. A small LR (e.g., 1e-5 instead of 1e-3) makes small adjustments to adapt to the new domain without forgetting ImageNet knowledge.
+
+---
+
 ## Summary
 
 - Training big vision models from scratch needs millions of images and days of compute — impossible in a competition. **Start pretrained.**

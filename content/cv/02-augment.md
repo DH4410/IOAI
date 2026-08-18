@@ -246,6 +246,19 @@ Concretely, here is why augmentation earns you leaderboard points:
 
 ---
 
+## Practice Questions
+
+**Quick check:** You're classifying skin lesion images. Should you apply horizontal flip augmentation? What about vertical flip?
+> **Horizontal flip: yes** — a mole is a mole whether it's on the left or right. **Vertical flip: yes** — the skin orientation doesn't affect the diagnosis. For medical images without orientation dependence, both flips are safe. Always validate that the augmented images still look like valid training examples.
+
+**Quick check:** Why do you apply augmentation only to the training set, not validation?
+> Validation measures the model's real performance — you need consistent, deterministic inputs. If you augmented validation, you'd be measuring performance on random transformations rather than the original data, making scores noisy and hard to compare across experiments.
+
+**Quick check:** ImageNet normalization uses mean=[0.485, 0.456, 0.406] and std=[0.229, 0.224, 0.225]. Why must you use these exact values when fine-tuning a pretrained ResNet?
+> The pretrained model's weights were trained with inputs normalized using these statistics. If you normalize differently, the activations will be in an unexpected range — the pretrained features won't work correctly. The model expects these specific statistics at every layer's input.
+
+---
+
 ## Summary
 
 - Augmentation creates new training examples by transforming existing images, fighting overfitting and teaching invariances — usually raising your validation score for almost no effort.
