@@ -193,6 +193,19 @@ Always report mean ± std. A model with 0.91 ± 0.02 is more reliable than one w
 
 ---
 
+## Practice Questions
+
+**Quick check:** A classifier has TP=80, FP=20, FN=40, TN=860. Calculate precision, recall, and F1.
+> Precision = 80/(80+20) = **0.80**. Recall = 80/(80+40) = **0.667**. F1 = 2·(0.80·0.667)/(0.80+0.667) = **0.727**. The model is more precise than it is sensitive — it misses 1 in 3 actual positives.
+
+**Quick check:** Why is AUC-ROC useful even when you don't know the final decision threshold yet?
+> AUC measures how well the model *ranks* examples — whether it gives higher scores to positives than negatives — across ALL possible thresholds. It's threshold-independent. A model with AUC=0.92 means: pick a random positive and a random negative — there's a 92% chance the positive gets a higher score.
+
+**Quick check:** Model A: precision 0.90, recall 0.40. Model B: precision 0.60, recall 0.85. For a spam filter where false positives (blocking real emails) are the priority concern, which model is better?
+> **Model A** (precision 0.90). High precision means most things it flags as spam really are spam — few legitimate emails get blocked. Model B blocks more spam (higher recall) but also blocks many legitimate emails (lower precision).
+
+---
+
 ## Summary
 
 | Metric | Formula | When to use |

@@ -238,6 +238,19 @@ A large absolute weight (positive or negative) means that feature strongly influ
 
 ---
 
+## Practice Questions
+
+**Quick check:** Logistic regression outputs P(spam) = 0.72. What class does it predict with threshold 0.5? What if you change the threshold to 0.8?
+> At threshold 0.5: **spam** (0.72 > 0.5). At threshold 0.8: **not spam** (0.72 < 0.8). Raising the threshold makes the model more conservative — it only predicts positive when very confident. This increases precision but reduces recall.
+
+**Quick check:** You have a spam filter. A false positive (legitimate email marked as spam) is much more costly than a false negative (spam gets through). How should you adjust the classification threshold?
+> **Raise the threshold** (e.g., from 0.5 to 0.8). This reduces false positives (the model only labels something spam when very confident) at the cost of more false negatives. The precision-recall tradeoff directly serves the business requirement.
+
+**Quick check:** Logistic regression gets 78% accuracy on training but only 79% on test. What does this tell you, and what should you try?
+> The model is **underfitting** — tiny gap but both numbers are modest. It's too simple for the problem. Try: adding feature interactions (x₁·x₂), polynomial features, or switch to a tree-based model that can capture non-linearity.
+
+---
+
 ## Summary
 
 | Concept | Key point |
