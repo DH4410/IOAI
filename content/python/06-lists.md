@@ -465,6 +465,32 @@ Trace it before running. You'll see set deduplication, `zip` pairing, a filterin
 
 ---
 
+## List, Tuple, or Set?
+
+```widget
+{
+  "type": "concept-sort",
+  "title": "Which Collection Type Should You Use?",
+  "categories": [
+    { "name": "List [ ]", "color": "#5B5BD6" },
+    { "name": "Tuple ( )", "color": "#22C55E" },
+    { "name": "Set { }", "color": "#F97316" }
+  ],
+  "items": [
+    { "text": "Store training losses in order — you'll append one per epoch", "category": "List [ ]" },
+    { "text": "Return width, height, channels from an image shape function", "category": "Tuple ( )" },
+    { "text": "Find all unique class labels in a dataset", "category": "Set { }" },
+    { "text": "Check whether 'cat' is in the vocabulary (fast lookup)", "category": "Set { }" },
+    { "text": "The (row, col) coordinates of a pixel — fixed pair", "category": "Tuple ( )" },
+    { "text": "Batch of 32 input images you'll iterate over", "category": "List [ ]" },
+    { "text": "Remove duplicate IDs from test data", "category": "Set { }" },
+    { "text": "A sequence of tokens from a sentence, in order", "category": "List [ ]" }
+  ]
+}
+```
+
+---
+
 ## Summary
 
 - A **list** (`[1, 2, 3]`) is an ordered, **mutable** collection. Index and slice it just like a string (starting at 0).

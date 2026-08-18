@@ -488,6 +488,33 @@ Trace through it and predict the output before you run it. You should see the ty
 
 ---
 
+## Python Data Types Sorter
+
+```widget
+{
+  "type": "concept-sort",
+  "title": "What Type Would Python Give This Value?",
+  "categories": [
+    { "name": "int", "color": "#5B5BD6" },
+    { "name": "float", "color": "#F97316" },
+    { "name": "str", "color": "#22C55E" },
+    { "name": "bool", "color": "#EF4444" }
+  ],
+  "items": [
+    { "text": "42", "category": "int" },
+    { "text": "3.14", "category": "float" },
+    { "text": "'hello'", "category": "str" },
+    { "text": "True", "category": "bool" },
+    { "text": "10 / 2   (division always returns this)", "category": "float" },
+    { "text": "5 == 5   (a comparison result)", "category": "bool" },
+    { "text": "str(100)   (converting a number to text)", "category": "str" },
+    { "text": "10 // 3   (floor division)", "category": "int" }
+  ]
+}
+```
+
+---
+
 ## Summary
 
 - A **variable** is a named box that stores a value so you can reuse it. Create one with `name = value`.

@@ -115,6 +115,32 @@ Each track builds on the last. Don't skip — the later tracks will be confusing
 
 ---
 
+## Python Operators Sorter
+
+```widget
+{
+  "type": "concept-sort",
+  "title": "What Does This Python Operator Do?",
+  "categories": [
+    { "name": "Division-related", "color": "#5B5BD6" },
+    { "name": "Comparison (returns True/False)", "color": "#F97316" },
+    { "name": "Assignment", "color": "#22C55E" }
+  ],
+  "items": [
+    { "text": "10 / 3  →  3.333 (always a float)", "category": "Division-related" },
+    { "text": "10 // 3  →  3 (floor division, drops decimal)", "category": "Division-related" },
+    { "text": "10 % 3  →  1 (remainder after dividing)", "category": "Division-related" },
+    { "text": "x == y  (are they equal? NOT assignment)", "category": "Comparison (returns True/False)" },
+    { "text": "x != y  (are they different?)", "category": "Comparison (returns True/False)" },
+    { "text": "x = 5  (store 5 into x)", "category": "Assignment" },
+    { "text": "x >= 0  (is x non-negative?)", "category": "Comparison (returns True/False)" },
+    { "text": "x += 1  (short for x = x + 1)", "category": "Assignment" }
+  ]
+}
+```
+
+---
+
 ## Summary
 
 - Python is a programming language you'll use throughout this course and at IOAI.

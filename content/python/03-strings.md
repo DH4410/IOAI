@@ -168,6 +168,32 @@ filename = f'{base}/checkpoint_{epoch:03d}.pth'   # 'results/checkpoint_010.pth'
 
 ---
 
+## String Operations Sorter
+
+```widget
+{
+  "type": "concept-sort",
+  "title": "Which String Method Does This?",
+  "categories": [
+    { "name": "Cleaning / normalizing", "color": "#5B5BD6" },
+    { "name": "Splitting / joining", "color": "#22C55E" },
+    { "name": "Searching / checking", "color": "#F97316" }
+  ],
+  "items": [
+    { "text": "text.lower() — convert all characters to lowercase", "category": "Cleaning / normalizing" },
+    { "text": "'word1 word2'.split() — break sentence into word list", "category": "Splitting / joining" },
+    { "text": "'cat' in label — check if substring exists", "category": "Searching / checking" },
+    { "text": "text.strip() — remove leading/trailing whitespace", "category": "Cleaning / normalizing" },
+    { "text": "', '.join(['a', 'b', 'c']) — combine list into one string", "category": "Splitting / joining" },
+    { "text": "label.startswith('pos') — check prefix", "category": "Searching / checking" },
+    { "text": "text.replace('\\n', ' ') — swap newlines for spaces", "category": "Cleaning / normalizing" },
+    { "text": "'a,b,c'.split(',') — split on comma delimiter", "category": "Splitting / joining" }
+  ]
+}
+```
+
+---
+
 ## Summary
 
 | Operation | Example |
