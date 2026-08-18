@@ -308,6 +308,19 @@ Run this and read across each row. Notice: sigmoid and tanh flatten (saturate) a
 
 ---
 
+## Practice Questions
+
+**Quick check:** A deep network trained with sigmoid activations stops improving after a few epochs. What's likely happening and how do you fix it?
+> Vanishing gradients. Sigmoid derivatives max out at 0.25 — multiply through 20 layers and the gradient shrinks to nearly zero. Fix: switch hidden layers to ReLU or GELU, which have non-saturating gradients for positive inputs.
+
+**Quick check:** Your network has a "dying ReLU" problem — 40% of neurons output 0 for every input. What caused this and how do you fix it?
+> Large gradient updates pushed those neurons' biases so negative that even the largest inputs produce negative pre-activations (z < 0), making ReLU permanently 0. Fix: use Leaky ReLU (small negative slope keeps neurons alive), reduce learning rate, or add batch normalization.
+
+**Quick check:** What output activation and loss function should you use for a 5-class classification problem?
+> **Softmax** output activation + **CrossEntropyLoss** (in PyTorch, `nn.CrossEntropyLoss` already applies softmax internally — don't apply softmax yourself). The network outputs 5 logits, softmax turns them into probabilities summing to 1.
+
+---
+
 ## Summary
 
 - Activation functions add the **non-linearity** that lets deep networks model complex functions, and their **derivative** controls gradient flow.

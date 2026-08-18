@@ -289,6 +289,22 @@ Run it and read the numbers: the rate climbs during warmup, peaks, then eases ba
 
 ---
 
+## Practice Questions
+
+**Quick check:** Adam uses β₁=0.9 for momentum. What does this mean in practice?
+> The gradient estimate is a weighted average where 90% comes from the running history and only 10% from the current batch gradient. This smooths out noise and accelerates consistent directions.
+
+**Quick check:** Why is AdamW preferred over Adam for training transformers?
+> In Adam, L2 regularization (weight decay) gets divided by the adaptive learning rate, so parameters with large gradients get less regularization. AdamW applies weight decay directly to the weights, independent of the gradient — which is the mathematically correct form.
+
+**Quick check:** Your model loss spikes to NaN at step 3. You're using Adam with lr=1e-3. What's the most likely fix?
+> Reduce the learning rate (try 1e-4 or 3e-4) and add gradient clipping (`clip_grad_norm_(model.parameters(), 1.0)`). Also add a warmup schedule — the very first steps are the most unstable.
+
+**Quick check:** What is the purpose of learning rate warmup at the start of training?
+> At initialization, weights are random and gradients can be large and unreliable. A small lr for the first N steps prevents destructively large updates while the model finds a reasonable starting direction. After warmup, the full lr kicks in.
+
+---
+
 ## Summary
 
 - An **optimizer** converts gradients into weight updates. Base rule: $w \leftarrow w - \eta\nabla L$ (gradient descent).

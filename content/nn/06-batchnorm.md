@@ -246,6 +246,19 @@ Both are regularization/stabilization tools, and both appear in real architectur
 
 ---
 
+## Practice Questions
+
+**Quick check:** You forget to call `model.eval()` before running validation. What effect does this have on BatchNorm and Dropout?
+> BatchNorm will use the current mini-batch statistics instead of the running averages — this injects noise and gives unreliable validation metrics. Dropout will also randomly zero neurons — artificially reducing capacity. Both cause validation metrics to be lower AND noisier than the true performance. Always call `model.eval()` before evaluating.
+
+**Quick check:** After applying BatchNorm, the learnable parameters γ=1 and β=0 initially. Why are these necessary if BatchNorm already normalizes to mean=0, std=1?
+> Because mean=0, std=1 might not be the optimal scale for every layer. γ and β let the network learn the optimal scale and shift for each feature. With just γ and β, the network can effectively "undo" the normalization if needed, giving it full flexibility.
+
+**Quick check:** You're using dropout with p=0.5 at training and get 90% train accuracy. What accuracy do you expect if you forget to call model.eval() at test time?
+> Significantly lower — roughly 70-80%. With p=0.5 dropout active, the network uses only 50% of neurons, halving its effective capacity. The network was calibrated to assume all neurons are present at inference (via the 1/(1-p) scaling).
+
+---
+
 ## Summary
 
 - Deep nets suffer from shifting input distributions (**internal covariate shift**) that slow training.

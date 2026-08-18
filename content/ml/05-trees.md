@@ -286,6 +286,19 @@ Trees rarely win competitions alone — but Random Forest (many trees) and XGBoo
 
 ---
 
+## Practice Questions
+
+**Quick check:** A decision tree achieves 100% training accuracy but 58% validation accuracy. What one hyperparameter would you change first?
+> Set `max_depth` to something like 5-10. Without a depth limit, the tree grows until it perfectly memorizes every training example. Limiting depth forces it to learn general patterns rather than noise.
+
+**Quick check:** Do you need to normalize features before training a decision tree? Why or why not?
+> **No.** Trees split on a single threshold like "feature X > 4.2" — they only care about the *ranking* of values, not their scale. Normalization doesn't change which side of a threshold a value falls on, so it has no effect on tree predictions.
+
+**Quick check:** Random Forest improves over a single decision tree. What are the two key sources of improvement?
+> (1) **Bagging**: each tree is trained on a random bootstrap sample of the data, introducing diversity. (2) **Feature subsampling**: each split only considers a random subset of features, so trees can't all use the same dominant feature. Averaging diverse trees reduces variance dramatically.
+
+---
+
 ## Summary
 
 | Concept | Key point |
