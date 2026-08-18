@@ -306,6 +306,19 @@ print("TOTAL:", count_params([784, 256, 128, 10]))
 
 ---
 
+## Practice Questions
+
+**Quick check:** An MLP has layers: Input(784) → Hidden(256) → Hidden(128) → Output(10). How many total trainable parameters does it have?
+> Layer 1: 784×256 + 256 = 200,960. Layer 2: 256×128 + 128 = 32,896. Layer 3: 128×10 + 10 = 1,290. **Total: 235,146 parameters.** This is a standard MNIST network — relatively small compared to modern deep nets.
+
+**Quick check:** Why does removing activation functions from an MLP make it no better than a single linear layer?
+> Without activations, each layer is just W₂(W₁x + b₁) + b₂ = (W₂W₁)x + (W₂b₁ + b₂) — which is just another linear transformation. Any number of stacked linear layers collapses to a single matrix multiply. Non-linearity is what lets deeper networks learn non-linear decision boundaries.
+
+**Quick check:** A 2-hidden-layer MLP solves XOR while a single perceptron cannot. What do the hidden layer neurons learn that makes this possible?
+> The hidden neurons learn intermediate features that make the XOR problem linearly separable. For example: one hidden neuron might learn "are inputs different?" and another "are both inputs 1?". The output layer then combines these linearly-separable intermediate representations.
+
+---
+
 ## Summary
 
 - An **MLP** stacks layers of neurons; every neuron connects to all neurons in the next layer (**fully connected**).

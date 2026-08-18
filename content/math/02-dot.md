@@ -289,6 +289,19 @@ Run it. You'll see `doc_C` and `doc_A` score highest (they point the same way as
 
 ---
 
+## Practice Questions
+
+**Quick check:** Two CLIP embeddings have cosine similarity 0. What does this tell you about the image and text?
+> They are **orthogonal** — completely unrelated. The image and text describe different concepts with no semantic overlap. A cosine similarity of 0 means the vectors point at 90° to each other, sharing no directional component.
+
+**Quick check:** Vectors a=[3,4] and b=[6,8]. What is their cosine similarity, and what does this tell you?
+> ‖a‖ = √(9+16) = 5. ‖b‖ = √(36+64) = 10. a·b = 18+32 = 50. Cosine similarity = 50/(5×10) = **1.0**. The vectors point in exactly the same direction — b is just 2× longer than a. Cosine similarity ignores scale/magnitude, only measuring directional agreement.
+
+**Quick check:** Why is cosine similarity preferred over dot product for comparing word embeddings?
+> Dot product depends on both direction AND magnitude. Words that appear frequently tend to have larger embedding norms, so dot product would unfairly favor common words regardless of semantic similarity. Cosine similarity normalizes out the magnitude, measuring only directional similarity — which reflects semantic relatedness.
+
+---
+
 ## Summary
 
 - The **dot product** $\vec{a} \cdot \vec{b} = \sum_i a_i b_i$ multiplies matching positions and adds them up. Two vectors in, one number out.
